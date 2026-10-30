@@ -2,4 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+Route::middleware(['web'])->group(function () {
+    Route::inertia('/', 'Welcome')->name('home');
+});

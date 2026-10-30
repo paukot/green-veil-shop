@@ -1,0 +1,97 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy to KVM server if checks pass'
+        required: true
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: "Tests & Quality Checks"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Application
+        run: composer setup
+
+      - name: Run CI Checks
+        run: composer ci:check
+
+      - name: Verify Docker Build
+        run: docker compose build
+
+  deploy:
+    name: "Deploy to KVM Server"
+    needs: ci
+    if: |
+      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
+      github.event_name != 'pull_request' &&
+      (github.event_name != 'workflow_dispatch' || inputs.deploy == true)
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Validate Deployment Secrets
+        run: |
+          missing=()
+          [ -z "${{ secrets.SSH_HOST }}" ] && missing+=("SSH_HOST")
+          [ -z "${{ secrets.SSH_USER }}" ] && missing+=("SSH_USER")
+          [ -z "${{ secrets.SSH_KEY }}" ] && missing+=("SSH_KEY")
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required deployment secrets: ${missing[*]}"
+            echo "Please configure them under Repository Settings -> Secrets and variables -> Actions (SSH_HOST, SSH_USER, SSH_KEY, DEPLOY_PATH)."
+            exit 1
+          fi
+
+      - name: Deploy to KVM Server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE || '' }}
+          script_stop: true
+          envs: GITHUB_SHA
+          script: |
+            cd "${{ secrets.DEPLOY_PATH || '/var/www/green-veil-cosmetic-shop' }}"
+            echo "==> Deploying commit: ${GITHUB_SHA}"
+            chmod +x deploy.sh
+            ./deploy.sh

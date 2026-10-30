@@ -1,0 +1,38 @@
+# VCS / editor
+.git
+.gitignore
+.gitattributes
+.github
+.idea
+.vscode
+
+# Secrets and local env: never bake into the image
+.env
+.env.*
+
+# Rebuilt inside the image
+vendor
+node_modules
+public/build
+public/hot
+public/storage
+bootstrap/ssr
+
+# Local runtime state
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+storage/logs/*
+storage/framework/views/*
+database/*.sqlite
+database/*.sqlite-*
+
+# Not needed in production
+tests
+phpunit.xml
+Dockerfile
+compose*.yaml
+compose*.yml
+.dockerignore
+deploy.sh
+backup.sh
+*.md

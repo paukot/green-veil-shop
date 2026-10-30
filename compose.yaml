@@ -1,0 +1,113 @@
+services:
+    app:
+        build:
+            context: .
+            target: production
+            args:
+                VITE_APP_NAME: ${APP_NAME:-Laravel}
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
+            APP_URL: https://${APP_DOMAIN:-localhost}
+
+            # --- Database & Redis defaults for container networking ---
+            DB_CONNECTION: ${DB_CONNECTION:-mysql}
+            DB_HOST: ${DB_HOST:-mysql}
+            DB_PORT: ${DB_PORT:-3306}
+            DB_DATABASE: ${DB_DATABASE:-green_veil_cosmetic_shop}
+            DB_USERNAME: ${DB_USERNAME:-green_veil}
+            DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+            REDIS_CLIENT: ${REDIS_CLIENT:-phpredis}
+            REDIS_HOST: ${REDIS_HOST:-redis}
+            REDIS_PORT: ${REDIS_PORT:-6379}
+            REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+
+            # --- Domain + automatic HTTPS (Caddy / Let's Encrypt) ---
+            CADDY_AUTO_HTTPS: "off"
+            SSL_MODE: "full"
+
+            # --- Laravel automations on every container start ---
+            AUTORUN_ENABLED: "true"
+            AUTORUN_LARAVEL_MIGRATION: "true"
+            AUTORUN_LARAVEL_STORAGE_LINK: "true"
+
+            # --- PHP ---
+            PHP_OPCACHE_ENABLE: "1"
+            PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+        ports:
+            - "80:8080"
+            - "443:8443"
+            - "443:8443/udp"
+        volumes:
+            - storage:/var/www/html/storage
+            - caddy_data:/data
+            - caddy_config:/config
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        networks:
+            - app-network
+        logging:
+            driver: json-file
+            options:
+                max-size: "10m"
+                max-file: "3"
+
+    mysql:
+        image: mysql:8.4
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE:-green_veil_cosmetic_shop}
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-${DB_PASSWORD:-secret}}
+            MYSQL_USER: ${MYSQL_USER:-green_veil}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secret}
+        ports:
+            - "${FORWARD_DB_PORT:-3306}:3306"
+        volumes:
+            - mysql_data:/var/lib/mysql
+        networks:
+            app-network:
+                aliases:
+                    - mysql
+                    - lerd-mysql
+        healthcheck:
+            test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
+
+    redis:
+        image: redis:alpine
+        restart: unless-stopped
+        command: redis-server --appendonly yes
+        ports:
+            - "${FORWARD_REDIS_PORT:-6379}:6379"
+        volumes:
+            - redis_data:/data
+        networks:
+            app-network:
+                aliases:
+                    - redis
+                    - lerd-redis
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            start_period: 5s
+
+volumes:
+    storage:
+    caddy_data:
+    caddy_config:
+    mysql_data:
+    redis_data:
+
+networks:
+    app-network:
+        driver: bridge
