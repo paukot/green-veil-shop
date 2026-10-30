@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -43,7 +43,7 @@ jobs:
           coverage: none
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '26'
 
@@ -83,7 +83,7 @@ jobs:
           echo "Deployment target: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} (port: ${{ secrets.SSH_PORT || vars.SSH_PORT || 22 }})"
 
       - name: Deploy to KVM Server via SSH
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
