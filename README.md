@@ -70,6 +70,7 @@ Subsequent container updates and migrations run automatically via `./deploy.sh`.
 The application container listens on `127.0.0.1:8080` by default (configurable via `APP_PORT` in `.env`), allowing multiple websites to coexist without port 80/443 conflicts.
 
 **Nginx server block example (`/etc/nginx/sites-available/green-veil.conf`):**
+
 ```nginx
 server {
     server_name shop.yourdomain.com;
@@ -84,6 +85,7 @@ server {
     }
 }
 ```
+
 Run `sudo certbot --nginx -d shop.yourdomain.com` for automatic SSL.
 
 ---

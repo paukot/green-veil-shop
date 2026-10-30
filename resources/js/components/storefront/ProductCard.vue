@@ -39,7 +39,6 @@ const formattedComparePrice = computed(() => {
         currency: 'EUR',
     }).format(props.product.compare_at_price);
 });
-
 </script>
 
 <template>
