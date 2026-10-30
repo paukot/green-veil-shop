@@ -37,8 +37,7 @@ services:
             PHP_OPCACHE_ENABLE: '1'
             PHP_UPLOAD_MAX_FILE_SIZE: '100M'
         ports:
-            # Bind to localhost so existing server reverse proxy (Nginx, Caddy, etc.) proxies to it
-            - '${APP_PORT:-127.0.0.1:8080}:8080'
+            - '${APP_PORT:-8080}:8080'
         volumes:
             - storage:/var/www/html/storage
             - caddy_data:/data
