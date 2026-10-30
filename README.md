@@ -57,13 +57,34 @@ git clone <REPO_URL> /var/www/green-veil-cosmetic-shop
 cd /var/www/green-veil-cosmetic-shop
 
 cp .env.docker.example .env
-# Edit .env with your domain, APP_KEY, and secure DB credentials
+# Edit .env with your domain, APP_KEY, APP_PORT, and secure DB credentials
 
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
 Subsequent container updates and migrations run automatically via `./deploy.sh`.
+
+### 3. Host Reverse Proxy (Nginx / Caddy)
+
+The application container listens on `127.0.0.1:8080` by default (configurable via `APP_PORT` in `.env`), allowing multiple websites to coexist without port 80/443 conflicts.
+
+**Nginx server block example (`/etc/nginx/sites-available/green-veil.conf`):**
+```nginx
+server {
+    server_name shop.yourdomain.com;
+    client_max_body_size 100M;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+Run `sudo certbot --nginx -d shop.yourdomain.com` for automatic SSL.
 
 ---
 

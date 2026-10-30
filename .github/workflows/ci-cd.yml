@@ -76,9 +76,11 @@ jobs:
 
           if [ ${#missing[@]} -gt 0 ]; then
             echo "::error::Missing required deployment secrets: ${missing[*]}"
-            echo "Please configure them under Repository Settings -> Secrets and variables -> Actions (SSH_HOST, SSH_USER, SSH_KEY, DEPLOY_PATH)."
+            echo "Please configure them under Repository Settings -> Secrets and variables -> Actions (SSH_HOST, SSH_USER, SSH_KEY, DEPLOY_PATH, SSH_PORT)."
             exit 1
           fi
+
+          echo "Deployment target: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} (port: ${{ secrets.SSH_PORT || vars.SSH_PORT || 22 }})"
 
       - name: Deploy to KVM Server via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -86,12 +88,12 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
+          port: ${{ secrets.SSH_PORT || vars.SSH_PORT || 22 }}
           passphrase: ${{ secrets.SSH_PASSPHRASE || '' }}
           script_stop: true
           envs: GITHUB_SHA
           script: |
-            cd "${{ secrets.DEPLOY_PATH || '/var/www/green-veil-cosmetic-shop' }}"
+            cd "${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH || '/var/www/green-veil-cosmetic-shop' }}"
             echo "==> Deploying commit: ${GITHUB_SHA}"
             chmod +x deploy.sh
             ./deploy.sh
