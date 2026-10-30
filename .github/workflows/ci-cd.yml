@@ -49,7 +49,7 @@ jobs:
 
       - name: Setup Application
         run: composer setup
-
+#     TODO: enable after fixes
 #      - name: Run CI Checks
 #        run: composer ci:check
 
