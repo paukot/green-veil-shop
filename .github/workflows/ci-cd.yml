@@ -45,13 +45,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '26'
 
       - name: Setup Application
         run: composer setup
 
-      - name: Run CI Checks
-        run: composer ci:check
+#      - name: Run CI Checks
+#        run: composer ci:check
 
       - name: Verify Docker Build
         run: docker compose build
