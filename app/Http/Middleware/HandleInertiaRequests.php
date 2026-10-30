@@ -2,7 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Category;
+use App\Services\CartService;
+use App\Services\FavouriteService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -35,11 +39,59 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $cartSummary = app(CartService::class)->getSummary($request);
+        $cartCount = $cartSummary['count'];
+        $cartSubtotal = $cartSummary['subtotal'];
+
+        $navigation = Cache::remember('storefront_category_navigation', 3600, function () {
+            try {
+                return Category::query()
+                    ->where('is_active', true)
+                    ->whereNull('parent_id')
+                    ->orderBy('sort_order')
+                    ->with([
+                        'children' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order'),
+                    ])
+                    ->get(['id', 'slug', 'name', 'parent_id'])
+                    ->map(fn (Category $cat) => [
+                        'id' => $cat->id,
+                        'slug' => $cat->slug,
+                        'name' => $cat->name,
+                        'children' => $cat->children->map(fn (Category $child) => [
+                            'id' => $child->id,
+                            'slug' => $child->slug,
+                            'name' => $child->name,
+                        ])->values()->all(),
+                    ])
+                    ->values()
+                    ->all();
+            } catch (\Throwable) {
+                return [];
+            }
+        });
+
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'name' => config('app.name', 'Green Veil'),
+            'navigation' => $navigation,
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at?->toISOString(),
+                    'created_at' => $user->created_at?->toISOString(),
+                ] : null,
+            ],
+            'cart' => [
+                'count' => (int) $cartCount,
+                'subtotal' => round((float) $cartSubtotal, 2),
+            ],
+            'favourites' => app(FavouriteService::class)->getFavouriteProductIds($request),
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
             ],
         ];
     }

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             ProductImageSeeder::class,
             DeliveryOptionSeeder::class,
+            PaymentOptionSeeder::class,
             PromotionSeeder::class,
             SliderItemSeeder::class,
             OrderSeeder::class,

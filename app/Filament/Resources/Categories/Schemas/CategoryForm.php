@@ -52,6 +52,7 @@ class CategoryForm
                         FileUpload::make('image')
                             ->label('Category Image')
                             ->image()
+                            ->disk('public')
                             ->visibility('public')
                             ->directory('categories')
                             ->nullable(),

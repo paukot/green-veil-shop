@@ -28,6 +28,7 @@ class ImagesRelationManager extends RelationManager
                     ->label('Image')
                     ->image()
                     ->required()
+                    ->disk('public')
                     ->visibility('public')
                     ->directory('products/gallery')
                     ->columnSpanFull(),
@@ -67,6 +68,7 @@ class ImagesRelationManager extends RelationManager
                             ->label('Image')
                             ->image()
                             ->required()
+                            ->disk('public')
                             ->visibility('public')
                             ->directory('products/gallery'),
                         TextInput::make('sort_order')

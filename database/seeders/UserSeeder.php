@@ -11,7 +11,7 @@ class UserSeeder extends Seeder
     {
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
-            ['name' => 'Admin', 'password' => 'password', 'email_verified_at' => now()],
+            ['name' => 'Admin', 'password' => 'password', 'is_admin' => true, 'email_verified_at' => now()],
         );
     }
 }

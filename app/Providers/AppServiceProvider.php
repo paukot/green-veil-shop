@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Payments\Contracts\PaymentGateway;
+use App\Payments\Stripe\StripeGateway;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Stripe\StripeClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +18,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(StripeClient::class, function () {
+            $secretKey = config('services.stripe.secret') ?: 'sk_test_placeholder';
+
+            return new StripeClient($secretKey);
+        });
+
+        $this->app->bind(PaymentGateway::class, StripeGateway::class);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,11 @@ class ProductImageFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'product_id' => Product::factory(),
+            'path' => 'products/gallery/'.fake()->uuid().'.jpg',
+            'alt_text' => fake()->sentence(3),
+            'sort_order' => fake()->numberBetween(0, 10),
+            'is_primary' => false,
         ];
     }
 }

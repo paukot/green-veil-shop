@@ -14,14 +14,11 @@ declare module 'vite/client' {
     }
 }
 
+import type { SharedProps } from '@/types/storefront';
+
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
-        sharedPageProps: {
-            name: string;
-            auth: Auth;
-            sidebarOpen: boolean;
-            [key: string]: unknown;
-        };
+        sharedPageProps: SharedProps;
     }
 }
 

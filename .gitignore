@@ -36,6 +36,7 @@ yarn-error.log
 /.codex
 /.cursor
 /.gemini
+/skills
 /.factory
 /.grok
 /.junie
@@ -48,3 +49,7 @@ yarn-error.log
 /opencode.json
 /opencode.jsonc
 .env.before_lerd
+
+CHECKOUT_PLAN.md
+STOREFRONT_PLAN.md
+GEMINI.md

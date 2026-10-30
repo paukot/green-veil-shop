@@ -12,15 +12,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
+ * @property string $public_id
  * @property string $number
  * @property int|null $user_id
  * @property int|null $delivery_option_id
+ * @property int|null $payment_option_id
  * @property int|null $promotion_id
  * @property OrderStatus $status
  * @property PaymentStatus $payment_status
+ * @property string|null $stripe_session_id
  * @property string|null $stripe_payment_intent_id
  * @property string|null $stripe_charge_id
  * @property float $subtotal
@@ -35,21 +39,40 @@ use Illuminate\Support\Carbon;
  * @property array<string, string>|null $shipping_address
  * @property array<string, string>|null $billing_address
  * @property string|null $notes
+ * @property Carbon|null $placed_at
+ * @property Carbon|null $paid_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  */
 #[Fillable([
-    'number', 'user_id', 'delivery_option_id', 'promotion_id',
-    'status', 'payment_status', 'stripe_payment_intent_id', 'stripe_charge_id',
+    'public_id', 'number', 'user_id', 'delivery_option_id', 'payment_option_id', 'promotion_id',
+    'status', 'payment_status', 'stripe_session_id', 'stripe_payment_intent_id', 'stripe_charge_id',
     'subtotal', 'delivery_amount', 'discount_amount', 'tax_amount', 'total', 'currency',
     'customer_name', 'customer_email', 'customer_phone',
-    'shipping_address', 'billing_address', 'notes',
+    'shipping_address', 'billing_address', 'notes', 'placed_at', 'paid_at',
 ])]
 class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
     use HasFactory, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Order $order): void {
+            if (empty($order->public_id)) {
+                $order->public_id = (string) Str::ulid();
+            }
+
+            if (empty($order->number)) {
+                $order->number = static::generateNumber();
+            }
+
+            if (empty($order->placed_at)) {
+                $order->placed_at = now();
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -63,6 +86,8 @@ class Order extends Model
             'total' => 'decimal:2',
             'shipping_address' => 'array',
             'billing_address' => 'array',
+            'placed_at' => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 
@@ -78,6 +103,12 @@ class Order extends Model
         return $this->belongsTo(DeliveryOption::class);
     }
 
+    /** @return BelongsTo<PaymentOption, $this> */
+    public function paymentOption(): BelongsTo
+    {
+        return $this->belongsTo(PaymentOption::class);
+    }
+
     /** @return BelongsTo<Promotion, $this> */
     public function promotion(): BelongsTo
     {
@@ -88,6 +119,12 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /** @return HasMany<Payment, $this> */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 
     /** Generate a unique, human-readable order number. */

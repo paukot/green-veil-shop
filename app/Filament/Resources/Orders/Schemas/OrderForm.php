@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Orders\Schemas;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,6 +16,9 @@ class OrderForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isTest = str_starts_with((string) config('services.stripe.secret'), 'sk_test_') || app()->environment('local', 'testing');
+        $stripeBase = $isTest ? 'https://dashboard.stripe.com/test/' : 'https://dashboard.stripe.com/';
+
         return $schema
             ->columns(3)
             ->components([
@@ -39,10 +43,50 @@ class OrderForm
                                         TextInput::make('currency')
                                             ->label('Currency')
                                             ->disabled(),
-                                        TextInput::make('stripe_payment_intent_id')
-                                            ->label('Stripe Payment Intent')
+                                        TextInput::make('placed_at')
+                                            ->label('Placed At')
+                                            ->disabled(),
+                                        TextInput::make('paid_at')
+                                            ->label('Paid At')
                                             ->disabled()
-                                            ->columnSpan(2),
+                                            ->placeholder('Unpaid'),
+                                    ]),
+                            ]),
+
+                        Section::make('Payment & Gateway Details')
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
+                                        TextInput::make('paymentOption.name')
+                                            ->label('Payment Method')
+                                            ->disabled()
+                                            ->placeholder('—'),
+                                        TextInput::make('stripe_session_id')
+                                            ->label('Stripe Checkout Session ID')
+                                            ->disabled()
+                                            ->placeholder('—')
+                                            ->suffixAction(
+                                                Action::make('openStripeSession')
+                                                    ->icon('heroicon-o-arrow-top-right-on-square')
+                                                    ->tooltip('Open Session in Stripe Dashboard')
+                                                    ->url(fn (?string $state): ?string => $state ? "{$stripeBase}checkout/sessions/{$state}" : null, shouldOpenInNewTab: true)
+                                                    ->visible(fn (?string $state): bool => filled($state)),
+                                            ),
+                                        TextInput::make('stripe_payment_intent_id')
+                                            ->label('Stripe Payment Intent ID')
+                                            ->disabled()
+                                            ->placeholder('—')
+                                            ->suffixAction(
+                                                Action::make('openStripePaymentIntent')
+                                                    ->icon('heroicon-o-arrow-top-right-on-square')
+                                                    ->tooltip('Open Payment in Stripe Dashboard')
+                                                    ->url(fn (?string $state): ?string => $state ? "{$stripeBase}payments/{$state}" : null, shouldOpenInNewTab: true)
+                                                    ->visible(fn (?string $state): bool => filled($state)),
+                                            ),
+                                        TextInput::make('stripe_charge_id')
+                                            ->label('Stripe Charge ID')
+                                            ->disabled()
+                                            ->placeholder('—'),
                                     ]),
                             ]),
 
@@ -102,7 +146,7 @@ class OrderForm
 
                         Section::make('Delivery')
                             ->schema([
-                                TextInput::make('deliveryOption.code')
+                                TextInput::make('deliveryOption.name')
                                     ->label('Delivery Method')
                                     ->disabled()
                                     ->placeholder('—'),

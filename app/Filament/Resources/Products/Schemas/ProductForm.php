@@ -54,6 +54,7 @@ class ProductForm
                                 FileUpload::make('main_image')
                                     ->label('Main Image')
                                     ->image()
+                                    ->disk('public')
                                     ->visibility('public')
                                     ->directory('products')
                                     ->nullable()

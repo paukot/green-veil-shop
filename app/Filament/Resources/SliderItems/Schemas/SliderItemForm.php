@@ -26,6 +26,7 @@ class SliderItemForm
                                     ->label('Slider Image')
                                     ->image()
                                     ->required()
+                                    ->disk('public')
                                     ->visibility('public')
                                     ->directory('slider')
                                     ->columnSpanFull()

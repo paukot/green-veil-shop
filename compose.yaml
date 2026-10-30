@@ -25,21 +25,21 @@ services:
             REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
 
             # --- Domain + automatic HTTPS (Caddy / Let's Encrypt) ---
-            CADDY_AUTO_HTTPS: "off"
-            SSL_MODE: "full"
+            CADDY_AUTO_HTTPS: 'off'
+            SSL_MODE: 'full'
 
             # --- Laravel automations on every container start ---
-            AUTORUN_ENABLED: "true"
-            AUTORUN_LARAVEL_MIGRATION: "true"
-            AUTORUN_LARAVEL_STORAGE_LINK: "true"
+            AUTORUN_ENABLED: 'true'
+            AUTORUN_LARAVEL_MIGRATION: 'true'
+            AUTORUN_LARAVEL_STORAGE_LINK: 'true'
 
             # --- PHP ---
-            PHP_OPCACHE_ENABLE: "1"
-            PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+            PHP_OPCACHE_ENABLE: '1'
+            PHP_UPLOAD_MAX_FILE_SIZE: '100M'
         ports:
-            - "80:8080"
-            - "443:8443"
-            - "443:8443/udp"
+            - '80:8080'
+            - '443:8443'
+            - '443:8443/udp'
         volumes:
             - storage:/var/www/html/storage
             - caddy_data:/data
@@ -54,8 +54,8 @@ services:
         logging:
             driver: json-file
             options:
-                max-size: "10m"
-                max-file: "3"
+                max-size: '10m'
+                max-file: '3'
 
     mysql:
         image: mysql:8.4
@@ -66,7 +66,7 @@ services:
             MYSQL_USER: ${MYSQL_USER:-green_veil}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secret}
         ports:
-            - "${FORWARD_DB_PORT:-3306}:3306"
+            - '${FORWARD_DB_PORT:-3306}:3306'
         volumes:
             - mysql_data:/var/lib/mysql
         networks:
@@ -75,7 +75,11 @@ services:
                     - mysql
                     - lerd-mysql
         healthcheck:
-            test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
+            test:
+                [
+                    'CMD-SHELL',
+                    'mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" || exit 1',
+                ]
             interval: 5s
             timeout: 5s
             retries: 10
@@ -86,7 +90,7 @@ services:
         restart: unless-stopped
         command: redis-server --appendonly yes
         ports:
-            - "${FORWARD_REDIS_PORT:-6379}:6379"
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
             - redis_data:/data
         networks:
@@ -95,7 +99,7 @@ services:
                     - redis
                     - lerd-redis
         healthcheck:
-            test: ["CMD", "redis-cli", "ping"]
+            test: ['CMD', 'redis-cli', 'ping']
             interval: 5s
             timeout: 5s
             retries: 5
