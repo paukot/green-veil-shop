@@ -130,6 +130,6 @@ class Order extends Model
     /** Generate a unique, human-readable order number. */
     public static function generateNumber(): string
     {
-        return 'GV-'.strtoupper(substr(uniqid(), -6));
+        return 'GV-'.strtoupper(substr(uniqid('', true), -6));
     }
 }

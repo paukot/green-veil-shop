@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\SimpleProductResource;
 use App\Models\Product;
 use App\Services\FavouriteService;
 use App\Services\ProductCatalogService;
@@ -21,12 +22,8 @@ class FavouriteController extends Controller
     {
         $products = $this->favouriteService->getFavouriteProducts($request);
 
-        $formatted = $products->map(
-            fn (Product $product) => $this->catalogService->formatProductCard($product)
-        )->values();
-
         return Inertia::render('Favourites/Index', [
-            'products' => $formatted,
+            'products' => SimpleProductResource::collection($products)->resolve(),
         ]);
     }
 

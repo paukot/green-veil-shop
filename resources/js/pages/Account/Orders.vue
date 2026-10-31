@@ -81,11 +81,11 @@ function getPaymentStatusClass(paymentStatus: string): string {
                         </p>
                     </div>
                     <div
-                        v-if="orders.total > 0"
+                        v-if="orders.meta.total > 0"
                         class="text-charcoal-500 text-xs font-medium"
                     >
-                        Showing {{ orders.total }}
-                        {{ orders.total === 1 ? 'order' : 'orders' }}
+                        Showing {{ orders.meta.total }}
+                        {{ orders.meta.total === 1 ? 'order' : 'orders' }}
                     </div>
                 </div>
             </div>
@@ -127,7 +127,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
                         href="/products"
                         class="inline-flex items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900"
                     >
-                        Explore Botanicals
+                        Explore Botanical
                     </Link>
                 </div>
             </div>
@@ -265,7 +265,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
                 </article>
 
                 <!-- Pagination Component -->
-                <Pagination :links="orders.links" />
+                <Pagination :links="orders.meta.links" />
             </div>
         </div>
     </AccountLayout>

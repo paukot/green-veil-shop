@@ -20,9 +20,7 @@ function formatStatusLabel(status: string): string {
 }
 
 const isUnpaid = computed(
-    () =>
-        props.order.payment_status === 'unpaid' &&
-        props.order.status !== 'cancelled',
+    () => props.payment_status === 'unpaid' && props.status !== 'cancelled',
 );
 
 const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
@@ -66,7 +64,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
 </script>
 
 <template>
-    <Head :title="`Order ${order.number} | Green Veil`" />
+    <Head :title="`Order ${number} | Green Veil`" />
 
     <AccountLayout>
         <div class="space-y-6">
@@ -105,36 +103,31 @@ function getPaymentStatusClass(paymentStatus: string): string {
                             <h2
                                 class="font-serif text-2xl text-sage-900 sm:text-3xl"
                             >
-                                Order {{ order.number }}
+                                Order {{ number }}
                             </h2>
                             <!-- Order Status Badge -->
                             <span
                                 class="inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-medium"
-                                :class="getOrderStatusClass(order.status)"
+                                :class="getOrderStatusClass(status)"
                             >
-                                {{ formatStatusLabel(order.status) }}
+                                {{ formatStatusLabel(status) }}
                             </span>
                             <!-- Payment Status Badge -->
                             <span
                                 class="inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-medium"
-                                :class="
-                                    getPaymentStatusClass(order.payment_status)
-                                "
+                                :class="getPaymentStatusClass(payment_status)"
                             >
                                 Payment:
-                                {{ formatStatusLabel(order.payment_status) }}
+                                {{ formatStatusLabel(payment_status) }}
                             </span>
                         </div>
                         <p class="text-charcoal-600 mt-2 text-xs sm:text-sm">
                             Placed on
                             <span class="font-medium text-charcoal-900">{{
-                                order.placed_at
+                                placed_at
                             }}</span>
-                            <span
-                                v-if="order.paid_at"
-                                class="text-charcoal-500"
-                            >
-                                • Paid on {{ order.paid_at }}
+                            <span v-if="paid_at" class="text-charcoal-500">
+                                • Paid on {{ paid_at }}
                             </span>
                         </p>
                     </div>
@@ -142,7 +135,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
                     <!-- Retry Payment CTA if pending Stripe payment -->
                     <div v-if="isUnpaid && isStripe" class="shrink-0">
                         <Link
-                            :href="`/checkout/retry/${order.public_id}`"
+                            :href="`/checkout/retry/${public_id}`"
                             method="post"
                             as="button"
                             class="inline-flex w-full items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 sm:w-auto"
@@ -263,26 +256,22 @@ function getPaymentStatusClass(paymentStatus: string): string {
                         <div class="text-charcoal-600 flex justify-between">
                             <span>Subtotal</span>
                             <span class="font-medium text-charcoal-900">{{
-                                formatCurrency(order.subtotal)
+                                formatCurrency(subtotal)
                             }}</span>
                         </div>
                         <div
-                            v-if="order.discount_amount > 0"
+                            v-if="discount_amount > 0"
                             class="flex justify-between font-medium text-emerald-700"
                         >
                             <span>Promotion Discount</span>
-                            <span
-                                >-{{
-                                    formatCurrency(order.discount_amount)
-                                }}</span
-                            >
+                            <span>-{{ formatCurrency(discount_amount) }}</span>
                         </div>
                         <div class="text-charcoal-600 flex justify-between">
                             <span>Delivery</span>
                             <span class="font-medium text-charcoal-900">
                                 {{
-                                    order.delivery_amount > 0
-                                        ? formatCurrency(order.delivery_amount)
+                                    delivery_amount > 0
+                                        ? formatCurrency(delivery_amount)
                                         : 'Free'
                                 }}
                             </span>
@@ -291,14 +280,14 @@ function getPaymentStatusClass(paymentStatus: string): string {
                             class="text-charcoal-500 flex justify-between text-[11px]"
                         >
                             <span>Tax (Included VAT)</span>
-                            <span>{{ formatCurrency(order.tax_amount) }}</span>
+                            <span>{{ formatCurrency(tax_amount) }}</span>
                         </div>
                         <div
                             class="flex justify-between border-t border-cream-200 pt-3 text-sm font-semibold text-sage-900"
                         >
                             <span class="font-serif">Total</span>
                             <span class="text-base">{{
-                                formatCurrency(order.total)
+                                formatCurrency(total)
                             }}</span>
                         </div>
                     </div>
@@ -318,22 +307,19 @@ function getPaymentStatusClass(paymentStatus: string): string {
                     </h3>
                     <div class="mt-3 space-y-1 text-xs text-charcoal-700">
                         <p class="text-sm font-medium text-charcoal-900">
-                            {{ order.customer_name }}
+                            {{ customer_name }}
                         </p>
-                        <p>{{ order.shipping_address.line1 }}</p>
-                        <p v-if="order.shipping_address.line2">
-                            {{ order.shipping_address.line2 }}
+                        <p>{{ shipping_address.line1 }}</p>
+                        <p v-if="shipping_address.line2">
+                            {{ shipping_address.line2 }}
                         </p>
                         <p>
-                            {{ order.shipping_address.city }},
-                            {{ order.shipping_address.postal_code }}
+                            {{ shipping_address.city }},
+                            {{ shipping_address.postal_code }}
                         </p>
-                        <p>{{ order.shipping_address.country }}</p>
-                        <p
-                            v-if="order.customer_phone"
-                            class="text-charcoal-500 pt-1"
-                        >
-                            Phone: {{ order.customer_phone }}
+                        <p>{{ shipping_address.country }}</p>
+                        <p v-if="customer_phone" class="text-charcoal-500 pt-1">
+                            Phone: {{ customer_phone }}
                         </p>
                     </div>
 
@@ -379,19 +365,17 @@ function getPaymentStatusClass(paymentStatus: string): string {
                             >
                             <span
                                 class="ml-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium"
-                                :class="
-                                    getPaymentStatusClass(order.payment_status)
-                                "
+                                :class="getPaymentStatusClass(payment_status)"
                             >
-                                {{ formatStatusLabel(order.payment_status) }}
+                                {{ formatStatusLabel(payment_status) }}
                             </span>
                         </div>
-                        <div v-if="order.notes" class="pt-2">
+                        <div v-if="notes" class="pt-2">
                             <span class="font-medium text-charcoal-900"
                                 >Order Notes:</span
                             >
                             <p class="text-charcoal-600 mt-0.5 italic">
-                                "{{ order.notes }}"
+                                "{{ notes }}"
                             </p>
                         </div>
                     </div>

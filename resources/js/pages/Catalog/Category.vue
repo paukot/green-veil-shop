@@ -86,11 +86,9 @@ function onSortChange(sort: string) {
 
         <!-- Category Header Banner -->
         <section
-            class="border-b border-cream-200 bg-gradient-to-b from-cream-100 to-cream-50 py-10 sm:py-14"
+            class="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50 py-10 sm:py-14"
         >
-            <div
-                class="mx-auto max-w-3xl max-w-7xl px-4 text-center sm:px-6 lg:px-8"
-            >
+            <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
                 <span
                     class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
                 >
@@ -142,10 +140,10 @@ function onSortChange(sort: string) {
                 <div>
                     Showing
                     <span class="font-semibold text-charcoal-900">{{
-                        products.total
+                        products.meta.total
                     }}</span>
                     {{
-                        products.total === 1
+                        products.meta.total === 1
                             ? 'botanical product'
                             : 'botanical products'
                     }}
@@ -167,7 +165,7 @@ function onSortChange(sort: string) {
                         "
                         class="rounded-md border border-cream-300 bg-white px-3 py-1.5 text-xs text-charcoal-800 focus:ring-1 focus:ring-sage-500 focus:outline-none"
                     >
-                        <option value="featured">Featured Botanicals</option>
+                        <option value="featured">Featured Botanical</option>
                         <option value="newest">Newest</option>
                         <option value="price_asc">Price: Low to High</option>
                         <option value="price_desc">Price: High to Low</option>
@@ -181,7 +179,7 @@ function onSortChange(sort: string) {
                 <ProductGrid :products="products.data" />
 
                 <!-- Pagination -->
-                <Pagination :links="products.links" />
+                <Pagination :links="products.meta.links" />
             </div>
 
             <!-- Empty State -->

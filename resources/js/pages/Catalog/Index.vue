@@ -46,11 +46,9 @@ const pageTitle = computed(() => {
     <StorefrontLayout>
         <!-- Page Header -->
         <section
-            class="border-b border-cream-200 bg-gradient-to-b from-cream-100 to-cream-50 py-10 sm:py-12"
+            class="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50 py-10 sm:py-12"
         >
-            <div
-                class="mx-auto max-w-3xl max-w-7xl px-4 text-center sm:px-6 lg:px-8"
-            >
+            <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
                 <span
                     class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
                 >
@@ -85,9 +83,9 @@ const pageTitle = computed(() => {
             >
                 <div class="text-charcoal-600 text-xs">
                     <span class="font-semibold text-charcoal-900">{{
-                        products.total
+                        products.meta.total
                     }}</span>
-                    {{ products.total === 1 ? 'product' : 'products' }}
+                    {{ products.meta.total === 1 ? 'product' : 'products' }}
                 </div>
                 <button
                     type="button"
@@ -139,10 +137,10 @@ const pageTitle = computed(() => {
                         <div>
                             Showing
                             <span class="font-semibold text-charcoal-900">{{
-                                products.total
+                                products.meta.total
                             }}</span>
                             {{
-                                products.total === 1
+                                products.meta.total === 1
                                     ? 'botanical product'
                                     : 'botanical products'
                             }}
@@ -154,7 +152,7 @@ const pageTitle = computed(() => {
                         <ProductGrid :products="products.data" />
 
                         <!-- Pagination -->
-                        <Pagination :links="products.links" />
+                        <Pagination :links="products.meta.links" />
                     </div>
 
                     <!-- Empty State -->
@@ -180,7 +178,7 @@ const pageTitle = computed(() => {
                             </svg>
                         </div>
                         <h2 class="mb-2 font-serif text-xl text-charcoal-900">
-                            No matching botanicals
+                            No matching botanical
                         </h2>
                         <p
                             class="text-charcoal-600 mb-6 text-xs font-light sm:text-sm"

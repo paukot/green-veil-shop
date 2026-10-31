@@ -11,9 +11,9 @@ const maxPolls = 10;
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
 
 const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
-const isPaid = computed(() => props.order.payment_status === 'paid');
+const isPaid = computed(() => props.payment_status === 'paid');
 const isPendingPayment = computed(
-    () => props.order.payment_status === 'unpaid' && isStripe.value,
+    () => props.payment_status === 'unpaid' && isStripe.value,
 );
 
 function pollOrderStatus() {
@@ -55,7 +55,7 @@ function formatCurrency(amount: number): string {
 </script>
 
 <template>
-    <Head :title="`Order ${order.number} Confirmed | Green Veil`" />
+    <Head :title="`Order ${number} Confirmed | Green Veil`" />
 
     <StorefrontLayout>
         <section class="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
@@ -160,19 +160,19 @@ function formatCurrency(amount: number): string {
                     <h1
                         class="mt-3 font-serif text-3xl text-charcoal-900 sm:text-4xl"
                     >
-                        Thank You, {{ order.customer_name }}
+                        Thank You, {{ customer_name }}
                     </h1>
                     <p class="text-charcoal-500 mt-2 text-xs sm:text-sm">
                         Order reference:
                         <span
                             class="font-mono font-semibold text-charcoal-900"
-                            >{{ order.number }}</span
+                            >{{ number }}</span
                         >
                     </p>
                     <p class="text-charcoal-400 mt-1 text-xs">
                         A confirmation receipt will be sent to
                         <span class="font-medium text-charcoal-700">{{
-                            order.customer_email
+                            customer_email
                         }}</span>
                     </p>
                 </div>
@@ -190,7 +190,7 @@ function formatCurrency(amount: number): string {
                     <p v-else>
                         🌿 Your payment is being verified in the background. A
                         formal receipt will be emailed to
-                        {{ order.customer_email }} as soon as Stripe completes
+                        {{ customer_email }} as soon as Stripe completes
                         processing.
                     </p>
                 </div>
@@ -267,19 +267,15 @@ function formatCurrency(amount: number): string {
                         <div class="text-charcoal-600 flex justify-between">
                             <span>Subtotal</span>
                             <span class="font-medium text-charcoal-900">{{
-                                formatCurrency(order.subtotal)
+                                formatCurrency(subtotal)
                             }}</span>
                         </div>
                         <div
-                            v-if="order.discount_amount > 0"
+                            v-if="discount_amount > 0"
                             class="flex justify-between font-medium text-emerald-700"
                         >
                             <span>Botanical Promotion Discount</span>
-                            <span
-                                >-{{
-                                    formatCurrency(order.discount_amount)
-                                }}</span
-                            >
+                            <span>-{{ formatCurrency(discount_amount) }}</span>
                         </div>
                         <div class="text-charcoal-600 flex justify-between">
                             <span
@@ -288,16 +284,14 @@ function formatCurrency(amount: number): string {
                                 }})</span
                             >
                             <span
-                                v-if="order.delivery_amount === 0"
+                                v-if="delivery_amount === 0"
                                 class="font-semibold text-emerald-800"
                                 >FREE</span
                             >
                             <span
                                 v-else
                                 class="font-medium text-charcoal-900"
-                                >{{
-                                    formatCurrency(order.delivery_amount)
-                                }}</span
+                                >{{ formatCurrency(delivery_amount) }}</span
                             >
                         </div>
                         <div
@@ -309,7 +303,7 @@ function formatCurrency(amount: number): string {
                             <span
                                 class="text-2xl font-semibold text-charcoal-900"
                             >
-                                {{ formatCurrency(order.total) }}
+                                {{ formatCurrency(total) }}
                             </span>
                         </div>
                     </div>
@@ -326,23 +320,23 @@ function formatCurrency(amount: number): string {
                             Shipping Destination
                         </h3>
                         <p class="font-medium text-charcoal-900">
-                            {{ order.customer_name }}
+                            {{ customer_name }}
                         </p>
                         <p class="text-charcoal-600">
-                            {{ order.shipping_address.line1 }}
+                            {{ shipping_address.line1 }}
                         </p>
                         <p
-                            v-if="order.shipping_address.line2"
+                            v-if="shipping_address.line2"
                             class="text-charcoal-600"
                         >
-                            {{ order.shipping_address.line2 }}
+                            {{ shipping_address.line2 }}
                         </p>
                         <p class="text-charcoal-600">
-                            {{ order.shipping_address.city }},
-                            {{ order.shipping_address.postal_code }}
+                            {{ shipping_address.city }},
+                            {{ shipping_address.postal_code }}
                         </p>
                         <p class="text-charcoal-600">
-                            {{ order.shipping_address.country }}
+                            {{ shipping_address.country }}
                         </p>
                     </div>
 

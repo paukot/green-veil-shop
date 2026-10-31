@@ -75,30 +75,4 @@ class ProductCatalogService
 
         return $query;
     }
-
-    /**
-     * Map a Product model instance into a clean storefront card array.
-     *
-     * @return array<string, mixed>
-     */
-    public function formatProductCard(Product $product): array
-    {
-        return [
-            'id' => $product->id,
-            'sku' => $product->sku,
-            'slug' => $product->slug,
-            'name' => $product->name,
-            'short_description' => $product->short_description,
-            'price' => (float) $product->price,
-            'compare_at_price' => $product->compare_at_price ? (float) $product->compare_at_price : null,
-            'discount_percentage' => $product->discountPercentage(),
-            'main_image' => $product->main_image,
-            'category' => $product->category ? [
-                'id' => $product->category->id,
-                'slug' => $product->category->slug,
-                'name' => $product->category->name,
-            ] : null,
-            'is_in_stock' => $product->isInStock(),
-        ];
-    }
 }

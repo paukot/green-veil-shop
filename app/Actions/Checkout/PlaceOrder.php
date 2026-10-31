@@ -26,15 +26,13 @@ class PlaceOrder
     /**
      * Create an order from the current cart with stock reservation and price snapshots.
      *
-     * @throws ValidationException
+     * @throws ValidationException|\Throwable
      */
     public function execute(Request $request, CheckoutData $data): Order
     {
         return DB::transaction(function () use ($request, $data): Order {
             // Check raw cart to verify no inactive or non-existent products are being ordered
-            $rawCart = $request->user()
-                ? CartItem::where('user_id', $request->user()->id)->pluck('quantity', 'product_id')->all()
-                : ($request->hasSession() ? $request->session()->get('cart', []) : []);
+            $rawCart = $this->getRawCart($request);
 
             if (empty($rawCart)) {
                 throw ValidationException::withMessages([
@@ -194,5 +192,20 @@ class PlaceOrder
 
             return $order;
         });
+    }
+
+    private function getRawCart(Request $request): array
+    {
+        if ($user = $request->user()) {
+            return CartItem::where('user_id', $user->id)
+                ->pluck('quantity', 'product_id')
+                ->all();
+        }
+
+        if ($request->hasSession()) {
+            return $request->session()->get('cart', []);
+        }
+
+        return [];
     }
 }
