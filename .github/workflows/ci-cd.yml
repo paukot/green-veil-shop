@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       deploy:
-        description: 'Deploy to KVM server if checks pass'
+        description: 'Deploy to cloud server if checks pass'
         required: true
         type: boolean
         default: true
@@ -57,7 +57,7 @@ jobs:
         run: docker compose build
 
   deploy:
-    name: "Deploy to KVM Server"
+    name: "Deploy to Cloud Server"
     needs: ci
     if: |
       (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
