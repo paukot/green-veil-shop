@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AccountLayout from '@/layouts/AccountLayout.vue';
 import type { AccountOrderDetailProps } from '@/types/storefront';
+import { index as ordersIndex } from '@/actions/App/Http/Controllers/OrderController';
+import { retry as checkoutRetry } from '@/actions/App/Http/Controllers/CheckoutResultController';
 
 const props = defineProps<AccountOrderDetailProps>();
 
@@ -73,7 +75,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
             <!-- Navigation back -->
             <div>
                 <Link
-                    href="/account/orders"
+                    :href="ordersIndex.url()"
                     class="inline-flex items-center gap-2 text-xs font-medium text-sage-700 transition-colors hover:text-sage-900"
                 >
                     <svg
@@ -142,7 +144,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
                     <!-- Retry Payment CTA if pending Stripe payment -->
                     <div v-if="isUnpaid && isStripe" class="shrink-0">
                         <Link
-                            :href="`/checkout/retry/${order.public_id}`"
+                            :href="checkoutRetry.url(order.public_id)"
                             method="post"
                             as="button"
                             class="inline-flex w-full items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 sm:w-auto"

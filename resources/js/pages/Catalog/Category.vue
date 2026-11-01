@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
-import ProductGrid from '@/components/storefront/ProductGrid.vue';
+import { SelectInput } from '@/components/form';
 import Pagination from '@/components/storefront/Pagination.vue';
+import ProductGrid from '@/components/storefront/ProductGrid.vue';
+import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CategoryPageProps } from '@/types/storefront';
+import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
+import { index as productsIndex } from '@/routes/products';
 
 const props = defineProps<CategoryPageProps>();
 
 function onSortChange(sort: string) {
     router.get(
-        `/categories/${props.category.slug}`,
+        categoryShow.url(props.category.slug),
         { sort },
         { preserveState: true, preserveScroll: true, replace: true },
     );
@@ -86,11 +89,9 @@ function onSortChange(sort: string) {
 
         <!-- Category Header Banner -->
         <section
-            class="border-b border-cream-200 bg-gradient-to-b from-cream-100 to-cream-50 py-10 sm:py-14"
+            class="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50 py-10 sm:py-14"
         >
-            <div
-                class="mx-auto max-w-3xl max-w-7xl px-4 text-center sm:px-6 lg:px-8"
-            >
+            <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
                 <span
                     class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
                 >
@@ -124,7 +125,7 @@ function onSortChange(sort: string) {
                     <Link
                         v-for="child in category.children"
                         :key="child.id"
-                        :href="`/categories/${child.slug}`"
+                        :href="categoryShow.url(child.slug)"
                         class="rounded-full border border-cream-300 bg-white px-4 py-1.5 text-xs font-medium text-charcoal-700 shadow-xs transition-all hover:border-sage-500 hover:bg-sage-50 hover:text-sage-800"
                     >
                         {{ child.name }}
@@ -142,10 +143,10 @@ function onSortChange(sort: string) {
                 <div>
                     Showing
                     <span class="font-semibold text-charcoal-900">{{
-                        products.total
+                        products.meta.total
                     }}</span>
                     {{
-                        products.total === 1
+                        products.meta.total === 1
                             ? 'botanical product'
                             : 'botanical products'
                     }}
@@ -157,22 +158,23 @@ function onSortChange(sort: string) {
                         class="text-charcoal-500 hidden text-xs sm:inline"
                         >Sort by:</label
                     >
-                    <select
+                    <SelectInput
                         id="cat_sort"
-                        :value="filters?.sort || 'featured'"
+                        :model-value="filters?.sort || 'featured'"
+                        size="sm"
+                        rounded="md"
                         @change="
                             onSortChange(
                                 ($event.target as HTMLSelectElement).value,
                             )
                         "
-                        class="rounded-md border border-cream-300 bg-white px-3 py-1.5 text-xs text-charcoal-800 focus:ring-1 focus:ring-sage-500 focus:outline-none"
                     >
-                        <option value="featured">Featured Botanicals</option>
+                        <option value="featured">Featured Botanical</option>
                         <option value="newest">Newest</option>
                         <option value="price_asc">Price: Low to High</option>
                         <option value="price_desc">Price: High to Low</option>
                         <option value="name_asc">Name: A to Z</option>
-                    </select>
+                    </SelectInput>
                 </div>
             </div>
 
@@ -181,7 +183,7 @@ function onSortChange(sort: string) {
                 <ProductGrid :products="products.data" />
 
                 <!-- Pagination -->
-                <Pagination :links="products.links" />
+                <Pagination :links="products.meta.links" />
             </div>
 
             <!-- Empty State -->
@@ -212,7 +214,7 @@ function onSortChange(sort: string) {
                     conscious alternatives.
                 </p>
                 <Link
-                    href="/products"
+                    :href="productsIndex.url()"
                     class="inline-block rounded-full bg-sage-800 px-6 py-2.5 text-xs font-medium tracking-wider text-cream-50 uppercase transition-colors hover:bg-sage-900"
                 >
                     View All Products

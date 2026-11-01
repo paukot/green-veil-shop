@@ -41,6 +41,10 @@ class DeliveryOption extends Model
         ];
     }
 
+    /**
+     * @param  Builder<DeliveryOption>  $query
+     * @return Builder<DeliveryOption>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)->orderBy('sort_order');
@@ -58,5 +62,11 @@ class DeliveryOption extends Model
         }
 
         return '';
+    }
+
+    public function isFreeFor(float $subtotal): bool
+    {
+        return $this->free_threshold !== null
+            && $subtotal >= (float) $this->free_threshold;
     }
 }

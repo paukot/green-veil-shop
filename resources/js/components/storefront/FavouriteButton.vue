@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import type { SharedProps } from '@/types/storefront';
+import { toggle as toggleFavourite } from '@/actions/App/Http/Controllers/FavouriteController';
 
 const props = withDefaults(
     defineProps<{
@@ -28,7 +29,7 @@ function toggle() {
 
     isToggling.value = true;
     router.post(
-        `/favourites/${props.productId}`,
+        toggleFavourite.url(props.productId),
         {},
         {
             preserveScroll: true,

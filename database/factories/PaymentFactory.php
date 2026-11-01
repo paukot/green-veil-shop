@@ -39,4 +39,21 @@ class PaymentFactory extends Factory
             'paid_at' => now(),
         ]);
     }
+
+    public function failed(?string $reason = 'Payment declined'): static
+    {
+        return $this->state(fn () => [
+            'status' => PaymentStatus::Failed,
+            'failure_reason' => $reason,
+        ]);
+    }
+
+    public function forOrder(Order $order): static
+    {
+        return $this->state(fn () => [
+            'order_id' => $order->id,
+            'amount' => $order->total,
+            'currency' => $order->currency,
+        ]);
+    }
 }

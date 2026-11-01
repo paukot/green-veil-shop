@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
+import { SearchInput } from '@/components/form';
+import MobileNavigationDrawer from '@/components/storefront/MobileNavigationDrawer.vue';
 import type { SharedProps } from '@/types/storefront';
+import { home, login, logout } from '@/routes';
+import { index as productsIndex } from '@/routes/products';
+import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
+import { index as cartIndex } from '@/routes/cart';
+import { index as favouritesIndex } from '@/routes/favourites';
+import { profile } from '@/routes/account';
 
 const page = usePage<SharedProps>();
 const mobileMenuOpen = ref(false);
@@ -43,7 +51,7 @@ watch(
 function submitSearch() {
     if (!searchQuery.value.trim()) return;
     router.get(
-        '/products',
+        productsIndex.url(),
         { q: searchQuery.value.trim() },
         { preserveState: true },
     );
@@ -123,7 +131,7 @@ function submitSearch() {
 
                     <!-- Brand Logo -->
                     <div class="flex items-center">
-                        <Link href="/" class="group flex flex-col">
+                        <Link :href="home.url()" class="group flex flex-col">
                             <span
                                 class="font-serif text-2xl tracking-tight text-sage-900 transition-colors group-hover:text-sage-700 sm:text-3xl"
                                 >Green Veil</span
@@ -141,13 +149,13 @@ function submitSearch() {
                         aria-label="Primary"
                     >
                         <Link
-                            href="/"
+                            :href="home.url()"
                             class="border-b-2 border-transparent py-1 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
                         >
                             Home
                         </Link>
                         <Link
-                            href="/products"
+                            :href="productsIndex.url()"
                             class="border-b-2 border-transparent py-1 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
                         >
                             All Products
@@ -158,7 +166,7 @@ function submitSearch() {
                             class="group relative"
                         >
                             <Link
-                                :href="`/categories/${cat.slug}`"
+                                :href="categoryShow.url(cat.slug)"
                                 class="inline-flex items-center gap-1 border-b-2 border-transparent py-1 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
                             >
                                 <span>{{ cat.name }}</span>
@@ -191,7 +199,7 @@ function submitSearch() {
                                     <Link
                                         v-for="child in cat.children"
                                         :key="child.id"
-                                        :href="`/categories/${child.slug}`"
+                                        :href="categoryShow.url(child.slug)"
                                         class="block px-4 py-2 text-xs text-charcoal-700 transition-colors hover:bg-sage-50 hover:text-sage-800"
                                     >
                                         {{ child.name }}
@@ -227,7 +235,7 @@ function submitSearch() {
 
                         <!-- Favourites Link -->
                         <Link
-                            href="/favourites"
+                            :href="favouritesIndex.url()"
                             class="relative rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                             aria-label="View favourites"
                         >
@@ -254,7 +262,7 @@ function submitSearch() {
 
                         <!-- Cart Link -->
                         <Link
-                            href="/cart"
+                            :href="cartIndex.url()"
                             class="relative rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                             aria-label="View shopping cart"
                         >
@@ -282,7 +290,7 @@ function submitSearch() {
                         <!-- Customer Account -->
                         <div class="group relative">
                             <Link
-                                :href="user ? '/account/profile' : '/login'"
+                                :href="user ? profile.url() : login.url()"
                                 class="flex items-center gap-1.5 rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                                 :aria-label="
                                     user ? 'Account profile' : 'Sign in'
@@ -332,13 +340,13 @@ function submitSearch() {
                                         </p>
                                     </div>
                                     <Link
-                                        href="/account/profile"
+                                        :href="profile.url()"
                                         class="block px-3 py-2 text-charcoal-700 transition-colors hover:bg-sage-50 hover:text-sage-800"
                                     >
                                         My Profile
                                     </Link>
                                     <Link
-                                        href="/logout"
+                                        :href="logout.url()"
                                         method="post"
                                         as="button"
                                         class="w-full px-3 py-2 text-left text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
@@ -357,175 +365,31 @@ function submitSearch() {
                         @submit.prevent="submitSearch"
                         class="mx-auto flex max-w-xl items-center gap-2"
                     >
-                        <div class="relative flex-1">
-                            <input
-                                v-model="searchQuery"
-                                type="search"
-                                placeholder="Search by botanical name, concern, or product..."
-                                class="w-full rounded-full border border-cream-300 bg-white py-2 pr-10 pl-4 text-sm focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                                autofocus
-                            />
-                            <button
-                                type="button"
-                                @click="searchOpen = false"
-                                class="text-charcoal-400 absolute top-1/2 right-3 -translate-y-1/2 hover:text-charcoal-700"
-                                aria-label="Close search"
-                            >
-                                &times;
-                            </button>
-                        </div>
+                        <SearchInput
+                            v-model="searchQuery"
+                            placeholder="Search by botanical name, concern, or product..."
+                            autofocus
+                            @clear="searchOpen = false"
+                        />
                         <button
                             type="submit"
-                            class="rounded-full bg-sage-700 px-5 py-2 text-xs font-medium tracking-wider text-white uppercase transition-colors hover:bg-sage-800"
+                            class="shrink-0 rounded-full bg-sage-700 px-5 py-2 text-xs font-medium tracking-wider text-white uppercase transition-colors hover:bg-sage-800"
                         >
                             Search
                         </button>
                     </form>
                 </div>
             </div>
-
-            <!-- Mobile Navigation Drawer -->
-            <div
-                v-if="mobileMenuOpen"
-                class="fixed inset-0 top-28 z-50 bg-charcoal-900/40 backdrop-blur-xs transition-opacity lg:hidden"
-                @click.self="mobileMenuOpen = false"
-            >
-                <div
-                    class="flex h-full w-full max-w-xs flex-col justify-between overflow-y-auto border-r border-cream-200 bg-cream-50 p-6"
-                >
-                    <div class="space-y-6">
-                        <!-- Mobile Search -->
-                        <form @submit.prevent="submitSearch" class="relative">
-                            <input
-                                v-model="searchQuery"
-                                type="search"
-                                placeholder="Search botanicals..."
-                                class="w-full rounded-full border border-cream-300 bg-white py-2 pr-9 pl-3.5 text-xs focus:ring-1 focus:ring-sage-500 focus:outline-none"
-                            />
-                            <button
-                                type="submit"
-                                class="text-charcoal-400 absolute top-1/2 right-2.5 -translate-y-1/2 hover:text-sage-700"
-                                aria-label="Submit search"
-                            >
-                                <svg
-                                    class="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                                    />
-                                </svg>
-                            </button>
-                        </form>
-
-                        <div
-                            class="text-xs font-semibold tracking-wider text-sage-700 uppercase"
-                        >
-                            Collections
-                        </div>
-                        <nav class="flex flex-col space-y-3 text-base">
-                            <Link
-                                href="/"
-                                class="py-1 text-charcoal-800 hover:text-sage-700"
-                                @click="mobileMenuOpen = false"
-                            >
-                                Home
-                            </Link>
-                            <Link
-                                href="/products"
-                                class="py-1 text-charcoal-800 hover:text-sage-700"
-                                @click="mobileMenuOpen = false"
-                            >
-                                All Products
-                            </Link>
-                            <template v-for="cat in navigation" :key="cat.id">
-                                <Link
-                                    :href="`/categories/${cat.slug}`"
-                                    class="py-1 font-medium text-charcoal-800 hover:text-sage-700"
-                                    @click="mobileMenuOpen = false"
-                                >
-                                    {{ cat.name }}
-                                </Link>
-                                <div
-                                    v-if="
-                                        cat.children && cat.children.length > 0
-                                    "
-                                    class="space-y-2 border-l border-cream-200 pl-4"
-                                >
-                                    <Link
-                                        v-for="child in cat.children"
-                                        :key="child.id"
-                                        :href="`/categories/${child.slug}`"
-                                        class="text-charcoal-600 block py-0.5 text-sm hover:text-sage-700"
-                                        @click="mobileMenuOpen = false"
-                                    >
-                                        {{ child.name }}
-                                    </Link>
-                                </div>
-                            </template>
-                        </nav>
-                    </div>
-
-                    <div class="space-y-3 border-t border-cream-200 pt-6">
-                        <Link
-                            href="/favourites"
-                            class="flex items-center justify-between py-1.5 text-sm text-charcoal-700 hover:text-sage-700"
-                            @click="mobileMenuOpen = false"
-                        >
-                            <span>Favourites</span>
-                            <span
-                                class="rounded-full bg-sage-100 px-2 py-0.5 text-xs font-semibold text-sage-800"
-                                >{{ favouritesCount }}</span
-                            >
-                        </Link>
-                        <Link
-                            href="/cart"
-                            class="flex items-center justify-between py-1.5 text-sm text-charcoal-700 hover:text-sage-700"
-                            @click="mobileMenuOpen = false"
-                        >
-                            <span>Shopping Cart</span>
-                            <span
-                                class="rounded-full bg-sage-700 px-2 py-0.5 text-xs font-semibold text-white"
-                                >{{ cartCount }}</span
-                            >
-                        </Link>
-                        <div class="pt-2">
-                            <template v-if="user">
-                                <Link
-                                    href="/account/profile"
-                                    class="block py-1.5 text-sm font-medium text-sage-800"
-                                    @click="mobileMenuOpen = false"
-                                >
-                                    Account Profile ({{ user.name }})
-                                </Link>
-                                <Link
-                                    href="/logout"
-                                    method="post"
-                                    as="button"
-                                    class="block w-full py-1.5 text-left text-sm text-red-600 hover:text-red-700"
-                                    @click="mobileMenuOpen = false"
-                                >
-                                    Sign Out
-                                </Link>
-                            </template>
-                            <Link
-                                v-else
-                                href="/login"
-                                class="block py-1.5 text-sm font-medium text-sage-800"
-                                @click="mobileMenuOpen = false"
-                            >
-                                Sign In / Register
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </header>
+
+        <!-- Mobile Navigation Drawer -->
+        <MobileNavigationDrawer
+            v-model:open="mobileMenuOpen"
+            :navigation="navigation"
+            :user="user"
+            :cart-count="cartCount"
+            :favourites-count="favouritesCount"
+        />
 
         <!-- Flash Toast Notification -->
         <transition
@@ -623,14 +487,14 @@ function submitSearch() {
                         <ul class="space-y-2 text-sm text-charcoal-700">
                             <li>
                                 <Link
-                                    href="/products"
+                                    :href="productsIndex.url()"
                                     class="transition-colors hover:text-sage-700"
                                     >All Products</Link
                                 >
                             </li>
                             <li v-for="cat in navigation" :key="cat.id">
                                 <Link
-                                    :href="`/categories/${cat.slug}`"
+                                    :href="categoryShow.url(cat.slug)"
                                     class="transition-colors hover:text-sage-700"
                                 >
                                     {{ cat.name }}
@@ -649,21 +513,21 @@ function submitSearch() {
                         <ul class="space-y-2 text-sm text-charcoal-700">
                             <li>
                                 <Link
-                                    href="/cart"
+                                    :href="cartIndex.url()"
                                     class="transition-colors hover:text-sage-700"
                                     >Shopping Cart</Link
                                 >
                             </li>
                             <li>
                                 <Link
-                                    href="/favourites"
+                                    :href="favouritesIndex.url()"
                                     class="transition-colors hover:text-sage-700"
                                     >Favourites</Link
                                 >
                             </li>
                             <li>
                                 <Link
-                                    :href="user ? '/account/profile' : '/login'"
+                                    :href="user ? profile.url() : login.url()"
                                     class="transition-colors hover:text-sage-700"
                                 >
                                     {{ user ? 'My Profile' : 'Sign In' }}

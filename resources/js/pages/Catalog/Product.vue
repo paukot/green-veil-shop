@@ -5,6 +5,8 @@ import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import FavouriteButton from '@/components/storefront/FavouriteButton.vue';
 import type { ProductDetailPageProps, SharedProps } from '@/types/storefront';
+import { store as cartItemsStore } from '@/actions/App/Http/Controllers/CartItemController';
+import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 
 const props = defineProps<ProductDetailPageProps>();
 const page = usePage<SharedProps>();
@@ -65,7 +67,7 @@ function addToCart() {
 
     isAddingToCart.value = true;
     router.post(
-        '/cart/items',
+        cartItemsStore.url(),
         {
             product_id: props.product.id,
             quantity: quantity.value,
@@ -271,7 +273,7 @@ function formatCurrency(amount: number): string {
                     >
                         <Link
                             v-if="product.category"
-                            :href="`/categories/${product.category.slug}`"
+                            :href="categoryShow.url(product.category.slug)"
                             class="font-semibold tracking-widest text-sage-700 uppercase hover:text-sage-900"
                         >
                             {{ product.category.name }}

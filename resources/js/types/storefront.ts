@@ -98,13 +98,22 @@ export type PaginationLink = {
 
 export type PaginatedData<T> = {
     data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
-    links: PaginationLink[];
+    links: {
+        first: string | null;
+        last: string | null;
+        prev: string | null;
+        next: string | null;
+    };
+    meta: {
+        current_page: number;
+        from: number | null;
+        last_page: number;
+        links: PaginationLink[];
+        path: string;
+        per_page: number;
+        to: number | null;
+        total: number;
+    };
 };
 
 export type BreadcrumbItem = {
@@ -292,48 +301,38 @@ export type CheckoutPageProps = {
     customer: CheckoutCustomer;
 };
 
-export type CheckoutSuccessPageProps = {
-    order: {
-        public_id: string;
-        number: string;
-        status: string;
-        payment_status: string;
-        subtotal: number;
-        delivery_amount: number;
-        discount_amount: number;
-        tax_amount: number;
-        total: number;
-        currency: string;
-        customer_name: string;
-        customer_email: string;
-        customer_phone?: string | null;
-        shipping_address: {
-            line1: string;
-            line2?: string | null;
-            city: string;
-            postal_code: string;
-            country: string;
-        };
-        billing_address?: {
-            line1: string;
-            line2?: string | null;
-            city: string;
-            postal_code: string;
-            country: string;
-        } | null;
-        placed_at?: string | null;
-        paid_at?: string | null;
-        notes?: string | null;
+export type OrderDetailData = {
+    public_id: string;
+    number: string;
+    status: string;
+    payment_status: string;
+    subtotal: number;
+    delivery_amount: number;
+    discount_amount: number;
+    tax_amount: number;
+    total: number;
+    currency: string;
+    customer_name: string;
+    customer_email: string;
+    customer_phone?: string | null;
+    shipping_address: {
+        line1: string;
+        line2?: string | null;
+        city: string;
+        postal_code: string;
+        country: string;
     };
-    items: Array<{
-        id: number;
-        product_name: string;
-        product_sku?: string | null;
-        product_image?: string | null;
-        unit_price: number;
-        quantity: number;
-        subtotal: number;
-    }>;
+    billing_address?: {
+        line1: string;
+        line2?: string | null;
+        city: string;
+        postal_code: string;
+        country: string;
+    } | null;
+    placed_at?: string | null;
+    paid_at?: string | null;
+    notes?: string | null;
+    items?: OrderItemData[];
     deliveryOption?: {
         name: string;
         code: string;
@@ -346,6 +345,16 @@ export type CheckoutSuccessPageProps = {
         description?: string | null;
         instructions?: string | null;
     } | null;
+};
+
+export type OrderItemData = {
+    id: number;
+    product_name: string;
+    product_sku?: string | null;
+    product_image?: string | null;
+    unit_price: number;
+    quantity: number;
+    subtotal: number;
 };
 
 export type CheckoutCancelPageProps = {
@@ -375,4 +384,9 @@ export type AccountOrdersPageProps = {
     orders: PaginatedData<AccountOrderListItem>;
 };
 
-export type AccountOrderDetailProps = CheckoutSuccessPageProps;
+export type AccountOrderDetailProps = {
+    order: OrderDetailData;
+    items: OrderItemData[];
+    deliveryOption?: OrderDetailData['deliveryOption'];
+    paymentOption?: OrderDetailData['paymentOption'];
+};

@@ -103,3 +103,33 @@ test('cart qualifies for free shipping when exceeding threshold', function () {
         ->where('deliveryOptions.0.is_free', true)
     );
 });
+
+test('guest cart page displays items with product id as item id', function () {
+    $category = Category::factory()->create();
+    $product = Product::factory()->create([
+        'category_id' => $category->id,
+        'name' => 'Rose Water Toner',
+        'price' => 20.00,
+        'stock_quantity' => 10,
+        'is_active' => true,
+    ]);
+
+    $response = $this->withSession([
+        'cart' => [
+            $product->id => [
+                'id' => $product->id,
+                'product_id' => $product->id,
+                'quantity' => 2,
+            ],
+        ],
+    ])->get(route('cart.index'));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('Cart/Index')
+        ->has('items', 1)
+        ->where('items.0.id', $product->id)
+        ->where('items.0.product_id', $product->id)
+        ->where('items.0.quantity', 2)
+    );
+});

@@ -1,8 +1,30 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import {
+    CheckboxField,
+    RadioCard,
+    RadioCardGroup,
+    SelectField,
+    TextField,
+    TextareaField,
+} from '@/components/form';
+import type { SelectOption } from '@/components/form';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CheckoutPageProps } from '@/types/storefront';
+import { store as checkoutStore } from '@/actions/App/Http/Controllers/CheckoutController';
+import { index as cartIndex } from '@/routes/cart';
+import { login } from '@/routes';
+
+const COUNTRY_OPTIONS: SelectOption[] = [
+    { value: 'IE', label: 'Ireland' },
+    { value: 'GB', label: 'United Kingdom' },
+    { value: 'FR', label: 'France' },
+    { value: 'DE', label: 'Germany' },
+    { value: 'ES', label: 'Spain' },
+    { value: 'IT', label: 'Italy' },
+    { value: 'NL', label: 'Netherlands' },
+];
 
 const props = defineProps<CheckoutPageProps>();
 
@@ -69,7 +91,7 @@ const generalErrors = computed(
 );
 
 function submit() {
-    form.post('/checkout', {
+    form.post(checkoutStore.url(), {
         preserveScroll: true,
     });
 }
@@ -82,7 +104,7 @@ function submit() {
         <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
             <!-- Breadcrumbs / Steps -->
             <nav class="text-charcoal-500 mb-6 flex items-center gap-2 text-xs">
-                <Link href="/cart" class="hover:text-sage-800"
+                <Link :href="cartIndex.url()" class="hover:text-sage-800"
                     >Shopping Bag</Link
                 >
                 <span>/</span>
@@ -130,7 +152,7 @@ function submit() {
                             >
                                 Have an account?
                                 <Link
-                                    href="/login"
+                                    :href="login.url()"
                                     class="font-medium text-sage-800 underline"
                                     >Log in</Link
                                 >
@@ -138,80 +160,35 @@ function submit() {
                         </div>
 
                         <div class="space-y-4">
-                            <div>
-                                <label
-                                    for="customer_name"
-                                    class="block text-xs font-medium text-charcoal-700"
-                                >
-                                    Full Name
-                                    <span class="text-rose-500">*</span>
-                                </label>
-                                <input
-                                    id="customer_name"
-                                    v-model="form.customer_name"
-                                    type="text"
-                                    required
-                                    placeholder="Lady Catherine"
-                                    class="placeholder-charcoal-400 mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                />
-                                <p
-                                    v-if="form.errors.customer_name"
-                                    class="mt-1 text-xs text-rose-600"
-                                >
-                                    {{ form.errors.customer_name }}
-                                </p>
-                            </div>
+                            <TextField
+                                id="customer_name"
+                                v-model="form.customer_name"
+                                label="Full Name"
+                                required
+                                placeholder="Lady Catherine"
+                                :error="form.errors.customer_name"
+                            />
 
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label
-                                        for="customer_email"
-                                        class="block text-xs font-medium text-charcoal-700"
-                                    >
-                                        Email Address
-                                        <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        id="customer_email"
-                                        v-model="form.customer_email"
-                                        type="email"
-                                        required
-                                        placeholder="catherine@botanicals.ie"
-                                        class="placeholder-charcoal-400 mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                    />
-                                    <p
-                                        v-if="form.errors.customer_email"
-                                        class="mt-1 text-xs text-rose-600"
-                                    >
-                                        {{ form.errors.customer_email }}
-                                    </p>
-                                </div>
+                                <TextField
+                                    id="customer_email"
+                                    v-model="form.customer_email"
+                                    type="email"
+                                    label="Email Address"
+                                    required
+                                    placeholder="catherine@botanicals.ie"
+                                    :error="form.errors.customer_email"
+                                />
 
-                                <div>
-                                    <label
-                                        for="customer_phone"
-                                        class="block text-xs font-medium text-charcoal-700"
-                                    >
-                                        Phone Number
-                                        <span
-                                            class="text-charcoal-400 font-normal"
-                                            >(for delivery SMS)</span
-                                        >
-                                    </label>
-                                    <input
-                                        id="customer_phone"
-                                        v-model="form.customer_phone"
-                                        type="tel"
-                                        placeholder="+353 87 123 4567"
-                                        class="placeholder-charcoal-400 mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                    />
-                                    <p
-                                        v-if="form.errors.customer_phone"
-                                        class="mt-1 text-xs text-rose-600"
-                                    >
-                                        {{ form.errors.customer_phone }}
-                                    </p>
-                                </div>
+                                <TextField
+                                    id="customer_phone"
+                                    v-model="form.customer_phone"
+                                    type="tel"
+                                    label="Phone Number"
+                                    subtext="(for delivery SMS)"
+                                    placeholder="+353 87 123 4567"
+                                    :error="form.errors.customer_phone"
+                                />
                             </div>
                         </div>
                     </section>
@@ -227,155 +204,69 @@ function submit() {
                         </div>
 
                         <div class="space-y-4">
-                            <div>
-                                <label
-                                    for="shipping_line1"
-                                    class="block text-xs font-medium text-charcoal-700"
-                                >
-                                    Address Line 1
-                                    <span class="text-rose-500">*</span>
-                                </label>
-                                <input
-                                    id="shipping_line1"
-                                    v-model="form.shipping_address.line1"
-                                    type="text"
-                                    required
-                                    placeholder="42 Willowbrook Lane"
-                                    class="placeholder-charcoal-400 mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                />
-                                <p
-                                    v-if="form.errors['shipping_address.line1']"
-                                    class="mt-1 text-xs text-rose-600"
-                                >
-                                    {{ form.errors['shipping_address.line1'] }}
-                                </p>
-                            </div>
+                            <TextField
+                                id="shipping_line1"
+                                v-model="form.shipping_address.line1"
+                                label="Address Line 1"
+                                required
+                                placeholder="42 Willowbrook Lane"
+                                :error="form.errors['shipping_address.line1']"
+                            />
 
-                            <div>
-                                <label
-                                    for="shipping_line2"
-                                    class="block text-xs font-medium text-charcoal-700"
-                                >
-                                    Apartment, suite, unit
-                                    <span class="text-charcoal-400 font-normal"
-                                        >(optional)</span
-                                    >
-                                </label>
-                                <input
-                                    id="shipping_line2"
-                                    v-model="form.shipping_address.line2"
-                                    type="text"
-                                    placeholder="Apt 3B"
-                                    class="placeholder-charcoal-400 mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                />
-                            </div>
+                            <TextField
+                                id="shipping_line2"
+                                v-model="form.shipping_address.line2"
+                                label="Apartment, suite, unit"
+                                subtext="(optional)"
+                                placeholder="Apt 3B"
+                                :error="form.errors['shipping_address.line2']"
+                            />
 
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                <div>
-                                    <label
-                                        for="shipping_city"
-                                        class="block text-xs font-medium text-charcoal-700"
-                                    >
-                                        City
-                                        <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        id="shipping_city"
-                                        v-model="form.shipping_address.city"
-                                        type="text"
-                                        required
-                                        placeholder="Dublin"
-                                        class="placeholder-charcoal-400 mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                    />
-                                    <p
-                                        v-if="
-                                            form.errors['shipping_address.city']
-                                        "
-                                        class="mt-1 text-xs text-rose-600"
-                                    >
-                                        {{
-                                            form.errors['shipping_address.city']
-                                        }}
-                                    </p>
-                                </div>
+                                <TextField
+                                    id="shipping_city"
+                                    v-model="form.shipping_address.city"
+                                    label="City"
+                                    required
+                                    placeholder="Dublin"
+                                    :error="
+                                        form.errors['shipping_address.city']
+                                    "
+                                />
 
-                                <div>
-                                    <label
-                                        for="shipping_postal_code"
-                                        class="block text-xs font-medium text-charcoal-700"
-                                    >
-                                        Postal Code / Eircode
-                                        <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        id="shipping_postal_code"
-                                        v-model="
-                                            form.shipping_address.postal_code
-                                        "
-                                        type="text"
-                                        required
-                                        placeholder="D02 X285"
-                                        class="placeholder-charcoal-400 mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                    />
-                                    <p
-                                        v-if="
-                                            form.errors[
-                                                'shipping_address.postal_code'
-                                            ]
-                                        "
-                                        class="mt-1 text-xs text-rose-600"
-                                    >
-                                        {{
-                                            form.errors[
-                                                'shipping_address.postal_code'
-                                            ]
-                                        }}
-                                    </p>
-                                </div>
+                                <TextField
+                                    id="shipping_postal_code"
+                                    v-model="form.shipping_address.postal_code"
+                                    label="Postal Code / Eircode"
+                                    required
+                                    placeholder="D02 X285"
+                                    :error="
+                                        form.errors[
+                                            'shipping_address.postal_code'
+                                        ]
+                                    "
+                                />
 
-                                <div>
-                                    <label
-                                        for="shipping_country"
-                                        class="block text-xs font-medium text-charcoal-700"
-                                    >
-                                        Country
-                                        <span class="text-rose-500">*</span>
-                                    </label>
-                                    <select
-                                        id="shipping_country"
-                                        v-model="form.shipping_address.country"
-                                        class="mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                    >
-                                        <option value="IE">Ireland</option>
-                                        <option value="GB">
-                                            United Kingdom
-                                        </option>
-                                        <option value="FR">France</option>
-                                        <option value="DE">Germany</option>
-                                        <option value="ES">Spain</option>
-                                        <option value="IT">Italy</option>
-                                        <option value="NL">Netherlands</option>
-                                    </select>
-                                </div>
+                                <SelectField
+                                    id="shipping_country"
+                                    v-model="form.shipping_address.country"
+                                    label="Country"
+                                    required
+                                    :options="COUNTRY_OPTIONS"
+                                    :error="
+                                        form.errors['shipping_address.country']
+                                    "
+                                />
                             </div>
                         </div>
 
                         <!-- Billing toggle -->
                         <div class="mt-6 border-t border-cream-100 pt-5">
-                            <label
-                                class="flex cursor-pointer items-center gap-3 select-none"
-                            >
-                                <input
-                                    v-model="form.billing_same_as_shipping"
-                                    type="checkbox"
-                                    class="h-4 w-4 rounded-sm border-cream-300 text-sage-800 focus:ring-sage-600"
-                                />
-                                <span
-                                    class="text-xs font-medium text-charcoal-700"
-                                    >Billing address matches shipping
-                                    address</span
-                                >
-                            </label>
+                            <CheckboxField
+                                id="billing_same_as_shipping"
+                                v-model="form.billing_same_as_shipping"
+                                label="Billing address matches shipping address"
+                            />
 
                             <!-- Different billing address fields -->
                             <div
@@ -387,76 +278,53 @@ function submit() {
                                 >
                                     Billing Address
                                 </h3>
-                                <div>
-                                    <label
-                                        class="block text-xs font-medium text-charcoal-700"
-                                    >
-                                        Address Line 1
-                                        <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        v-model="form.billing_address.line1"
-                                        type="text"
-                                        class="mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                    />
-                                    <p
-                                        v-if="
-                                            form.errors['billing_address.line1']
-                                        "
-                                        class="mt-1 text-xs text-rose-600"
-                                    >
-                                        {{
-                                            form.errors['billing_address.line1']
-                                        }}
-                                    </p>
-                                </div>
+
+                                <TextField
+                                    id="billing_line1"
+                                    v-model="form.billing_address.line1"
+                                    label="Address Line 1"
+                                    required
+                                    :error="
+                                        form.errors['billing_address.line1']
+                                    "
+                                />
 
                                 <div
                                     class="grid grid-cols-1 gap-4 sm:grid-cols-3"
                                 >
-                                    <div>
-                                        <label
-                                            class="block text-xs font-medium text-charcoal-700"
-                                            >City</label
-                                        >
-                                        <input
-                                            v-model="form.billing_address.city"
-                                            type="text"
-                                            class="mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            class="block text-xs font-medium text-charcoal-700"
-                                            >Postal Code</label
-                                        >
-                                        <input
-                                            v-model="
-                                                form.billing_address.postal_code
-                                            "
-                                            type="text"
-                                            class="mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            class="block text-xs font-medium text-charcoal-700"
-                                            >Country</label
-                                        >
-                                        <select
-                                            v-model="
-                                                form.billing_address.country
-                                            "
-                                            class="mt-1 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                                        >
-                                            <option value="IE">Ireland</option>
-                                            <option value="GB">
-                                                United Kingdom
-                                            </option>
-                                            <option value="FR">France</option>
-                                            <option value="DE">Germany</option>
-                                        </select>
-                                    </div>
+                                    <TextField
+                                        id="billing_city"
+                                        v-model="form.billing_address.city"
+                                        label="City"
+                                        :error="
+                                            form.errors['billing_address.city']
+                                        "
+                                    />
+
+                                    <TextField
+                                        id="billing_postal_code"
+                                        v-model="
+                                            form.billing_address.postal_code
+                                        "
+                                        label="Postal Code"
+                                        :error="
+                                            form.errors[
+                                                'billing_address.postal_code'
+                                            ]
+                                        "
+                                    />
+
+                                    <SelectField
+                                        id="billing_country"
+                                        v-model="form.billing_address.country"
+                                        label="Country"
+                                        :options="COUNTRY_OPTIONS"
+                                        :error="
+                                            form.errors[
+                                                'billing_address.country'
+                                            ]
+                                        "
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -472,50 +340,18 @@ function submit() {
                             </h2>
                         </div>
 
-                        <div class="space-y-3">
-                            <label
+                        <RadioCardGroup :error="form.errors.delivery_option_id">
+                            <RadioCard
                                 v-for="option in deliveryOptions"
                                 :key="option.id"
-                                :class="[
-                                    'flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-all',
-                                    form.delivery_option_id === option.id
-                                        ? 'border-sage-700 bg-sage-50/40 shadow-xs'
-                                        : 'border-cream-200 bg-white hover:border-cream-300',
-                                ]"
+                                v-model="form.delivery_option_id"
+                                :value="option.id"
+                                name="delivery_option"
+                                :title="option.name"
+                                :subtitle="option.estimated_delivery_label"
+                                :description="option.description"
                             >
-                                <div class="flex items-center gap-3">
-                                    <input
-                                        v-model="form.delivery_option_id"
-                                        type="radio"
-                                        name="delivery_option"
-                                        :value="option.id"
-                                        class="h-4 w-4 border-cream-300 text-sage-800 focus:ring-sage-600"
-                                    />
-                                    <div>
-                                        <span
-                                            class="block text-sm font-medium text-charcoal-900"
-                                        >
-                                            {{ option.name }}
-                                        </span>
-                                        <span
-                                            v-if="
-                                                option.estimated_delivery_label
-                                            "
-                                            class="text-charcoal-500 block text-xs"
-                                        >
-                                            {{
-                                                option.estimated_delivery_label
-                                            }}
-                                        </span>
-                                        <span
-                                            v-if="option.description"
-                                            class="text-charcoal-400 mt-0.5 block text-xs"
-                                        >
-                                            {{ option.description }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="text-right">
+                                <template #trailing>
                                     <span
                                         v-if="option.is_free"
                                         class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800"
@@ -528,15 +364,9 @@ function submit() {
                                     >
                                         {{ formatCurrency(option.price) }}
                                     </span>
-                                </div>
-                            </label>
-                        </div>
-                        <p
-                            v-if="form.errors.delivery_option_id"
-                            class="mt-2 text-xs text-rose-600"
-                        >
-                            {{ form.errors.delivery_option_id }}
-                        </p>
+                                </template>
+                            </RadioCard>
+                        </RadioCardGroup>
                     </section>
 
                     <!-- Step 4: Payment Options -->
@@ -549,80 +379,42 @@ function submit() {
                             </h2>
                         </div>
 
-                        <div class="space-y-3">
-                            <label
+                        <RadioCardGroup :error="form.errors.payment_option_id">
+                            <RadioCard
                                 v-for="option in paymentOptions"
                                 :key="option.id"
-                                :class="[
-                                    'flex cursor-pointer items-start justify-between rounded-2xl border p-4 transition-all',
-                                    form.payment_option_id === option.id
-                                        ? 'border-sage-700 bg-sage-50/40 shadow-xs'
-                                        : 'border-cream-200 bg-white hover:border-cream-300',
-                                ]"
+                                v-model="form.payment_option_id"
+                                :value="option.id"
+                                name="payment_option"
+                                align="start"
+                                :title="option.name"
+                                :description="option.description"
                             >
-                                <div class="flex items-start gap-3">
-                                    <input
-                                        v-model="form.payment_option_id"
-                                        type="radio"
-                                        name="payment_option"
-                                        :value="option.id"
-                                        class="mt-1 h-4 w-4 border-cream-300 text-sage-800 focus:ring-sage-600"
-                                    />
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span
-                                                class="text-sm font-medium text-charcoal-900"
-                                            >
-                                                {{ option.name }}
-                                            </span>
-                                            <span
-                                                v-if="
-                                                    option.driver === 'stripe'
-                                                "
-                                                class="rounded-md bg-sage-100 px-2 py-0.5 text-[10px] font-medium text-sage-800"
-                                            >
-                                                Card / Apple Pay
-                                            </span>
-                                        </div>
-                                        <span
-                                            v-if="option.description"
-                                            class="text-charcoal-500 mt-1 block text-xs"
-                                        >
-                                            {{ option.description }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                        <p
-                            v-if="form.errors.payment_option_id"
-                            class="mt-2 text-xs text-rose-600"
-                        >
-                            {{ form.errors.payment_option_id }}
-                        </p>
+                                <template #badge>
+                                    <span
+                                        v-if="option.driver === 'stripe'"
+                                        class="rounded-md bg-sage-100 px-2 py-0.5 text-[10px] font-medium text-sage-800"
+                                    >
+                                        Card / Apple Pay
+                                    </span>
+                                </template>
+                            </RadioCard>
+                        </RadioCardGroup>
                     </section>
 
                     <!-- Step 5: Optional Notes -->
                     <section
                         class="rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
                     >
-                        <label
-                            for="order_notes"
-                            class="mb-2 block font-serif text-base text-charcoal-900"
-                        >
-                            Order Notes & Botanical Requests
-                            <span
-                                class="text-charcoal-400 font-sans text-xs font-normal"
-                                >(optional)</span
-                            >
-                        </label>
-                        <textarea
+                        <TextareaField
                             id="order_notes"
                             v-model="form.notes"
-                            rows="2"
+                            label="Order Notes & Botanical Requests"
+                            subtext="(optional)"
+                            :rows="2"
                             placeholder="Special delivery notes or sensitive skin instructions..."
-                            class="placeholder-charcoal-400 block w-full rounded-xl border border-cream-300 bg-cream-50/50 px-4 py-2.5 text-sm text-charcoal-900 focus:border-sage-600 focus:bg-white focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
-                        ></textarea>
+                            :error="form.errors.notes"
+                        />
                     </section>
                 </div>
 

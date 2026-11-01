@@ -14,53 +14,31 @@ class CartService
     /**
      * Get all active cart items for the current user (database) or guest (session).
      *
-     * @return Collection<int, object>
+     * @return Collection<int, CartItem>
      */
     public function getItems(Request $request): Collection
     {
-        if ($user = $request->user()) {
-            return CartItem::query()
-                ->where('user_id', $user->id)
-                ->with(['product' => fn ($query) => $query->where('is_active', true)->with('category:id,slug,name')])
-                ->get()
-                ->filter(fn (CartItem $item) => $item->product !== null)
-                ->map(fn (CartItem $item) => (object) [
-                    'id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'quantity' => $item->quantity,
-                    'product' => $item->product,
-                    'subtotal' => $item->subtotal(),
-                ])
-                ->values();
+        $user = $request->user();
+        if ($user) {
+            return $this->getItemsFromUser($user);
         }
 
+        return $this->getItemsFromSession($request);
+    }
+
+    /**
+     * @return Collection<int, CartItem>
+     */
+    public function getItemsFromSession(Request $request): Collection
+    {
         $sessionCart = $request->session()->get('cart', []);
         if (! is_array($sessionCart) || empty($sessionCart)) {
             return collect();
         }
 
-        // Support both associative [productId => [...]] and indexed [[...]] session structures
-        $productIds = [];
-        $quantities = [];
-
-        foreach ($sessionCart as $key => $entry) {
-            if (is_array($entry)) {
-                $pId = (int) ($entry['product_id'] ?? $entry['id'] ?? $key);
-                $qty = (int) ($entry['quantity'] ?? 1);
-            } else {
-                $pId = (int) $key;
-                $qty = (int) $entry;
-            }
-
-            if ($pId > 0) {
-                $productIds[] = $pId;
-                $quantities[$pId] = ($quantities[$pId] ?? 0) + $qty;
-            }
-        }
-
-        if (empty($productIds)) {
-            return collect();
-        }
+        $productIds = collect($sessionCart)
+            ->map(fn ($item, $key) => is_array($item) ? ($item['product_id'] ?? $key) : $key)
+            ->filter();
 
         $products = Product::query()
             ->whereIn('id', $productIds)
@@ -69,24 +47,51 @@ class CartService
             ->get()
             ->keyBy('id');
 
-        $items = collect();
+        return collect($sessionCart)
+            ->map(function ($item, $key) use ($products) {
+                $productId = (int) (is_array($item) ? ($item['product_id'] ?? $key) : $key);
+                $quantity = (int) (is_array($item) ? ($item['quantity'] ?? 1) : $item);
+                $id = is_array($item) ? ($item['id'] ?? $productId) : $productId;
 
-        foreach ($quantities as $pId => $qty) {
-            if (! isset($products[$pId])) {
-                continue;
-            }
+                $model = (new CartItem)->forceFill([
+                    'id' => $id,
+                    'product_id' => $productId,
+                    'quantity' => $quantity,
+                ]);
 
-            $product = $products[$pId];
-            $items->push((object) [
-                'id' => $pId,
-                'product_id' => $pId,
-                'quantity' => $qty,
-                'product' => $product,
-                'subtotal' => (float) ($qty * (float) $product->price),
-            ]);
+                return $model->setRelation('product', $products->get($productId));
+            })
+            ->filter(fn (CartItem $item): bool => $item->product !== null);
+    }
+
+    /**
+     * @return Collection<int, CartItem>
+     */
+    public function getItemsFromUser(User $user): Collection
+    {
+        return CartItem::query()
+            ->where('user_id', $user->id)
+            ->with(['product' => fn ($query) => $query->where('is_active', true)->with('category:id,slug,name')])
+            ->get();
+    }
+
+    /**
+     * @param  Collection<int, CartItem>  $cartItems
+     * @return array{count: int, subtotal: float}
+     */
+    public function getSummaryFromCartItems(Collection $cartItems): array
+    {
+        if ($cartItems->isEmpty()) {
+            return [
+                'count' => 0,
+                'subtotal' => 0.0,
+            ];
         }
 
-        return $items;
+        return [
+            'count' => (int) $cartItems->sum('quantity'),
+            'subtotal' => round((float) $cartItems->sum(fn (CartItem $item) => $item->subtotal()), 2),
+        ];
     }
 
     /**
@@ -99,13 +104,10 @@ class CartService
         $items = $this->getItems($request);
 
         if ($items->isNotEmpty()) {
-            return [
-                'count' => (int) $items->sum('quantity'),
-                'subtotal' => round((float) $items->sum('subtotal'), 2),
-            ];
+            return $this->getSummaryFromCartItems($items);
         }
 
-        // Fallback for mocked test session structures where products aren't in DB
+        // Fallback for session structures where products aren't yet populated or in tests
         $sessionCart = $request->session()->get('cart', []);
         if (is_array($sessionCart) && ! empty($sessionCart)) {
             $count = (int) array_sum(array_column($sessionCart, 'quantity'));
@@ -274,7 +276,11 @@ class CartService
             ]);
         }
 
-        $sessionCart[$productId]['quantity'] = $quantity;
+        $sessionCart[$productId] = [
+            'id' => $productId,
+            'product_id' => $productId,
+            'quantity' => $quantity,
+        ];
         $request->session()->put('cart', $sessionCart);
     }
 
@@ -328,12 +334,15 @@ class CartService
 
     /**
      * Merge guest session cart items into authenticated user records on login/register.
+     *
+     * @param  Request|array<array-key, mixed>  $requestOrCart
      */
     public function mergeGuestCart(Request|array $requestOrCart, User $user): void
     {
-        $sessionCart = is_array($requestOrCart)
-            ? $requestOrCart
-            : ($requestOrCart->hasSession() ? $requestOrCart->session()->get('cart', []) : []);
+        $sessionCart = $requestOrCart;
+        if ($requestOrCart instanceof Request) {
+            $sessionCart = $requestOrCart->session()->get('cart', []);
+        }
 
         if (! is_array($sessionCart) || empty($sessionCart)) {
             return;

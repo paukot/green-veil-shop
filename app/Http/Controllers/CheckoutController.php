@@ -6,8 +6,10 @@ use App\Actions\Checkout\PlaceOrder;
 use App\Actions\Checkout\ReleaseOrderStock;
 use App\Enums\PaymentStatus;
 use App\Http\Requests\Checkout\CheckoutRequest;
+use App\Http\Resources\CartItemResource;
+use App\Http\Resources\DeliveryOptionResource;
+use App\Http\Resources\PaymentOptionResource;
 use App\Mail\OrderConfirmationMail;
-use App\Models\CartItem;
 use App\Models\DeliveryOption;
 use App\Models\Payment;
 use App\Models\PaymentOption;
@@ -29,7 +31,7 @@ class CheckoutController extends Controller
     public function show(Request $request): Response|RedirectResponse
     {
         $cartItems = $this->cartService->getItems($request);
-        $summary = $this->cartService->getSummary($request);
+        $summary = $this->cartService->getSummaryFromCartItems($cartItems);
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('info', 'Your shopping bag is empty.');
@@ -37,54 +39,22 @@ class CheckoutController extends Controller
 
         $deliveryOptions = DeliveryOption::query()
             ->active()
-            ->orderBy('sort_order')
-            ->get()
-            ->map(fn (DeliveryOption $option) => [
-                'id' => $option->id,
-                'code' => $option->code,
-                'name' => $option->name,
-                'price' => (float) $option->price,
-                'free_threshold' => $option->free_threshold ? (float) $option->free_threshold : null,
-                'is_free' => $option->free_threshold !== null && $summary['subtotal'] >= (float) $option->free_threshold,
-                'estimated_delivery_label' => $option->estimatedDeliveryLabel(),
-                'description' => $option->description,
-            ]);
+            ->get();
 
         $paymentOptions = PaymentOption::query()
             ->active()
             ->orderBy('sort_order')
-            ->get()
-            ->map(fn (PaymentOption $option) => [
-                'id' => $option->id,
-                'code' => $option->code,
-                'driver' => $option->driver,
-                'name' => $option->name,
-                'description' => $option->description,
-                'instructions' => $option->instructions,
-            ]);
-
-        $formattedItems = $cartItems->map(fn ($item) => [
-            'id' => $item->id,
-            'product_id' => $item->product_id,
-            'quantity' => $item->quantity,
-            'subtotal' => $item instanceof CartItem ? $item->subtotal() : (float) $item->subtotal,
-            'product' => [
-                'id' => $item->product->id,
-                'name' => $item->product->name,
-                'slug' => $item->product->slug,
-                'sku' => $item->product->sku,
-                'price' => (float) $item->product->price,
-                'main_image' => $item->product->main_image,
-            ],
-        ])->values();
+            ->get();
 
         $user = $request->user();
 
         return Inertia::render('Checkout/Index', [
-            'items' => $formattedItems,
+            'items' => CartItemResource::collection($cartItems),
             'summary' => $summary,
-            'deliveryOptions' => $deliveryOptions,
-            'paymentOptions' => $paymentOptions,
+            'deliveryOptions' => $deliveryOptions->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
+                ->withSubtotal($summary['subtotal'])
+            ),
+            'paymentOptions' => PaymentOptionResource::collection($paymentOptions),
             'customer' => $user ? [
                 'name' => $user->name,
                 'email' => $user->email,
@@ -101,7 +71,7 @@ class CheckoutController extends Controller
         $checkoutData = $request->toCheckoutData();
         $order = $placeOrder->execute($request, $checkoutData);
 
-        $driver = $order->paymentOption?->driver ?? 'stripe';
+        $driver = $order->paymentOption->driver ?? 'stripe';
         $gateway = $paymentManager->gateway($driver);
         $result = $gateway->createCheckout($order);
 

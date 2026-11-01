@@ -56,6 +56,10 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 
+    /**
+     * @param  Builder<Category>  $query
+     * @return Builder<Category>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)->orderBy('sort_order');

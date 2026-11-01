@@ -109,7 +109,7 @@ class EditOrder extends EditRecord
                     $amountInCents = (int) round($amountInEuros * 100);
                     $reason = $data['reason'] ?? 'requested_by_customer';
 
-                    $driver = $record->paymentOption?->driver ?? ($record->stripe_payment_intent_id ? 'stripe' : 'offline');
+                    $driver = $record->paymentOption->driver ?? ($record->stripe_payment_intent_id ? 'stripe' : 'offline');
                     $gateway = $paymentManager->gateway($driver);
 
                     $result = $gateway->refund($record, $amountInCents, $reason);

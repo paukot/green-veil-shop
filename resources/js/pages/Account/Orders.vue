@@ -3,6 +3,8 @@ import { Head, Link } from '@inertiajs/vue3';
 import AccountLayout from '@/layouts/AccountLayout.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import type { AccountOrdersPageProps } from '@/types/storefront';
+import { show as ordersShow } from '@/actions/App/Http/Controllers/OrderController';
+import { index as productsIndex } from '@/routes/products';
 
 defineProps<AccountOrdersPageProps>();
 
@@ -81,11 +83,11 @@ function getPaymentStatusClass(paymentStatus: string): string {
                         </p>
                     </div>
                     <div
-                        v-if="orders.total > 0"
+                        v-if="orders.meta.total > 0"
                         class="text-charcoal-500 text-xs font-medium"
                     >
-                        Showing {{ orders.total }}
-                        {{ orders.total === 1 ? 'order' : 'orders' }}
+                        Showing {{ orders.meta.total }}
+                        {{ orders.meta.total === 1 ? 'order' : 'orders' }}
                     </div>
                 </div>
             </div>
@@ -124,10 +126,10 @@ function getPaymentStatusClass(paymentStatus: string): string {
                 </p>
                 <div class="mt-6">
                     <Link
-                        href="/products"
+                        :href="productsIndex.url()"
                         class="inline-flex items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900"
                     >
-                        Explore Botanicals
+                        Explore Botanical
                     </Link>
                 </div>
             </div>
@@ -241,7 +243,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
 
                             <div class="flex items-center gap-3">
                                 <Link
-                                    :href="`/account/orders/${order.public_id}`"
+                                    :href="ordersShow.url(order.public_id)"
                                     class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-xs font-semibold tracking-wider text-charcoal-800 uppercase transition-colors hover:bg-cream-100 hover:text-sage-900 sm:w-auto"
                                 >
                                     <span>View Details</span>
@@ -265,7 +267,7 @@ function getPaymentStatusClass(paymentStatus: string): string {
                 </article>
 
                 <!-- Pagination Component -->
-                <Pagination :links="orders.links" />
+                <Pagination :links="orders.meta.links" />
             </div>
         </div>
     </AccountLayout>

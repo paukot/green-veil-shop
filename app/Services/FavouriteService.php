@@ -97,14 +97,14 @@ class FavouriteService
 
     /**
      * Merge guest session favourites into the user account upon login/registration.
+     *
+     * @param  Request|array<int, int>  $requestOrFavourites
      */
     public function mergeGuestFavourites(Request|array $requestOrFavourites, User $user): void
     {
-        $guestFavourites = is_array($requestOrFavourites)
-            ? $requestOrFavourites
-            : ($requestOrFavourites->hasSession() ? $requestOrFavourites->session()->get('favourites', []) : []);
+        $guestFavourites = $this->guestFavourites($requestOrFavourites);
 
-        if (! is_array($guestFavourites) || empty($guestFavourites)) {
+        if (empty($guestFavourites)) {
             return;
         }
 
@@ -127,5 +127,22 @@ class FavouriteService
         if ($requestOrFavourites instanceof Request && $requestOrFavourites->hasSession()) {
             $requestOrFavourites->session()->forget('favourites');
         }
+    }
+
+    /**
+     * @param  Request|array<int, int>  $source
+     * @return array<int, int>
+     */
+    private function guestFavourites(Request|array $source): array
+    {
+        if (is_array($source)) {
+            return $source;
+        }
+
+        if ($source->hasSession()) {
+            return $source->session()->get('favourites', []);
+        }
+
+        return [];
     }
 }

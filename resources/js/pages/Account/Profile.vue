@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import { TextField } from '@/components/form';
 import AccountLayout from '@/layouts/AccountLayout.vue';
+import {
+    updateProfile as updateProfileRoute,
+    updatePassword as updatePasswordRoute,
+} from '@/actions/App/Http/Controllers/AccountController';
 
 defineOptions({
     layout: AccountLayout,
@@ -28,13 +33,13 @@ const passwordForm = useForm({
 });
 
 const updateProfile = () => {
-    profileForm.patch('/account/profile', {
+    profileForm.patch(updateProfileRoute.url(), {
         preserveScroll: true,
     });
 };
 
 const updatePassword = () => {
-    passwordForm.put('/account/password', {
+    passwordForm.put(updatePasswordRoute.url(), {
         preserveScroll: true,
         onSuccess: () => {
             passwordForm.reset();
@@ -63,60 +68,28 @@ const updatePassword = () => {
 
             <form @submit.prevent="updateProfile" class="max-w-xl space-y-5">
                 <!-- Name Field -->
-                <div>
-                    <label
-                        for="name"
-                        class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                    >
-                        Full Name
-                    </label>
-                    <input
-                        id="name"
-                        v-model="profileForm.name"
-                        type="text"
-                        autocomplete="name"
-                        required
-                        class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                        :class="{
-                            'border-red-400 focus:ring-red-400':
-                                profileForm.errors.name,
-                        }"
-                    />
-                    <p
-                        v-if="profileForm.errors.name"
-                        class="mt-1.5 text-xs text-red-600"
-                    >
-                        {{ profileForm.errors.name }}
-                    </p>
-                </div>
+                <TextField
+                    id="name"
+                    v-model="profileForm.name"
+                    type="text"
+                    label="Full Name"
+                    variant="uppercase"
+                    autocomplete="name"
+                    required
+                    :error="profileForm.errors.name"
+                />
 
                 <!-- Email Field -->
-                <div>
-                    <label
-                        for="email"
-                        class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                    >
-                        Email Address
-                    </label>
-                    <input
-                        id="email"
-                        v-model="profileForm.email"
-                        type="email"
-                        autocomplete="email"
-                        required
-                        class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                        :class="{
-                            'border-red-400 focus:ring-red-400':
-                                profileForm.errors.email,
-                        }"
-                    />
-                    <p
-                        v-if="profileForm.errors.email"
-                        class="mt-1.5 text-xs text-red-600"
-                    >
-                        {{ profileForm.errors.email }}
-                    </p>
-                </div>
+                <TextField
+                    id="email"
+                    v-model="profileForm.email"
+                    type="email"
+                    label="Email Address"
+                    variant="uppercase"
+                    autocomplete="email"
+                    required
+                    :error="profileForm.errors.email"
+                />
 
                 <div class="flex items-center gap-4 pt-2">
                     <button
@@ -179,91 +152,43 @@ const updatePassword = () => {
 
             <form @submit.prevent="updatePassword" class="max-w-xl space-y-5">
                 <!-- Current Password -->
-                <div>
-                    <label
-                        for="current_password"
-                        class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                    >
-                        Current Password
-                    </label>
-                    <input
-                        id="current_password"
-                        v-model="passwordForm.current_password"
-                        type="password"
-                        autocomplete="current-password"
-                        required
-                        class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                        :class="{
-                            'border-red-400 focus:ring-red-400':
-                                passwordForm.errors.current_password,
-                        }"
-                        placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-                    />
-                    <p
-                        v-if="passwordForm.errors.current_password"
-                        class="mt-1.5 text-xs text-red-600"
-                    >
-                        {{ passwordForm.errors.current_password }}
-                    </p>
-                </div>
+                <TextField
+                    id="current_password"
+                    v-model="passwordForm.current_password"
+                    type="password"
+                    label="Current Password"
+                    variant="uppercase"
+                    autocomplete="current-password"
+                    required
+                    placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                    :error="passwordForm.errors.current_password"
+                />
 
                 <!-- New Password -->
-                <div>
-                    <label
-                        for="password"
-                        class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                    >
-                        New Password
-                    </label>
-                    <input
-                        id="password"
-                        v-model="passwordForm.password"
-                        type="password"
-                        autocomplete="new-password"
-                        required
-                        class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                        :class="{
-                            'border-red-400 focus:ring-red-400':
-                                passwordForm.errors.password,
-                        }"
-                        placeholder="At least 8 characters"
-                    />
-                    <p
-                        v-if="passwordForm.errors.password"
-                        class="mt-1.5 text-xs text-red-600"
-                    >
-                        {{ passwordForm.errors.password }}
-                    </p>
-                </div>
+                <TextField
+                    id="password"
+                    v-model="passwordForm.password"
+                    type="password"
+                    label="New Password"
+                    variant="uppercase"
+                    autocomplete="new-password"
+                    required
+                    placeholder="At least 8 characters"
+                    :error="passwordForm.errors.password"
+                />
 
                 <!-- Confirm Password -->
-                <div>
-                    <label
-                        for="password_confirmation"
-                        class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                    >
-                        Confirm New Password
-                    </label>
-                    <input
-                        id="password_confirmation"
-                        v-model="passwordForm.password_confirmation"
-                        type="password"
-                        autocomplete="new-password"
-                        required
-                        class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                        :class="{
-                            'border-red-400 focus:ring-red-400':
-                                passwordForm.errors.password_confirmation,
-                        }"
-                        placeholder="Repeat new password"
-                    />
-                    <p
-                        v-if="passwordForm.errors.password_confirmation"
-                        class="mt-1.5 text-xs text-red-600"
-                    >
-                        {{ passwordForm.errors.password_confirmation }}
-                    </p>
-                </div>
+                <TextField
+                    id="password_confirmation"
+                    v-model="passwordForm.password_confirmation"
+                    type="password"
+                    label="Confirm New Password"
+                    variant="uppercase"
+                    autocomplete="new-password"
+                    required
+                    placeholder="Repeat new password"
+                    :error="passwordForm.errors.password_confirmation"
+                />
 
                 <div class="flex items-center gap-4 pt-2">
                     <button

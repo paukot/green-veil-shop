@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { TextField } from '@/components/form';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
+import { login, register } from '@/routes';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -14,7 +16,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/register', {
+    form.post(register.url(), {
         onFinish: () => {
             form.reset('password', 'password_confirmation');
         },
@@ -49,120 +51,56 @@ const submit = () => {
             >
                 <form @submit.prevent="submit" class="space-y-4">
                     <!-- Full Name -->
-                    <div>
-                        <label
-                            for="name"
-                            class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                        >
-                            Full Name
-                        </label>
-                        <input
-                            id="name"
-                            v-model="form.name"
-                            type="text"
-                            autocomplete="name"
-                            required
-                            class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            :class="{
-                                'border-red-400 focus:ring-red-400':
-                                    form.errors.name,
-                            }"
-                            placeholder="Flora Evans"
-                        />
-                        <p
-                            v-if="form.errors.name"
-                            class="mt-1.5 text-xs text-red-600"
-                        >
-                            {{ form.errors.name }}
-                        </p>
-                    </div>
+                    <TextField
+                        id="name"
+                        v-model="form.name"
+                        type="text"
+                        label="Full Name"
+                        variant="uppercase"
+                        autocomplete="name"
+                        required
+                        placeholder="Flora Evans"
+                        :error="form.errors.name"
+                    />
 
                     <!-- Email Address -->
-                    <div>
-                        <label
-                            for="email"
-                            class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                        >
-                            Email Address
-                        </label>
-                        <input
-                            id="email"
-                            v-model="form.email"
-                            type="email"
-                            autocomplete="email"
-                            required
-                            class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            :class="{
-                                'border-red-400 focus:ring-red-400':
-                                    form.errors.email,
-                            }"
-                            placeholder="flora@example.com"
-                        />
-                        <p
-                            v-if="form.errors.email"
-                            class="mt-1.5 text-xs text-red-600"
-                        >
-                            {{ form.errors.email }}
-                        </p>
-                    </div>
+                    <TextField
+                        id="email"
+                        v-model="form.email"
+                        type="email"
+                        label="Email Address"
+                        variant="uppercase"
+                        autocomplete="email"
+                        required
+                        placeholder="flora@example.com"
+                        :error="form.errors.email"
+                    />
 
                     <!-- Password -->
-                    <div>
-                        <label
-                            for="password"
-                            class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                        >
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            autocomplete="new-password"
-                            required
-                            class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            :class="{
-                                'border-red-400 focus:ring-red-400':
-                                    form.errors.password,
-                            }"
-                            placeholder="At least 8 characters"
-                        />
-                        <p
-                            v-if="form.errors.password"
-                            class="mt-1.5 text-xs text-red-600"
-                        >
-                            {{ form.errors.password }}
-                        </p>
-                    </div>
+                    <TextField
+                        id="password"
+                        v-model="form.password"
+                        type="password"
+                        label="Password"
+                        variant="uppercase"
+                        autocomplete="new-password"
+                        required
+                        placeholder="At least 8 characters"
+                        :error="form.errors.password"
+                    />
 
                     <!-- Password Confirmation -->
-                    <div>
-                        <label
-                            for="password_confirmation"
-                            class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                        >
-                            Confirm Password
-                        </label>
-                        <input
-                            id="password_confirmation"
-                            v-model="form.password_confirmation"
-                            type="password"
-                            autocomplete="new-password"
-                            required
-                            class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            :class="{
-                                'border-red-400 focus:ring-red-400':
-                                    form.errors.password_confirmation,
-                            }"
-                            placeholder="Repeat password"
-                        />
-                        <p
-                            v-if="form.errors.password_confirmation"
-                            class="mt-1.5 text-xs text-red-600"
-                        >
-                            {{ form.errors.password_confirmation }}
-                        </p>
-                    </div>
+                    <TextField
+                        id="password_confirmation"
+                        v-model="form.password_confirmation"
+                        type="password"
+                        label="Confirm Password"
+                        variant="uppercase"
+                        autocomplete="new-password"
+                        required
+                        placeholder="Repeat password"
+                        :error="form.errors.password_confirmation"
+                    />
 
                     <!-- Terms info -->
                     <p
@@ -212,7 +150,7 @@ const submit = () => {
                 >
                     <span>Already have an account?</span>
                     <Link
-                        href="/login"
+                        :href="login.url()"
                         class="ml-1.5 font-semibold text-sage-800 underline underline-offset-2 hover:text-sage-900"
                     >
                         Sign in

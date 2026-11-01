@@ -6,6 +6,7 @@ import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import FilterSidebar from '@/components/storefront/FilterSidebar.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import type { CatalogIndexProps } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
 
 const props = defineProps<CatalogIndexProps>();
 
@@ -46,11 +47,9 @@ const pageTitle = computed(() => {
     <StorefrontLayout>
         <!-- Page Header -->
         <section
-            class="border-b border-cream-200 bg-gradient-to-b from-cream-100 to-cream-50 py-10 sm:py-12"
+            class="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50 py-10 sm:py-12"
         >
-            <div
-                class="mx-auto max-w-3xl max-w-7xl px-4 text-center sm:px-6 lg:px-8"
-            >
+            <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
                 <span
                     class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
                 >
@@ -85,9 +84,9 @@ const pageTitle = computed(() => {
             >
                 <div class="text-charcoal-600 text-xs">
                     <span class="font-semibold text-charcoal-900">{{
-                        products.total
+                        products.meta.total
                     }}</span>
-                    {{ products.total === 1 ? 'product' : 'products' }}
+                    {{ products.meta.total === 1 ? 'product' : 'products' }}
                 </div>
                 <button
                     type="button"
@@ -126,7 +125,7 @@ const pageTitle = computed(() => {
                         :categories="categories"
                         :filters="filters"
                         :price-range="priceRange"
-                        base-url="/products"
+                        :base-url="productsIndex.url()"
                     />
                 </div>
 
@@ -139,10 +138,10 @@ const pageTitle = computed(() => {
                         <div>
                             Showing
                             <span class="font-semibold text-charcoal-900">{{
-                                products.total
+                                products.meta.total
                             }}</span>
                             {{
-                                products.total === 1
+                                products.meta.total === 1
                                     ? 'botanical product'
                                     : 'botanical products'
                             }}
@@ -154,7 +153,7 @@ const pageTitle = computed(() => {
                         <ProductGrid :products="products.data" />
 
                         <!-- Pagination -->
-                        <Pagination :links="products.links" />
+                        <Pagination :links="products.meta.links" />
                     </div>
 
                     <!-- Empty State -->
@@ -180,7 +179,7 @@ const pageTitle = computed(() => {
                             </svg>
                         </div>
                         <h2 class="mb-2 font-serif text-xl text-charcoal-900">
-                            No matching botanicals
+                            No matching botanical
                         </h2>
                         <p
                             class="text-charcoal-600 mb-6 text-xs font-light sm:text-sm"
@@ -190,7 +189,7 @@ const pageTitle = computed(() => {
                             keywords.
                         </p>
                         <Link
-                            href="/products"
+                            :href="productsIndex.url()"
                             class="inline-block rounded-full bg-sage-800 px-6 py-2.5 text-xs font-medium tracking-wider text-cream-50 uppercase transition-colors hover:bg-sage-900"
                         >
                             Reset All Filters
@@ -230,7 +229,7 @@ const pageTitle = computed(() => {
                         :categories="categories"
                         :filters="filters"
                         :price-range="priceRange"
-                        base-url="/products"
+                        :base-url="productsIndex.url()"
                         @close="mobileFilterOpen = false"
                     />
                 </div>

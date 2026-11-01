@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { CheckboxField, TextField } from '@/components/form';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
+import { login, register } from '@/routes';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -13,7 +15,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/login', {
+    form.post(login.url(), {
         onFinish: () => {
             form.reset('password');
         },
@@ -56,77 +58,38 @@ const submit = () => {
                     </div>
 
                     <!-- Email Input -->
-                    <div>
-                        <label
-                            for="email"
-                            class="mb-1.5 block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                        >
-                            Email Address
-                        </label>
-                        <input
-                            id="email"
-                            v-model="form.email"
-                            type="email"
-                            autocomplete="email"
-                            required
-                            class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            :class="{
-                                'border-red-400 focus:ring-red-400':
-                                    form.errors.email,
-                            }"
-                            placeholder="you@example.com"
-                        />
-                        <p
-                            v-if="form.errors.email"
-                            class="mt-1.5 text-xs text-red-600"
-                        >
-                            {{ form.errors.email }}
-                        </p>
-                    </div>
+                    <TextField
+                        id="email"
+                        v-model="form.email"
+                        type="email"
+                        label="Email Address"
+                        variant="uppercase"
+                        autocomplete="email"
+                        required
+                        placeholder="you@example.com"
+                        :error="form.errors.email"
+                    />
 
                     <!-- Password Input -->
-                    <div>
-                        <div class="mb-1.5 flex items-center justify-between">
-                            <label
-                                for="password"
-                                class="block text-xs font-medium tracking-wider text-charcoal-700 uppercase"
-                            >
-                                Password
-                            </label>
-                        </div>
-                        <input
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            autocomplete="current-password"
-                            required
-                            class="placeholder-charcoal-400 w-full rounded-lg border border-cream-300 bg-cream-50/50 px-3.5 py-2.5 text-sm text-charcoal-900 transition-colors focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            :class="{
-                                'border-red-400 focus:ring-red-400':
-                                    form.errors.password,
-                            }"
-                            placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-                        />
-                        <p
-                            v-if="form.errors.password"
-                            class="mt-1.5 text-xs text-red-600"
-                        >
-                            {{ form.errors.password }}
-                        </p>
-                    </div>
+                    <TextField
+                        id="password"
+                        v-model="form.password"
+                        type="password"
+                        label="Password"
+                        variant="uppercase"
+                        autocomplete="current-password"
+                        required
+                        placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                        :error="form.errors.password"
+                    />
 
                     <!-- Remember Me Checkbox -->
                     <div class="flex items-center justify-between">
-                        <label class="flex cursor-pointer items-center gap-2">
-                            <input
-                                v-model="form.remember"
-                                type="checkbox"
-                                class="h-4 w-4 rounded border-cream-300 text-sage-700 focus:ring-sage-500"
-                            />
-                            <span class="text-charcoal-600 text-xs"
-                                >Remember this device</span
-                            >
-                        </label>
+                        <CheckboxField
+                            id="remember"
+                            v-model="form.remember"
+                            label="Remember this device"
+                        />
                     </div>
 
                     <!-- Submit Button -->
@@ -166,7 +129,7 @@ const submit = () => {
                 >
                     <span>New to Green Veil?</span>
                     <Link
-                        href="/register"
+                        :href="register.url()"
                         class="ml-1.5 font-semibold text-sage-800 underline underline-offset-2 hover:text-sage-900"
                     >
                         Create an account

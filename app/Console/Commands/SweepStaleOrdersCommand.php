@@ -75,7 +75,7 @@ class SweepStaleOrdersCommand extends Command
                     return;
                 }
 
-                $driver = $lockedOrder->paymentOption?->driver ?? 'stripe';
+                $driver = $lockedOrder->paymentOption->driver ?? 'stripe';
 
                 $lockedOrder->update([
                     'status' => OrderStatus::Cancelled,

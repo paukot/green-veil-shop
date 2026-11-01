@@ -13,7 +13,6 @@ use App\Models\Product;
 use App\Models\Promotion;
 use App\Services\CartService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -26,15 +25,13 @@ class PlaceOrder
     /**
      * Create an order from the current cart with stock reservation and price snapshots.
      *
-     * @throws ValidationException
+     * @throws ValidationException|\Throwable
      */
     public function execute(Request $request, CheckoutData $data): Order
     {
         return DB::transaction(function () use ($request, $data): Order {
             // Check raw cart to verify no inactive or non-existent products are being ordered
-            $rawCart = $request->user()
-                ? CartItem::where('user_id', $request->user()->id)->pluck('quantity', 'product_id')->all()
-                : ($request->hasSession() ? $request->session()->get('cart', []) : []);
+            $rawCart = $this->getRawCart($request);
 
             if (empty($rawCart)) {
                 throw ValidationException::withMessages([
@@ -53,7 +50,6 @@ class PlaceOrder
                 }
             }
 
-            /** @var Collection<int, object|array> $cartItems */
             $cartItems = $this->cartService->getItems($request);
 
             if ($cartItems->isEmpty()) {
@@ -91,8 +87,8 @@ class PlaceOrder
 
             // Verify each product is active, lock for inventory check, and reserve stock
             foreach ($cartItems as $cartItem) {
-                $productId = is_array($cartItem) ? (int) $cartItem['product_id'] : (int) $cartItem->product_id;
-                $quantity = is_array($cartItem) ? (int) $cartItem['quantity'] : (int) $cartItem->quantity;
+                $productId = (int) $cartItem->product_id;
+                $quantity = (int) $cartItem->quantity;
 
                 /** @var Product|null $product */
                 $product = Product::query()
@@ -194,5 +190,23 @@ class PlaceOrder
 
             return $order;
         });
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private function getRawCart(Request $request): array
+    {
+        if ($user = $request->user()) {
+            return CartItem::where('user_id', $user->id)
+                ->pluck('quantity', 'product_id')
+                ->all();
+        }
+
+        if ($request->hasSession()) {
+            return $request->session()->get('cart', []);
+        }
+
+        return [];
     }
 }

@@ -20,6 +20,6 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): bool
     {
-        return (int) $order->user_id === (int) $user->id;
+        return (int) $order->user_id === $user->id;
     }
 }

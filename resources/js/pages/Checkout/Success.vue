@@ -2,15 +2,18 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
-import type { CheckoutSuccessPageProps } from '@/types/storefront';
+import type { OrderDetailData } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
 
-const props = defineProps<CheckoutSuccessPageProps>();
+const props = defineProps<{
+    order: OrderDetailData;
+}>();
 
 const pollCount = ref(0);
 const maxPolls = 10;
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
 
-const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
+const isStripe = computed(() => props.order.paymentOption?.driver === 'stripe');
 const isPaid = computed(() => props.order.payment_status === 'paid');
 const isPendingPayment = computed(
     () => props.order.payment_status === 'unpaid' && isStripe.value,
@@ -143,7 +146,7 @@ function formatCurrency(amount: number): string {
                         </span>
                         <span
                             v-else-if="
-                                paymentOption?.driver === 'bank_transfer'
+                                order.paymentOption?.driver === 'bank_transfer'
                             "
                             class="rounded-full bg-amber-100 px-3 py-1 text-amber-800"
                         >
@@ -197,19 +200,19 @@ function formatCurrency(amount: number): string {
 
                 <!-- Payment Instructions for Offline Drivers -->
                 <div
-                    v-if="paymentOption?.instructions"
+                    v-if="order.paymentOption?.instructions"
                     class="mt-8 rounded-2xl border border-sage-200 bg-sage-50/70 p-5 text-xs text-charcoal-800"
                 >
                     <div class="flex items-start gap-3">
                         <span class="text-lg">🌿</span>
                         <div>
                             <h3 class="font-semibold text-sage-900">
-                                {{ paymentOption.name }} Instructions
+                                {{ order.paymentOption.name }} Instructions
                             </h3>
                             <p
                                 class="mt-1 whitespace-pre-line text-charcoal-700"
                             >
-                                {{ paymentOption.instructions }}
+                                {{ order.paymentOption.instructions }}
                             </p>
                         </div>
                     </div>
@@ -223,7 +226,7 @@ function formatCurrency(amount: number): string {
 
                     <div class="divide-y divide-cream-100">
                         <div
-                            v-for="item in items"
+                            v-for="item in order.items"
                             :key="item.id"
                             class="flex items-center justify-between py-3.5 text-xs"
                         >
@@ -284,7 +287,8 @@ function formatCurrency(amount: number): string {
                         <div class="text-charcoal-600 flex justify-between">
                             <span
                                 >Delivery ({{
-                                    deliveryOption?.name ?? 'Standard Delivery'
+                                    order.deliveryOption?.name ??
+                                    'Standard Delivery'
                                 }})</span
                             >
                             <span
@@ -354,15 +358,22 @@ function formatCurrency(amount: number): string {
                         </h3>
                         <p class="font-medium text-charcoal-900">
                             Payment:
-                            {{ paymentOption?.name ?? 'Direct Payment' }}
+                            {{ order.paymentOption?.name ?? 'Direct Payment' }}
                         </p>
                         <p class="text-charcoal-600 mt-1">
-                            Delivery: {{ deliveryOption?.name ?? 'Standard' }}
+                            Delivery:
+                            {{ order.deliveryOption?.name ?? 'Standard' }}
                             <span
-                                v-if="deliveryOption?.estimated_delivery_label"
+                                v-if="
+                                    order.deliveryOption
+                                        ?.estimated_delivery_label
+                                "
                                 class="text-charcoal-400"
                             >
-                                ({{ deliveryOption.estimated_delivery_label }})
+                                ({{
+                                    order.deliveryOption
+                                        .estimated_delivery_label
+                                }})
                             </span>
                         </p>
                     </div>
@@ -371,7 +382,7 @@ function formatCurrency(amount: number): string {
                 <!-- Back to Shop CTA -->
                 <div class="mt-10 text-center">
                     <Link
-                        href="/products"
+                        :href="productsIndex.url()"
                         class="inline-block rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md"
                     >
                         Continue Exploring Botanicals

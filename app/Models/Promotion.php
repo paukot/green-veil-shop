@@ -93,6 +93,10 @@ class Promotion extends Model
         };
     }
 
+    /**
+     * @param  Builder<Promotion>  $query
+     * @return Builder<Promotion>
+     */
     public function scopeActive(Builder $query): Builder
     {
         $now = now();
