@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\RelationManagers;
 
+use App\Models\Product;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -78,7 +79,10 @@ class ImagesRelationManager extends RelationManager
                         Toggle::make('is_primary'),
                     ])
                     ->action(function (array $data, RelationManager $livewire): void {
-                        $livewire->getOwnerRecord()->images()->create($data);
+                        $owner = $livewire->getOwnerRecord();
+                        if ($owner instanceof Product) {
+                            $owner->images()->create($data);
+                        }
                     }),
             ])
             ->actions([

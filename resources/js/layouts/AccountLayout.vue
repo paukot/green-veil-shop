@@ -2,6 +2,11 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CustomerUser } from '@/types/storefront';
+import { profile } from '@/routes/account';
+import { index as ordersIndex } from '@/routes/account/orders';
+import { index as favouritesIndex } from '@/routes/favourites';
+import { index as cartIndex } from '@/routes/cart';
+import { logout } from '@/routes';
 
 const page = usePage<{ auth: { user: CustomerUser | null } }>();
 const user = page.props.auth.user;
@@ -37,10 +42,10 @@ const user = page.props.auth.user;
                         aria-label="Account navigation"
                     >
                         <Link
-                            href="/account/profile"
+                            :href="profile.url()"
                             class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-colors"
                             :class="
-                                $page.url.startsWith('/account/profile')
+                                $page.url.startsWith(profile.url())
                                     ? 'bg-sage-100 font-semibold text-sage-900'
                                     : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
                             "
@@ -62,10 +67,10 @@ const user = page.props.auth.user;
                         </Link>
 
                         <Link
-                            href="/account/orders"
+                            :href="ordersIndex.url()"
                             class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-colors"
                             :class="
-                                $page.url.startsWith('/account/orders')
+                                $page.url.startsWith(ordersIndex.url())
                                     ? 'bg-sage-100 font-semibold text-sage-900'
                                     : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
                             "
@@ -87,7 +92,7 @@ const user = page.props.auth.user;
                         </Link>
 
                         <Link
-                            href="/favourites"
+                            :href="favouritesIndex.url()"
                             class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-800"
                         >
                             <svg
@@ -107,7 +112,7 @@ const user = page.props.auth.user;
                         </Link>
 
                         <Link
-                            href="/cart"
+                            :href="cartIndex.url()"
                             class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-800"
                         >
                             <svg
@@ -128,7 +133,7 @@ const user = page.props.auth.user;
 
                         <div class="mt-2 border-t border-cream-200 pt-2">
                             <Link
-                                href="/logout"
+                                :href="logout.url()"
                                 method="post"
                                 as="button"
                                 class="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"

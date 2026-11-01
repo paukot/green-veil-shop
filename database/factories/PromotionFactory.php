@@ -34,4 +34,43 @@ class PromotionFactory extends Factory
             'description' => 'A special seasonal discount on all pure botanical formulations.',
         ];
     }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => [
+            'is_active' => false,
+        ]);
+    }
+
+    public function expired(): static
+    {
+        return $this->state(fn () => [
+            'starts_at' => now()->subMonth(),
+            'ends_at' => now()->subDay(),
+        ]);
+    }
+
+    public function upcoming(): static
+    {
+        return $this->state(fn () => [
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addMonth(),
+        ]);
+    }
+
+    public function percentage(float $value = 15.00): static
+    {
+        return $this->state(fn () => [
+            'discount_type' => DiscountType::Percentage,
+            'discount_value' => $value,
+        ]);
+    }
+
+    public function fixed(float $value = 10.00): static
+    {
+        return $this->state(fn () => [
+            'discount_type' => DiscountType::FixedAmount,
+            'discount_value' => $value,
+        ]);
+    }
 }

@@ -47,7 +47,7 @@ class ProductController extends Controller
         ];
 
         return Inertia::render('Catalog/Index', [
-            'products' => ProductResource::collection($products),
+            'products' => ProductResource::collection($products)->additional(['total' => $products->total()]),
             'categories' => SimpleCategoryResource::collection($categories)->resolve(),
             'priceRange' => $priceRange,
             'filters' => [

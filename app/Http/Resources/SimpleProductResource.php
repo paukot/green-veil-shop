@@ -10,6 +10,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin Product */
 class SimpleProductResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -24,7 +27,7 @@ class SimpleProductResource extends JsonResource
                 : null,
             'discount_percentage' => $this->discountPercentage(),
             'main_image' => (new StorageImageService)->getImage($this->main_image),
-            'category' => new SimpleCategoryResource($this->whenLoaded('category')),
+            'category' => SimpleCategoryResource::make($this->whenLoaded('category')),
             'is_in_stock' => $this->isInStock(),
 
             //            'promotions' => PromotionResource::collection($this->whenLoaded('promotions')),

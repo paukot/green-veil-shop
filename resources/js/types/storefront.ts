@@ -301,7 +301,7 @@ export type CheckoutPageProps = {
     customer: CheckoutCustomer;
 };
 
-export type CheckoutSuccessPageProps = {
+export type OrderDetailData = {
     public_id: string;
     number: string;
     status: string;
@@ -332,15 +332,7 @@ export type CheckoutSuccessPageProps = {
     placed_at?: string | null;
     paid_at?: string | null;
     notes?: string | null;
-    items: Array<{
-        id: number;
-        product_name: string;
-        product_sku?: string | null;
-        product_image?: string | null;
-        unit_price: number;
-        quantity: number;
-        subtotal: number;
-    }>;
+    items?: OrderItemData[];
     deliveryOption?: {
         name: string;
         code: string;
@@ -353,6 +345,16 @@ export type CheckoutSuccessPageProps = {
         description?: string | null;
         instructions?: string | null;
     } | null;
+};
+
+export type OrderItemData = {
+    id: number;
+    product_name: string;
+    product_sku?: string | null;
+    product_image?: string | null;
+    unit_price: number;
+    quantity: number;
+    subtotal: number;
 };
 
 export type CheckoutCancelPageProps = {
@@ -382,4 +384,9 @@ export type AccountOrdersPageProps = {
     orders: PaginatedData<AccountOrderListItem>;
 };
 
-export type AccountOrderDetailProps = CheckoutSuccessPageProps;
+export type AccountOrderDetailProps = {
+    order: OrderDetailData;
+    items: OrderItemData[];
+    deliveryOption?: OrderDetailData['deliveryOption'];
+    paymentOption?: OrderDetailData['paymentOption'];
+};

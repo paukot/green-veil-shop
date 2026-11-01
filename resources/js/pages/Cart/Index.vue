@@ -3,6 +3,13 @@ import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CartPageProps, CartItemData } from '@/types/storefront';
+import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
+import {
+    update as cartItemsUpdate,
+    destroy as cartItemsDestroy,
+} from '@/actions/App/Http/Controllers/CartItemController';
+import { show as checkoutShow } from '@/actions/App/Http/Controllers/CheckoutController';
+import { index as productsIndex } from '@/routes/products';
 
 const props = defineProps<CartPageProps>();
 
@@ -10,6 +17,8 @@ const updatingItemId = ref<number | string | null>(null);
 const removingItemId = ref<number | string | null>(null);
 
 function updateQuantity(item: CartItemData, newQuantity: number) {
+    const itemKey = item.id ?? item.product_id;
+
     if (newQuantity < 1) {
         removeItem(item);
         return;
@@ -22,9 +31,9 @@ function updateQuantity(item: CartItemData, newQuantity: number) {
         return;
     }
 
-    updatingItemId.value = item.id;
+    updatingItemId.value = itemKey;
     router.patch(
-        `/cart/items/${item.id}`,
+        cartItemsUpdate.url(itemKey),
         { quantity: newQuantity },
         {
             preserveScroll: true,
@@ -37,8 +46,9 @@ function updateQuantity(item: CartItemData, newQuantity: number) {
 }
 
 function removeItem(item: CartItemData) {
-    removingItemId.value = item.id;
-    router.delete(`/cart/items/${item.id}`, {
+    const itemKey = item.id ?? item.product_id;
+    removingItemId.value = itemKey;
+    router.delete(cartItemsDestroy.url(itemKey), {
         preserveScroll: true,
         preserveState: true,
         onFinish: () => {
@@ -137,13 +147,13 @@ const freeShippingProgress = computed(() => {
                     >
                         <div
                             v-for="item in items"
-                            :key="item.id"
+                            :key="item.id ?? item.product_id"
                             class="flex flex-col items-start justify-between gap-4 p-4 transition-colors hover:bg-cream-50/50 sm:flex-row sm:items-center sm:p-6"
                         >
                             <!-- Product Image & Meta -->
                             <div class="flex min-w-0 flex-1 items-center gap-4">
                                 <Link
-                                    :href="`/products/${item.product.slug}`"
+                                    :href="productShow.url(item.product.slug)"
                                     class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-cream-200 bg-cream-100 sm:h-24 sm:w-24"
                                 >
                                     <img
@@ -190,7 +200,9 @@ const freeShippingProgress = computed(() => {
                                         {{ item.product.category.name }}
                                     </span>
                                     <Link
-                                        :href="`/products/${item.product.slug}`"
+                                        :href="
+                                            productShow.url(item.product.slug)
+                                        "
                                         class="block truncate font-serif text-sm text-charcoal-900 transition-colors hover:text-sage-700 sm:text-base"
                                     >
                                         {{ item.product.name }}
@@ -230,8 +242,10 @@ const freeShippingProgress = computed(() => {
                                             )
                                         "
                                         :disabled="
-                                            updatingItemId === item.id ||
-                                            removingItemId === item.id
+                                            updatingItemId ===
+                                                (item.id ?? item.product_id) ||
+                                            removingItemId ===
+                                                (item.id ?? item.product_id)
                                         "
                                         class="text-charcoal-600 flex h-7 w-7 items-center justify-center rounded-full transition-colors hover:text-charcoal-900 disabled:opacity-40"
                                         aria-label="Decrease quantity"
@@ -252,7 +266,8 @@ const freeShippingProgress = computed(() => {
                                             )
                                         "
                                         :disabled="
-                                            updatingItemId === item.id ||
+                                            updatingItemId ===
+                                                (item.id ?? item.product_id) ||
                                             (item.product.track_inventory &&
                                                 item.quantity >=
                                                     item.product.stock_quantity)
@@ -275,7 +290,10 @@ const freeShippingProgress = computed(() => {
                                 <button
                                     type="button"
                                     @click="removeItem(item)"
-                                    :disabled="removingItemId === item.id"
+                                    :disabled="
+                                        removingItemId ===
+                                        (item.id ?? item.product_id)
+                                    "
                                     class="text-charcoal-400 rounded-full p-1.5 transition-colors hover:bg-rose-50 hover:text-rose-600"
                                     aria-label="Remove item from bag"
                                 >
@@ -369,7 +387,7 @@ const freeShippingProgress = computed(() => {
                         <!-- Checkout CTA -->
                         <div class="pt-2">
                             <Link
-                                href="/checkout"
+                                :href="checkoutShow.url()"
                                 class="flex w-full items-center justify-center gap-2 rounded-full bg-sage-800 px-6 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md active:scale-[0.99]"
                             >
                                 <svg
@@ -391,7 +409,7 @@ const freeShippingProgress = computed(() => {
 
                         <div class="text-center">
                             <Link
-                                href="/products"
+                                :href="productsIndex.url()"
                                 class="inline-block text-xs font-medium text-sage-700 underline decoration-sage-300 underline-offset-4 hover:text-sage-900 hover:decoration-sage-700"
                             >
                                 &larr; Continue Exploring Botanicals
@@ -471,7 +489,7 @@ const freeShippingProgress = computed(() => {
                     mists, and restorative skincare rituals.
                 </p>
                 <Link
-                    href="/products"
+                    :href="productsIndex.url()"
                     class="inline-block rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md"
                 >
                     Explore Apothecary Collections

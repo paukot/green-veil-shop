@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import type { ProductCardData } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
 
 defineProps<{
     products: ProductCardData[];
@@ -52,7 +53,7 @@ defineProps<{
                         }}</span>
                     </div>
                     <Link
-                        href="/products"
+                        :href="productsIndex.url()"
                         class="text-xs font-medium text-sage-700 underline decoration-sage-300 underline-offset-4 hover:text-sage-900 hover:decoration-sage-700"
                     >
                         Browse more botanicals &rarr;
@@ -94,7 +95,7 @@ defineProps<{
                     catalog to save your favourite formulas here.
                 </p>
                 <Link
-                    href="/products"
+                    :href="productsIndex.url()"
                     class="inline-block rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md"
                 >
                     Discover Botanicals

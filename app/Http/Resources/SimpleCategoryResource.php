@@ -10,6 +10,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin Category */
 class SimpleCategoryResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [

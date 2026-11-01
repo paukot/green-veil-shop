@@ -28,6 +28,13 @@ class PaymentOptionFactory extends Factory
         ];
     }
 
+    public function inactive(): static
+    {
+        return $this->state(fn () => [
+            'is_active' => false,
+        ]);
+    }
+
     public function stripe(): static
     {
         return $this->state(fn () => [

@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import type { CategoryCardData } from '@/types/storefront';
+import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 
 const props = defineProps<{
     category: CategoryCardData;
@@ -21,7 +22,7 @@ const imageUrl = computed(() => {
 
 <template>
     <Link
-        :href="`/categories/${category.slug}`"
+        :href="categoryShow.url(category.slug)"
         class="group relative flex min-h-[220px] flex-col justify-end overflow-hidden rounded-2xl border border-cream-200 bg-cream-100 p-6 transition-all duration-300 hover:shadow-md sm:p-8"
     >
         <!-- Background image or botanical texture -->

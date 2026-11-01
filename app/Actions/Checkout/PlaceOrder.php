@@ -13,7 +13,6 @@ use App\Models\Product;
 use App\Models\Promotion;
 use App\Services\CartService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -51,7 +50,6 @@ class PlaceOrder
                 }
             }
 
-            /** @var Collection<int, object|array> $cartItems */
             $cartItems = $this->cartService->getItems($request);
 
             if ($cartItems->isEmpty()) {
@@ -89,8 +87,8 @@ class PlaceOrder
 
             // Verify each product is active, lock for inventory check, and reserve stock
             foreach ($cartItems as $cartItem) {
-                $productId = is_array($cartItem) ? (int) $cartItem['product_id'] : (int) $cartItem->product_id;
-                $quantity = is_array($cartItem) ? (int) $cartItem['quantity'] : (int) $cartItem->quantity;
+                $productId = (int) $cartItem->product_id;
+                $quantity = (int) $cartItem->quantity;
 
                 /** @var Product|null $product */
                 $product = Product::query()
@@ -194,6 +192,9 @@ class PlaceOrder
         });
     }
 
+    /**
+     * @return array<array-key, mixed>
+     */
     private function getRawCart(Request $request): array
     {
         if ($user = $request->user()) {

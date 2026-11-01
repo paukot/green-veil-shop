@@ -9,6 +9,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin Order */
 class OrderResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -31,9 +34,9 @@ class OrderResource extends JsonResource
             'placed_at' => $this->placed_at?->format('F j, Y, g:i a') ?? 'Recently',
             'paid_at' => $this->paid_at?->format('F j, Y, g:i a'),
 
-            'items' => OrderItemResource::collection($this->whenLoaded('items'))->resolve(),
-            'deliveryOption' => DeliveryOptionResource::make($this->whenLoaded('deliveryOption'))->resolve(),
-            'paymentOption' => PaymentOptionResource::make($this->whenLoaded('paymentOption'))->resolve(),
+            'items' => OrderItemResource::collection($this->whenLoaded('items')),
+            'deliveryOption' => SimpleDeliveryOptionResource::make($this->whenLoaded('deliveryOption')),
+            'paymentOption' => PaymentOptionResource::make($this->whenLoaded('paymentOption')),
         ];
     }
 }

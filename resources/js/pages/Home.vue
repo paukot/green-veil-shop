@@ -6,6 +6,7 @@ import PromoBanner from '@/components/storefront/PromoBanner.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import CategoryCard from '@/components/storefront/CategoryCard.vue';
 import type { HomePageProps } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
 
 defineProps<HomePageProps>();
 </script>
@@ -185,7 +186,7 @@ defineProps<HomePageProps>();
                     </h2>
                 </div>
                 <Link
-                    href="/products"
+                    :href="productsIndex.url()"
                     class="group inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-sage-700 uppercase hover:text-sage-900"
                 >
                     <span>View All Collections</span>
@@ -235,7 +236,7 @@ defineProps<HomePageProps>();
                     </h2>
                 </div>
                 <Link
-                    href="/products"
+                    :href="productsIndex.url()"
                     class="group inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-sage-700 uppercase hover:text-sage-900"
                 >
                     <span>Explore Catalog</span>
@@ -281,7 +282,7 @@ defineProps<HomePageProps>();
                 </p>
                 <div class="pt-4">
                     <Link
-                        href="/products"
+                        :href="productsIndex.url()"
                         class="inline-block rounded-full bg-cream-50 px-8 py-3.5 text-xs font-semibold tracking-widest text-sage-900 uppercase shadow-md transition-colors hover:bg-cream-100"
                     >
                         Explore The Collection

@@ -29,4 +29,55 @@ class DeliveryOptionFactory extends Factory
             'description' => 'Dispatched in recyclable botanical packaging.',
         ];
     }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => [
+            'is_active' => false,
+        ]);
+    }
+
+    public function free(): static
+    {
+        return $this->state(fn () => [
+            'price' => 0.00,
+            'free_threshold' => 0.00,
+        ]);
+    }
+
+    public function withThreshold(float $threshold): static
+    {
+        return $this->state(fn () => [
+            'free_threshold' => $threshold,
+        ]);
+    }
+
+    public function withoutThreshold(): static
+    {
+        return $this->state(fn () => [
+            'free_threshold' => null,
+        ]);
+    }
+
+    public function standard(): static
+    {
+        return $this->state(fn () => [
+            'code' => 'standard',
+            'name' => 'Standard Botanical Delivery',
+            'price' => 4.99,
+            'free_threshold' => 50.00,
+            'sort_order' => 1,
+        ]);
+    }
+
+    public function express(): static
+    {
+        return $this->state(fn () => [
+            'code' => 'express',
+            'name' => 'Express Botanical Courier',
+            'price' => 9.99,
+            'free_threshold' => null,
+            'sort_order' => 2,
+        ]);
+    }
 }

@@ -58,7 +58,7 @@ class StripeGateway implements PaymentGateway
 
             $deliveryCents = (int) round($order->delivery_amount * 100);
             if ($deliveryCents > 0) {
-                $deliveryName = $order->deliveryOption?->name ?? 'Standard Delivery';
+                $deliveryName = $order->deliveryOption->name ?? 'Standard Delivery';
                 $lineItems[] = [
                     'price_data' => [
                         'currency' => $currency,
@@ -123,7 +123,7 @@ class StripeGateway implements PaymentGateway
     {
         try {
             $order = $payment instanceof Order ? $payment : ($payment->order ?? null);
-            $paymentIntentId = $order?->stripe_payment_intent_id
+            $paymentIntentId = $order->stripe_payment_intent_id
                 ?? ($payment->stripe_payment_intent_id ?? null);
             $chargeId = $order?->stripe_charge_id;
 
@@ -157,7 +157,7 @@ class StripeGateway implements PaymentGateway
             return RefundResult::success($refund->id);
         } catch (ApiErrorException $e) {
             Log::error('Stripe refund failed: '.$e->getMessage(), [
-                'payment_id' => $payment->id,
+                'payment_id' => $payment->getKey(),
                 'amount_cents' => $amountInCents,
             ]);
 

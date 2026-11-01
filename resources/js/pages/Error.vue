@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
+import { home } from '@/routes';
+import { index as productsIndex } from '@/routes/products';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -109,13 +111,13 @@ const description = computed(() => {
             class="flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
             <Link
-                href="/"
+                :href="home.url()"
                 class="w-full rounded-xl bg-sage-800 px-6 py-3 text-xs font-medium tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 sm:w-auto"
             >
                 Return to Sanctuary Home
             </Link>
             <Link
-                href="/products"
+                :href="productsIndex.url()"
                 class="w-full rounded-xl border border-cream-300 bg-white px-6 py-3 text-xs font-medium tracking-wider text-charcoal-800 uppercase transition-colors hover:bg-cream-100 sm:w-auto"
             >
                 Explore All Botanicals

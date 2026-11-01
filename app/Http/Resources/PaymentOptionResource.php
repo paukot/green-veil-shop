@@ -9,9 +9,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin PaymentOption */
 class PaymentOptionResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'code' => $this->code,
             'name' => $this->name,
             'driver' => $this->driver,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Payments\PaymentManager;
@@ -36,7 +37,7 @@ class CheckoutResultController extends Controller
             return redirect()->route('home');
         }
 
-        // If order belongs to an authenticated user, don't show it to another logged in user
+        // If order belongs to an authenticated user, don't show it to another logged-in user
         if ($order->user_id && $request->user() && $request->user()->id !== $order->user_id) {
             abort(403);
         }
@@ -45,46 +46,7 @@ class CheckoutResultController extends Controller
         $this->cartService->clearCart($request);
 
         return Inertia::render('Checkout/Success', [
-            'order' => [
-                'public_id' => $order->public_id,
-                'number' => $order->number,
-                'status' => $order->status->value,
-                'payment_status' => $order->payment_status->value,
-                'subtotal' => (float) $order->subtotal,
-                'delivery_amount' => (float) $order->delivery_amount,
-                'discount_amount' => (float) $order->discount_amount,
-                'tax_amount' => (float) $order->tax_amount,
-                'total' => (float) $order->total,
-                'currency' => $order->currency,
-                'customer_name' => $order->customer_name,
-                'customer_email' => $order->customer_email,
-                'customer_phone' => $order->customer_phone,
-                'shipping_address' => $order->shipping_address,
-                'billing_address' => $order->billing_address,
-                'placed_at' => $order->placed_at?->toIso8601String(),
-                'paid_at' => $order->paid_at?->toIso8601String(),
-            ],
-            'items' => $order->items->map(fn ($item) => [
-                'id' => $item->id,
-                'product_name' => $item->product_name,
-                'product_sku' => $item->product_sku,
-                'product_image' => $item->product_image,
-                'unit_price' => (float) $item->unit_price,
-                'quantity' => (int) $item->quantity,
-                'subtotal' => (float) $item->subtotal,
-            ])->values(),
-            'deliveryOption' => $order->deliveryOption ? [
-                'name' => $order->deliveryOption->name,
-                'code' => $order->deliveryOption->code,
-                'estimated_delivery_label' => $order->deliveryOption->estimatedDeliveryLabel(),
-            ] : null,
-            'paymentOption' => $order->paymentOption ? [
-                'name' => $order->paymentOption->name,
-                'code' => $order->paymentOption->code,
-                'driver' => $order->paymentOption->driver,
-                'description' => $order->paymentOption->description,
-                'instructions' => $order->paymentOption->instructions,
-            ] : null,
+            'order' => OrderResource::make($order),
         ]);
     }
 
@@ -129,7 +91,11 @@ class CheckoutResultController extends Controller
             ]);
         }
 
-        $driver = $order->paymentOption?->driver ?? 'stripe';
+        if ($order->user_id && $request->user() && $request->user()->id !== $order->user_id) {
+            abort(403);
+        }
+
+        $driver = $order->paymentOption->driver ?? 'stripe';
         $gateway = $paymentManager->gateway($driver);
         $result = $gateway->createCheckout($order);
 

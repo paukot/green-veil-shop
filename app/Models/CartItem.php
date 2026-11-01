@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\CartItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,7 @@ use Illuminate\Support\Carbon;
 #[Fillable(['user_id', 'session_id', 'product_id', 'quantity'])]
 class CartItem extends Model
 {
+    /** @use HasFactory<CartItemFactory> */
     use HasFactory;
 
     protected function casts(): array
@@ -52,6 +54,6 @@ class CartItem extends Model
             return 0.0;
         }
 
-        return (float) ($this->quantity * (float) $this->product->price);
+        return $this->quantity * (float) $this->product->price;
     }
 }

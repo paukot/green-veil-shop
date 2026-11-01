@@ -50,6 +50,7 @@ test('checkout page renders with cart items and options', function () {
         ->where('summary.subtotal', 45)
         ->has('deliveryOptions')
         ->has('paymentOptions')
+        ->where('paymentOptions.0.id', $payment->id)
     );
 });
 
@@ -196,7 +197,7 @@ test('success page displays order details and bank instructions', function () {
         ->component('Checkout/Success')
         ->where('order.public_id', $order->public_id)
         ->where('order.customer_name', 'Fiona MacLeod')
-        ->where('paymentOption.instructions', 'IBAN: IE89BOTANICAL0001234567')
+        ->where('order.paymentOption.instructions', 'IBAN: IE89BOTANICAL0001234567')
     );
 });
 

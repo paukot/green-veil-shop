@@ -7,6 +7,9 @@ use App\Models\Product;
 
 class BreadcrumbService
 {
+    /**
+     * @return list<array{name: string, url: string}>
+     */
     public function getCategoryBreadcrumbs(Category $category): array
     {
         $breadcrumbs = [
@@ -28,6 +31,9 @@ class BreadcrumbService
         return $breadcrumbs;
     }
 
+    /**
+     * @return list<array{name: string, url: string}>
+     */
     public function getProductBreadcrumbs(Product $product): array
     {
         $breadcrumbs = [

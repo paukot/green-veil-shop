@@ -6,6 +6,7 @@ import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import FilterSidebar from '@/components/storefront/FilterSidebar.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import type { CatalogIndexProps } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
 
 const props = defineProps<CatalogIndexProps>();
 
@@ -124,7 +125,7 @@ const pageTitle = computed(() => {
                         :categories="categories"
                         :filters="filters"
                         :price-range="priceRange"
-                        base-url="/products"
+                        :base-url="productsIndex.url()"
                     />
                 </div>
 
@@ -188,7 +189,7 @@ const pageTitle = computed(() => {
                             keywords.
                         </p>
                         <Link
-                            href="/products"
+                            :href="productsIndex.url()"
                             class="inline-block rounded-full bg-sage-800 px-6 py-2.5 text-xs font-medium tracking-wider text-cream-50 uppercase transition-colors hover:bg-sage-900"
                         >
                             Reset All Filters
@@ -228,7 +229,7 @@ const pageTitle = computed(() => {
                         :categories="categories"
                         :filters="filters"
                         :price-range="priceRange"
-                        base-url="/products"
+                        :base-url="productsIndex.url()"
                         @close="mobileFilterOpen = false"
                     />
                 </div>

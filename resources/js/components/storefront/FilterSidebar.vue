@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
+import {
+    CheckboxField,
+    RadioInput,
+    SelectInput,
+    TextInput,
+} from '@/components/form';
 import type { CatalogFilters, CategoryFilterItem } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
 
 const props = withDefaults(
     defineProps<{
@@ -17,7 +24,7 @@ const props = withDefaults(
     {
         categories: () => [],
         priceRange: () => ({ min: 0, max: 100 }),
-        baseUrl: '/products',
+        baseUrl: () => productsIndex.url(),
         showCategories: true,
     },
 );
@@ -159,10 +166,11 @@ function removeSearchFilter() {
             >
                 Sort By
             </h3>
-            <select
+            <SelectInput
                 v-model="selectedSort"
+                size="sm"
+                rounded="md"
                 @change="applyFilters()"
-                class="w-full rounded-md border border-cream-300 bg-white px-3 py-2 text-xs text-charcoal-800 focus:border-sage-500 focus:ring-1 focus:ring-sage-500 focus:outline-none"
             >
                 <option value="featured">Featured Botanicals</option>
                 <option value="newest">Newest Additions</option>
@@ -170,7 +178,7 @@ function removeSearchFilter() {
                 <option value="price_desc">Price: High to Low</option>
                 <option value="name_asc">Name: A to Z</option>
                 <option value="name_desc">Name: Z to A</option>
-            </select>
+            </SelectInput>
         </div>
 
         <!-- Category Filter Section (shown on general catalog) -->
@@ -191,8 +199,7 @@ function removeSearchFilter() {
                     }"
                 >
                     <span class="flex items-center gap-2">
-                        <input
-                            type="radio"
+                        <RadioInput
                             name="category_filter"
                             value=""
                             :checked="!selectedCategory"
@@ -200,7 +207,6 @@ function removeSearchFilter() {
                                 selectedCategory = '';
                                 applyFilters({ category: '' });
                             "
-                            class="rounded border-cream-300 text-sage-600 focus:ring-sage-500"
                         />
                         <span>All Categories</span>
                     </span>
@@ -216,8 +222,7 @@ function removeSearchFilter() {
                     }"
                 >
                     <span class="flex items-center gap-2">
-                        <input
-                            type="radio"
+                        <RadioInput
                             name="category_filter"
                             :value="cat.slug"
                             :checked="selectedCategory === cat.slug"
@@ -225,7 +230,6 @@ function removeSearchFilter() {
                                 selectedCategory = cat.slug;
                                 applyFilters({ category: cat.slug });
                             "
-                            class="rounded border-cream-300 text-sage-600 focus:ring-sage-500"
                         />
                         <span>{{ cat.name }}</span>
                     </span>
@@ -244,33 +248,29 @@ function removeSearchFilter() {
                 Price Range (€)
             </h3>
             <div class="flex items-center gap-2">
-                <div class="relative flex-1">
-                    <span
-                        class="text-charcoal-400 absolute top-1/2 left-2.5 -translate-y-1/2 text-xs"
-                        >€</span
-                    >
-                    <input
+                <div class="flex-1">
+                    <TextInput
                         v-model="minPrice"
                         type="number"
                         min="0"
                         step="1"
                         placeholder="Min"
-                        class="w-full rounded-md border border-cream-300 bg-white py-1.5 pr-2 pl-6 text-xs text-charcoal-800 focus:border-sage-500 focus:ring-1 focus:ring-sage-500 focus:outline-none"
+                        prefix-text="€"
+                        size="sm"
+                        rounded="md"
                     />
                 </div>
                 <span class="text-charcoal-400 text-xs">&ndash;</span>
-                <div class="relative flex-1">
-                    <span
-                        class="text-charcoal-400 absolute top-1/2 left-2.5 -translate-y-1/2 text-xs"
-                        >€</span
-                    >
-                    <input
+                <div class="flex-1">
+                    <TextInput
                         v-model="maxPrice"
                         type="number"
                         min="0"
                         step="1"
                         placeholder="Max"
-                        class="w-full rounded-md border border-cream-300 bg-white py-1.5 pr-2 pl-6 text-xs text-charcoal-800 focus:border-sage-500 focus:ring-1 focus:ring-sage-500 focus:outline-none"
+                        prefix-text="€"
+                        size="sm"
+                        rounded="md"
                     />
                 </div>
                 <button
@@ -286,17 +286,12 @@ function removeSearchFilter() {
 
         <!-- Availability Filter Section -->
         <div class="border-b border-cream-200 pb-5">
-            <label
-                class="flex cursor-pointer items-center gap-2 text-xs hover:text-sage-800"
-            >
-                <input
-                    type="checkbox"
-                    v-model="inStock"
-                    @change="applyFilters()"
-                    class="rounded border-cream-300 text-sage-600 focus:ring-sage-500"
-                />
-                <span class="font-medium text-charcoal-800">In Stock Only</span>
-            </label>
+            <CheckboxField
+                id="filter-in-stock"
+                v-model="inStock"
+                label="In Stock Only"
+                @change="applyFilters()"
+            />
         </div>
 
         <!-- Reset Button -->

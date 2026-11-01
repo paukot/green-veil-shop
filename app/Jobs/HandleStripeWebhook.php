@@ -161,7 +161,8 @@ class HandleStripeWebhook implements ShouldQueue
             $order = $payment?->order;
         }
         if (! $order && ! empty($chargeData['metadata']['order_id'])) {
-            $order = Order::find($chargeData['metadata']['order_id']);
+            $found = Order::find($chargeData['metadata']['order_id']);
+            $order = $found instanceof Order ? $found : null;
         }
 
         if (! $order) {
@@ -200,7 +201,7 @@ class HandleStripeWebhook implements ShouldQueue
         $orderId = $dataObject['metadata']['order_id'] ?? $dataObject['client_reference_id'] ?? null;
         if (! empty($orderId)) {
             $order = Order::find($orderId);
-            if ($order) {
+            if ($order instanceof Order) {
                 return $order;
             }
         }

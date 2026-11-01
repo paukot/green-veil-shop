@@ -44,7 +44,7 @@ class CategoryController extends Controller
 
         return Inertia::render('Catalog/Category', [
             'category' => CategoryResource::make($category)->resolve(),
-            'products' => ProductResource::collection($products),
+            'products' => ProductResource::collection($products)->additional(['total' => $products->total()]),
             'breadcrumbs' => $this->breadcrumbService->getCategoryBreadcrumbs($category),
             'filters' => [
                 'min_price' => $request->query('min_price'),

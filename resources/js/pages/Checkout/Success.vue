@@ -2,18 +2,21 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
-import type { CheckoutSuccessPageProps } from '@/types/storefront';
+import type { OrderDetailData } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
 
-const props = defineProps<CheckoutSuccessPageProps>();
+const props = defineProps<{
+    order: OrderDetailData;
+}>();
 
 const pollCount = ref(0);
 const maxPolls = 10;
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
 
-const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
-const isPaid = computed(() => props.payment_status === 'paid');
+const isStripe = computed(() => props.order.paymentOption?.driver === 'stripe');
+const isPaid = computed(() => props.order.payment_status === 'paid');
 const isPendingPayment = computed(
-    () => props.payment_status === 'unpaid' && isStripe.value,
+    () => props.order.payment_status === 'unpaid' && isStripe.value,
 );
 
 function pollOrderStatus() {
@@ -55,7 +58,7 @@ function formatCurrency(amount: number): string {
 </script>
 
 <template>
-    <Head :title="`Order ${number} Confirmed | Green Veil`" />
+    <Head :title="`Order ${order.number} Confirmed | Green Veil`" />
 
     <StorefrontLayout>
         <section class="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
@@ -143,7 +146,7 @@ function formatCurrency(amount: number): string {
                         </span>
                         <span
                             v-else-if="
-                                paymentOption?.driver === 'bank_transfer'
+                                order.paymentOption?.driver === 'bank_transfer'
                             "
                             class="rounded-full bg-amber-100 px-3 py-1 text-amber-800"
                         >
@@ -160,19 +163,19 @@ function formatCurrency(amount: number): string {
                     <h1
                         class="mt-3 font-serif text-3xl text-charcoal-900 sm:text-4xl"
                     >
-                        Thank You, {{ customer_name }}
+                        Thank You, {{ order.customer_name }}
                     </h1>
                     <p class="text-charcoal-500 mt-2 text-xs sm:text-sm">
                         Order reference:
                         <span
                             class="font-mono font-semibold text-charcoal-900"
-                            >{{ number }}</span
+                            >{{ order.number }}</span
                         >
                     </p>
                     <p class="text-charcoal-400 mt-1 text-xs">
                         A confirmation receipt will be sent to
                         <span class="font-medium text-charcoal-700">{{
-                            customer_email
+                            order.customer_email
                         }}</span>
                     </p>
                 </div>
@@ -190,26 +193,26 @@ function formatCurrency(amount: number): string {
                     <p v-else>
                         🌿 Your payment is being verified in the background. A
                         formal receipt will be emailed to
-                        {{ customer_email }} as soon as Stripe completes
+                        {{ order.customer_email }} as soon as Stripe completes
                         processing.
                     </p>
                 </div>
 
                 <!-- Payment Instructions for Offline Drivers -->
                 <div
-                    v-if="paymentOption?.instructions"
+                    v-if="order.paymentOption?.instructions"
                     class="mt-8 rounded-2xl border border-sage-200 bg-sage-50/70 p-5 text-xs text-charcoal-800"
                 >
                     <div class="flex items-start gap-3">
                         <span class="text-lg">🌿</span>
                         <div>
                             <h3 class="font-semibold text-sage-900">
-                                {{ paymentOption.name }} Instructions
+                                {{ order.paymentOption.name }} Instructions
                             </h3>
                             <p
                                 class="mt-1 whitespace-pre-line text-charcoal-700"
                             >
-                                {{ paymentOption.instructions }}
+                                {{ order.paymentOption.instructions }}
                             </p>
                         </div>
                     </div>
@@ -223,7 +226,7 @@ function formatCurrency(amount: number): string {
 
                     <div class="divide-y divide-cream-100">
                         <div
-                            v-for="item in items"
+                            v-for="item in order.items"
                             :key="item.id"
                             class="flex items-center justify-between py-3.5 text-xs"
                         >
@@ -267,31 +270,38 @@ function formatCurrency(amount: number): string {
                         <div class="text-charcoal-600 flex justify-between">
                             <span>Subtotal</span>
                             <span class="font-medium text-charcoal-900">{{
-                                formatCurrency(subtotal)
+                                formatCurrency(order.subtotal)
                             }}</span>
                         </div>
                         <div
-                            v-if="discount_amount > 0"
+                            v-if="order.discount_amount > 0"
                             class="flex justify-between font-medium text-emerald-700"
                         >
                             <span>Botanical Promotion Discount</span>
-                            <span>-{{ formatCurrency(discount_amount) }}</span>
+                            <span
+                                >-{{
+                                    formatCurrency(order.discount_amount)
+                                }}</span
+                            >
                         </div>
                         <div class="text-charcoal-600 flex justify-between">
                             <span
                                 >Delivery ({{
-                                    deliveryOption?.name ?? 'Standard Delivery'
+                                    order.deliveryOption?.name ??
+                                    'Standard Delivery'
                                 }})</span
                             >
                             <span
-                                v-if="delivery_amount === 0"
+                                v-if="order.delivery_amount === 0"
                                 class="font-semibold text-emerald-800"
                                 >FREE</span
                             >
                             <span
                                 v-else
                                 class="font-medium text-charcoal-900"
-                                >{{ formatCurrency(delivery_amount) }}</span
+                                >{{
+                                    formatCurrency(order.delivery_amount)
+                                }}</span
                             >
                         </div>
                         <div
@@ -303,7 +313,7 @@ function formatCurrency(amount: number): string {
                             <span
                                 class="text-2xl font-semibold text-charcoal-900"
                             >
-                                {{ formatCurrency(total) }}
+                                {{ formatCurrency(order.total) }}
                             </span>
                         </div>
                     </div>
@@ -320,23 +330,23 @@ function formatCurrency(amount: number): string {
                             Shipping Destination
                         </h3>
                         <p class="font-medium text-charcoal-900">
-                            {{ customer_name }}
+                            {{ order.customer_name }}
                         </p>
                         <p class="text-charcoal-600">
-                            {{ shipping_address.line1 }}
+                            {{ order.shipping_address.line1 }}
                         </p>
                         <p
-                            v-if="shipping_address.line2"
+                            v-if="order.shipping_address.line2"
                             class="text-charcoal-600"
                         >
-                            {{ shipping_address.line2 }}
+                            {{ order.shipping_address.line2 }}
                         </p>
                         <p class="text-charcoal-600">
-                            {{ shipping_address.city }},
-                            {{ shipping_address.postal_code }}
+                            {{ order.shipping_address.city }},
+                            {{ order.shipping_address.postal_code }}
                         </p>
                         <p class="text-charcoal-600">
-                            {{ shipping_address.country }}
+                            {{ order.shipping_address.country }}
                         </p>
                     </div>
 
@@ -348,15 +358,22 @@ function formatCurrency(amount: number): string {
                         </h3>
                         <p class="font-medium text-charcoal-900">
                             Payment:
-                            {{ paymentOption?.name ?? 'Direct Payment' }}
+                            {{ order.paymentOption?.name ?? 'Direct Payment' }}
                         </p>
                         <p class="text-charcoal-600 mt-1">
-                            Delivery: {{ deliveryOption?.name ?? 'Standard' }}
+                            Delivery:
+                            {{ order.deliveryOption?.name ?? 'Standard' }}
                             <span
-                                v-if="deliveryOption?.estimated_delivery_label"
+                                v-if="
+                                    order.deliveryOption
+                                        ?.estimated_delivery_label
+                                "
                                 class="text-charcoal-400"
                             >
-                                ({{ deliveryOption.estimated_delivery_label }})
+                                ({{
+                                    order.deliveryOption
+                                        .estimated_delivery_label
+                                }})
                             </span>
                         </p>
                     </div>
@@ -365,7 +382,7 @@ function formatCurrency(amount: number): string {
                 <!-- Back to Shop CTA -->
                 <div class="mt-10 text-center">
                     <Link
-                        href="/products"
+                        :href="productsIndex.url()"
                         class="inline-block rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md"
                     >
                         Continue Exploring Botanicals

@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OrderItemResource;
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\PaymentOptionResource;
+use App\Http\Resources\SimpleDeliveryOptionResource;
 use App\Http\Resources\SimpleOrderResource;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -25,7 +28,7 @@ class OrderController extends Controller
             ->paginate(self::DEFAULT_PAGINATION);
 
         return Inertia::render('Account/Orders', [
-            'orders' => SimpleOrderResource::collection($orders),
+            'orders' => SimpleOrderResource::collection($orders)->additional(['total' => $orders->total()]),
         ]);
     }
 
@@ -35,6 +38,11 @@ class OrderController extends Controller
 
         $order->loadMissing(['items', 'deliveryOption', 'paymentOption', 'payments']);
 
-        return Inertia::render('Account/Order', OrderResource::make($order)->resolve());
+        return Inertia::render('Account/Order', [
+            'order' => OrderResource::make($order),
+            'items' => OrderItemResource::collection($order->items),
+            'deliveryOption' => $order->deliveryOption ? SimpleDeliveryOptionResource::make($order->deliveryOption) : null,
+            'paymentOption' => $order->paymentOption ? PaymentOptionResource::make($order->paymentOption) : null,
+        ]);
     }
 }

@@ -46,7 +46,12 @@ class SliderItem extends Model
         ];
     }
 
-    /** Return slider items visible right now. */
+    /**
+     * Return slider items visible right now.
+     *
+     * @param  Builder<SliderItem>  $query
+     * @return Builder<SliderItem>
+     */
     public function scopeVisible(Builder $query): Builder
     {
         $now = now();

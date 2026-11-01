@@ -3,6 +3,8 @@ import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import FavouriteButton from '@/components/storefront/FavouriteButton.vue';
 import type { ProductCardData } from '@/types/storefront';
+import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
+import { store as cartItemsStore } from '@/actions/App/Http/Controllers/CartItemController';
 
 const props = defineProps<{
     product: ProductCardData;
@@ -13,7 +15,7 @@ function addToBag() {
     if (!props.product.is_in_stock || isAdding.value) return;
     isAdding.value = true;
     router.post(
-        '/cart/items',
+        cartItemsStore.url(),
         { product_id: props.product.id, quantity: 1 },
         {
             preserveScroll: true,
@@ -48,7 +50,7 @@ const formattedComparePrice = computed(() => {
         <!-- Image Area -->
         <div class="relative aspect-square w-full overflow-hidden bg-cream-100">
             <Link
-                :href="`/products/${product.slug}`"
+                :href="productShow.url(product.slug)"
                 class="block h-full w-full"
             >
                 <img
@@ -95,7 +97,7 @@ const formattedComparePrice = computed(() => {
                     {{ product.category.name }}
                 </span>
                 <Link
-                    :href="`/products/${product.slug}`"
+                    :href="productShow.url(product.slug)"
                     class="line-clamp-1 font-serif text-base text-charcoal-900 transition-colors group-hover:text-sage-800 sm:text-lg"
                 >
                     {{ product.name }}

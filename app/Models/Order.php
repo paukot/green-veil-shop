@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -39,8 +40,8 @@ use Illuminate\Support\Str;
  * @property array<string, string>|null $shipping_address
  * @property array<string, string>|null $billing_address
  * @property string|null $notes
- * @property Carbon|null $placed_at
- * @property Carbon|null $paid_at
+ * @property CarbonImmutable|null $placed_at
+ * @property CarbonImmutable|null $paid_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -86,8 +87,8 @@ class Order extends Model
             'total' => 'decimal:2',
             'shipping_address' => 'array',
             'billing_address' => 'array',
-            'placed_at' => 'datetime',
-            'paid_at' => 'datetime',
+            'placed_at' => 'immutable_datetime',
+            'paid_at' => 'immutable_datetime',
         ];
     }
 

@@ -2,6 +2,8 @@
 import { Head, Link } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CheckoutCancelPageProps } from '@/types/storefront';
+import { retry as checkoutRetry } from '@/actions/App/Http/Controllers/CheckoutResultController';
+import { index as cartIndex } from '@/routes/cart';
 
 defineProps<CheckoutCancelPageProps>();
 
@@ -63,7 +65,7 @@ function formatCurrency(amount: number): string {
                     class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
                 >
                     <Link
-                        :href="`/checkout/retry/${order.public_id}`"
+                        :href="checkoutRetry.url(order.public_id)"
                         method="post"
                         as="button"
                         class="w-full rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md sm:w-auto"
@@ -71,7 +73,7 @@ function formatCurrency(amount: number): string {
                         Try Payment Again
                     </Link>
                     <Link
-                        href="/cart"
+                        :href="cartIndex.url()"
                         class="w-full rounded-full border border-cream-300 bg-white px-8 py-3.5 text-xs font-semibold tracking-wider text-charcoal-700 uppercase transition-all hover:bg-cream-50 sm:w-auto"
                     >
                         Return to Bag
