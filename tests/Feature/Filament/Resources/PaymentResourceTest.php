@@ -2,6 +2,7 @@
 
 use App\Enums\PaymentStatus;
 use App\Filament\Resources\Payments\Pages\ListPayments;
+use App\Models\AdminUser;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
@@ -12,15 +13,15 @@ uses(RefreshDatabase::class);
 
 describe('PaymentResource in Filament', function () {
     beforeEach(function () {
-        $this->admin = User::factory()->admin()->create();
+        $this->admin = AdminUser::factory()->superAdmin()->create();
     });
 
     it('denies access to non-admins', function () {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->create();
 
-        $this->actingAs($user)
+        $this->actingAs($user, 'web')
             ->get('/admin/payments')
-            ->assertForbidden();
+            ->assertRedirect('/admin/login');
     });
 
     it('renders global transactions table with payments across orders', function () {
@@ -44,7 +45,7 @@ describe('PaymentResource in Filament', function () {
             'status' => PaymentStatus::Unpaid,
         ]);
 
-        $this->actingAs($this->admin)
+        $this->actingAs($this->admin, 'admin')
             ->get('/admin/payments')
             ->assertOk()
             ->assertSee($order1->number)
@@ -52,7 +53,7 @@ describe('PaymentResource in Filament', function () {
             ->assertSee('Amy Pond')
             ->assertSee('Rory Williams');
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(ListPayments::class)
             ->assertCanSeeTableRecords([$payment1, $payment2])
             ->assertSee('STRIPE')
@@ -74,7 +75,7 @@ describe('PaymentResource in Filament', function () {
             'paid_at' => now(),
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(ListPayments::class)
             ->mountTableAction('inspect', $payment)
             ->assertSee('River Song')

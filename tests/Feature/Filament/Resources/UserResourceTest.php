@@ -6,6 +6,7 @@ use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\RelationManagers\UserCartRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserFavouritesRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserOrdersRelationManager;
+use App\Models\AdminUser;
 use App\Models\CartItem;
 use App\Models\Favourite;
 use App\Models\Order;
@@ -19,43 +20,41 @@ uses(RefreshDatabase::class);
 
 describe('UserResource in Filament', function () {
     beforeEach(function () {
-        $this->admin = User::factory()->admin()->create();
+        $this->admin = AdminUser::factory()->superAdmin()->create();
     });
 
     it('denies access to non-admins', function () {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->create();
 
-        $this->actingAs($user)
+        $this->actingAs($user, 'web')
             ->get('/admin/users')
-            ->assertForbidden();
+            ->assertRedirect('/admin/login');
     });
 
     it('renders list page with customer accounts', function () {
         $customer = User::factory()->create([
             'name' => 'Rose Tyler',
             'email' => 'rose@example.com',
-            'is_admin' => false,
         ]);
 
-        $this->actingAs($this->admin)
+        $this->actingAs($this->admin, 'admin')
             ->get('/admin/users')
             ->assertOk()
             ->assertSee('Rose Tyler')
             ->assertSee('rose@example.com');
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(ListUsers::class)
             ->assertCanSeeTableRecords([$customer]);
     });
 
-    it('allows admin to create a new user with hashed password', function () {
-        Livewire::actingAs($this->admin)
+    it('allows admin to create a new customer with hashed password', function () {
+        Livewire::actingAs($this->admin, 'admin')
             ->test(CreateUser::class)
             ->fillForm([
                 'name' => 'Martha Jones',
                 'email' => 'martha@example.com',
                 'password' => 'secret12345',
-                'is_admin' => false,
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -63,23 +62,22 @@ describe('UserResource in Filament', function () {
         $newUser = User::where('email', 'martha@example.com')->first();
         expect($newUser)->not->toBeNull();
         expect(Hash::check('secret12345', $newUser->password))->toBeTrue();
-        expect($newUser->is_admin)->toBeFalse();
     });
 
-    it('allows admin to toggle administrator role on an existing user', function () {
+    it('allows admin to update an existing customer account', function () {
         $customer = User::factory()->create([
-            'is_admin' => false,
+            'name' => 'Original Name',
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(EditUser::class, ['record' => $customer->id])
             ->fillForm([
-                'is_admin' => true,
+                'name' => 'Updated Customer Name',
             ])
             ->call('save')
             ->assertHasNoFormErrors();
 
-        expect($customer->fresh()->is_admin)->toBeTrue();
+        expect($customer->fresh()->name)->toBe('Updated Customer Name');
     });
 
     it('renders customer 360 relation managers (Orders, Cart, Wishlist)', function () {
@@ -91,7 +89,7 @@ describe('UserResource in Filament', function () {
         $favourite = Favourite::create(['user_id' => $customer->id, 'product_id' => $product->id]);
 
         // Orders relation manager
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(UserOrdersRelationManager::class, [
                 'ownerRecord' => $customer,
                 'pageClass' => EditUser::class,
@@ -100,7 +98,7 @@ describe('UserResource in Filament', function () {
             ->assertSee($order->number);
 
         // Cart relation manager
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(UserCartRelationManager::class, [
                 'ownerRecord' => $customer,
                 'pageClass' => EditUser::class,
@@ -110,7 +108,7 @@ describe('UserResource in Filament', function () {
             ->assertSee('€48.00');
 
         // Favourites relation manager
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(UserFavouritesRelationManager::class, [
                 'ownerRecord' => $customer,
                 'pageClass' => EditUser::class,

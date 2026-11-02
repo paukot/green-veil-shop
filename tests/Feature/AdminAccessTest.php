@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AdminUser;
 use App\Models\User;
 
 test('unauthenticated users are redirected to admin login', function () {
@@ -8,20 +9,27 @@ test('unauthenticated users are redirected to admin login', function () {
     $response->assertRedirect('/admin/login');
 });
 
-test('customers cannot access the filament admin panel and receive 403', function () {
-    $customer = User::factory()->create([
-        'is_admin' => false,
-    ]);
+test('storefront customers cannot access the filament admin panel', function () {
+    $customer = User::factory()->create();
 
-    $response = $this->actingAs($customer)->get('/admin');
+    $response = $this->actingAs($customer, 'web')->get('/admin');
 
-    $response->assertForbidden();
+    // Customer is authenticated on web guard, but unauthenticated on admin guard
+    $response->assertRedirect('/admin/login');
 });
 
 test('administrators can access the filament admin panel', function () {
-    $admin = User::factory()->admin()->create();
+    $admin = AdminUser::factory()->superAdmin()->create();
 
-    $response = $this->actingAs($admin)->get('/admin');
+    $response = $this->actingAs($admin, 'admin')->get('/admin');
 
     $response->assertOk();
+});
+
+test('deactivated administrators are rejected from the admin panel', function () {
+    $admin = AdminUser::factory()->superAdmin()->inactive()->create();
+
+    $response = $this->actingAs($admin, 'admin')->get('/admin');
+
+    $response->assertForbidden();
 });

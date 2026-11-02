@@ -52,7 +52,7 @@ class UserOrdersRelationManager extends RelationManager
                     ->label('Placed At')
                     ->dateTime('M j, Y H:i'),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('manage')
                     ->label('View Order')
                     ->icon('heroicon-o-arrow-top-right-on-square')

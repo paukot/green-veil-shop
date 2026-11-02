@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
+use App\Models\Product;
+use App\Services\StorageImageService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -24,11 +26,13 @@ class ProductsTable
                 ImageColumn::make('main_image')
                     ->label('Image')
                     ->square()
-                    ->size(48),
+                    ->imageSize(48)
+                    ->getStateUsing(fn (Product $record): ?string => app(StorageImageService::class)->getImage($record->main_image)),
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
                     ->sortable()
+                    ->wrap()
                     ->weight('semibold'),
                 TextColumn::make('sku')
                     ->label('SKU')
@@ -65,11 +69,11 @@ class ProductsTable
                 TernaryFilter::make('is_featured')->label('Featured'),
                 TrashedFilter::make(),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),

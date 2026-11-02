@@ -60,11 +60,11 @@ class PaymentOptionsTable
                         'cash_on_delivery' => 'Cash on Delivery',
                     ]),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

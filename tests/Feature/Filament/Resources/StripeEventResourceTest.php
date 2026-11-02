@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Resources\StripeEvents\Pages\ListStripeEvents;
+use App\Models\AdminUser;
 use App\Models\Order;
 use App\Models\StripeEvent;
 use App\Models\User;
@@ -11,15 +12,15 @@ uses(RefreshDatabase::class);
 
 describe('StripeEventResource in Filament', function () {
     beforeEach(function () {
-        $this->admin = User::factory()->admin()->create();
+        $this->admin = AdminUser::factory()->superAdmin()->create();
     });
 
     it('denies access to non-admins', function () {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->create();
 
-        $this->actingAs($user)
+        $this->actingAs($user, 'web')
             ->get('/admin/stripe-events')
-            ->assertForbidden();
+            ->assertRedirect('/admin/login');
     });
 
     it('renders list page with incoming webhook events', function () {
@@ -59,13 +60,13 @@ describe('StripeEventResource in Filament', function () {
             ],
         ]);
 
-        $this->actingAs($this->admin)
+        $this->actingAs($this->admin, 'admin')
             ->get('/admin/stripe-events')
             ->assertOk()
             ->assertSee('checkout.session.completed')
             ->assertSee('charge.refunded');
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(ListStripeEvents::class)
             ->assertCanSeeTableRecords([$eventLinked, $eventOrphan])
             ->assertSee($order->number)
@@ -98,7 +99,7 @@ describe('StripeEventResource in Filament', function () {
             ],
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(ListStripeEvents::class)
             ->mountTableAction('inspect', $event)
             ->assertSee('checkout.session.completed')

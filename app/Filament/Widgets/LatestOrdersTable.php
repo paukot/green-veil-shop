@@ -14,6 +14,11 @@ class LatestOrdersTable extends BaseWidget
 {
     protected static ?int $sort = 4;
 
+    public static function canView(): bool
+    {
+        return filament()->auth()->user()?->hasCategoryAccess('orders') ?? false;
+    }
+
     protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
@@ -55,7 +60,7 @@ class LatestOrdersTable extends BaseWidget
                     ->since()
                     ->sortable(),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('manage')
                     ->label('Manage')
                     ->icon('heroicon-o-arrow-top-right-on-square')

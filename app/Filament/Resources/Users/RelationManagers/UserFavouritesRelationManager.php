@@ -57,7 +57,7 @@ class UserFavouritesRelationManager extends RelationManager
                     ->label('Favorited')
                     ->since(),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('viewProduct')
                     ->label('Product')
                     ->icon('heroicon-o-arrow-top-right-on-square')

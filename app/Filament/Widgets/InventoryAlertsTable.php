@@ -13,6 +13,11 @@ class InventoryAlertsTable extends BaseWidget
 {
     protected static ?int $sort = 3;
 
+    public static function canView(): bool
+    {
+        return filament()->auth()->user()?->hasCategoryAccess('shop') ?? false;
+    }
+
     protected int|string|array $columnSpan = [
         'md' => 1,
         'xl' => 1,
@@ -48,7 +53,7 @@ class InventoryAlertsTable extends BaseWidget
                     ->label('Price')
                     ->money('EUR'),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('edit')
                     ->label('Restock')
                     ->icon('heroicon-o-arrow-top-right-on-square')

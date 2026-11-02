@@ -28,11 +28,6 @@ class UsersTable
                     ->searchable()
                     ->copyable()
                     ->sortable(),
-                TextColumn::make('is_admin')
-                    ->label('Role')
-                    ->badge()
-                    ->formatStateUsing(fn (bool $state): string => $state ? 'Admin' : 'Customer')
-                    ->color(fn (bool $state): string => $state ? 'rose' : 'gray'),
                 TextColumn::make('orders_count')
                     ->label('Orders')
                     ->counts('orders')
@@ -52,19 +47,15 @@ class UsersTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                TernaryFilter::make('is_admin')
-                    ->label('Account Role')
-                    ->trueLabel('Administrators')
-                    ->falseLabel('Customers'),
                 TernaryFilter::make('email_verified_at')
                     ->label('Email Verification')
                     ->nullable(),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

@@ -6,6 +6,7 @@ use App\Filament\Widgets\InventoryAlertsTable;
 use App\Filament\Widgets\LatestOrdersTable;
 use App\Filament\Widgets\OrdersStatsOverview;
 use App\Filament\Widgets\RevenueTrendChart;
+use App\Models\AdminUser;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -16,19 +17,19 @@ uses(RefreshDatabase::class);
 
 describe('Filament Dashboard Widgets', function () {
     beforeEach(function () {
-        $this->admin = User::factory()->admin()->create();
+        $this->admin = AdminUser::factory()->superAdmin()->create();
     });
 
     it('denies non-admin users from accessing dashboard', function () {
-        $customer = User::factory()->create(['is_admin' => false]);
+        $customer = User::factory()->create();
 
-        $this->actingAs($customer)
+        $this->actingAs($customer, 'web')
             ->get('/admin')
-            ->assertForbidden();
+            ->assertRedirect('/admin/login');
     });
 
     it('renders dashboard with all custom widgets for admin', function () {
-        $this->actingAs($this->admin)
+        $this->actingAs($this->admin, 'admin')
             ->get('/admin')
             ->assertOk()
             ->assertSeeLivewire(OrdersStatsOverview::class)
@@ -70,7 +71,7 @@ describe('Filament Dashboard Widgets', function () {
             'created_at' => now()->subDays(45),
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(OrdersStatsOverview::class)
             ->assertSee('€80.00') // 50 + 30
             ->assertSee('€40.00') // AOV: 80 / 2
@@ -100,7 +101,7 @@ describe('Filament Dashboard Widgets', function () {
             'stock_quantity' => 45,
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(InventoryAlertsTable::class)
             ->assertCanSeeTableRecords([$outOfStock, $lowStock])
             ->assertCanNotSeeTableRecords([$highStock])
@@ -116,7 +117,7 @@ describe('Filament Dashboard Widgets', function () {
             'status' => OrderStatus::Processing,
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(LatestOrdersTable::class)
             ->assertCanSeeTableRecords([$recentOrder])
             ->assertSee($recentOrder->number)

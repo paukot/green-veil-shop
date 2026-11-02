@@ -64,7 +64,7 @@ class StripeEventsRelationManager extends RelationManager
                     ->dateTime('M j, Y H:i:s')
                     ->sortable(),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('inspect')
                     ->label('Inspect Event')
                     ->icon('heroicon-o-eye')
@@ -73,7 +73,7 @@ class StripeEventsRelationManager extends RelationManager
                     ->modalDescription(fn (StripeEvent $record): string => "Event ID: {$record->stripe_event_id} • Received {$record->created_at?->toDayDateTimeString()}")
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
-                    ->form(function (StripeEvent $record) use ($sanitizer): array {
+                    ->schema(function (StripeEvent $record) use ($sanitizer): array {
                         $summary = $sanitizer->summarize($record->type, $record->payload);
                         $cleanData = $sanitizer->sanitize($record->payload);
 

@@ -14,6 +14,13 @@ class RevenueTrendChart extends ChartWidget
 
     protected static ?int $sort = 2;
 
+    public static function canView(): bool
+    {
+        $user = filament()->auth()->user();
+
+        return ($user?->hasCategoryAccess('finance') || $user?->hasCategoryAccess('orders')) ?? false;
+    }
+
     protected ?string $maxHeight = '500px';
 
     protected int|string|array $columnSpan = [

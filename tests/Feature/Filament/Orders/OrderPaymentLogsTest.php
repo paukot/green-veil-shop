@@ -5,11 +5,11 @@ use App\Enums\PaymentStatus;
 use App\Filament\Resources\Orders\Pages\EditOrder;
 use App\Filament\Resources\Orders\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\Orders\RelationManagers\StripeEventsRelationManager;
+use App\Models\AdminUser;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentOption;
 use App\Models\StripeEvent;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -17,7 +17,7 @@ uses(RefreshDatabase::class);
 
 describe('OrderPaymentLogs in Filament', function () {
     beforeEach(function () {
-        $this->admin = User::factory()->admin()->create();
+        $this->admin = AdminUser::factory()->superAdmin()->create();
     });
 
     it('renders StripeEventsRelationManager with customer flow events', function () {
@@ -67,7 +67,7 @@ describe('OrderPaymentLogs in Filament', function () {
             'payload' => ['id' => 'evt_other_order'],
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(StripeEventsRelationManager::class, [
                 'ownerRecord' => $order,
                 'pageClass' => EditOrder::class,
@@ -97,7 +97,7 @@ describe('OrderPaymentLogs in Filament', function () {
             'paid_at' => now(),
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(PaymentsRelationManager::class, [
                 'ownerRecord' => $order,
                 'pageClass' => EditOrder::class,
@@ -136,7 +136,7 @@ describe('OrderPaymentLogs in Filament', function () {
             ],
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(StripeEventsRelationManager::class, [
                 'ownerRecord' => $order,
                 'pageClass' => EditOrder::class,

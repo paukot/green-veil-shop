@@ -10,9 +10,6 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Payments\PaymentManager;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -81,7 +78,7 @@ class EditOrder extends EditRecord
                 ->modalHeading(fn (Order $record): string => "Refund Order #{$record->number}")
                 ->modalDescription('Process a full or partial refund. If this order was paid via Stripe, the refund is executed directly with the Stripe gateway.')
                 ->visible(fn (Order $record): bool => in_array($record->payment_status, [PaymentStatus::Paid, PaymentStatus::PartiallyRefunded]))
-                ->form([
+                ->schema([
                     TextInput::make('amount')
                         ->label('Refund Amount (€)')
                         ->numeric()

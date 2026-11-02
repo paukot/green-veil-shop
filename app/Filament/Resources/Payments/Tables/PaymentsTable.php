@@ -57,12 +57,13 @@ class PaymentsTable
                     ->label('Failure Note')
                     ->placeholder('—')
                     ->color('danger')
-                    ->limit(30)
+                    ->wrap()
                     ->toggleable(),
                 TextColumn::make('paid_at')
                     ->label('Paid At')
-                    ->dateTime('M j, Y H:i')
+                    ->dateTime('m.j.Y, H:i')
                     ->placeholder('Unpaid')
+                    ->wrap()
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Attempted')
@@ -79,7 +80,7 @@ class PaymentsTable
                         'bank_transfer' => 'Bank Transfer',
                     ]),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('inspect')
                     ->label('Details')
                     ->icon('heroicon-o-eye')
@@ -87,7 +88,7 @@ class PaymentsTable
                     ->modalHeading(fn (Payment $record): string => "Transaction #{$record->id} - Order {$record->order?->number}")
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
-                    ->form(fn (Payment $record): array => [
+                    ->schema(fn (Payment $record): array => [
                         Grid::make(2)->schema([
                             TextInput::make('order_number')
                                 ->label('Order Number')

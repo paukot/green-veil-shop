@@ -3,6 +3,7 @@
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Filament\Resources\Orders\Pages\EditOrder;
+use App\Models\AdminUser;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentOption;
@@ -11,20 +12,20 @@ use App\Models\User;
 use Livewire\Livewire;
 
 test('non-admin customer cannot access filament orders list or edit page', function () {
-    $customer = User::factory()->create(['is_admin' => false]);
+    $customer = User::factory()->create();
     $order = Order::factory()->create();
 
-    $this->actingAs($customer)
+    $this->actingAs($customer, 'web')
         ->get('/admin/orders')
-        ->assertForbidden();
+        ->assertRedirect('/admin/login');
 
-    $this->actingAs($customer)
+    $this->actingAs($customer, 'web')
         ->get("/admin/orders/{$order->id}/edit")
-        ->assertForbidden();
+        ->assertRedirect('/admin/login');
 });
 
 test('admin can view orders list and edit order page in filament', function () {
-    $admin = User::factory()->admin()->create();
+    $admin = AdminUser::factory()->superAdmin()->create();
 
     $payment = PaymentOption::factory()->stripe()->create();
     $order = Order::factory()->create([
@@ -35,12 +36,12 @@ test('admin can view orders list and edit order page in filament', function () {
         'payment_status' => PaymentStatus::Paid,
     ]);
 
-    $this->actingAs($admin)
+    $this->actingAs($admin, 'admin')
         ->get('/admin/orders')
         ->assertOk()
         ->assertSee($order->number);
 
-    $this->actingAs($admin)
+    $this->actingAs($admin, 'admin')
         ->get("/admin/orders/{$order->id}/edit")
         ->assertOk()
         ->assertSee($order->number)
@@ -49,19 +50,19 @@ test('admin can view orders list and edit order page in filament', function () {
 });
 
 test('admin can mark order as shipped and delivered via filament action', function () {
-    $admin = User::factory()->admin()->create();
+    $admin = AdminUser::factory()->superAdmin()->create();
     $order = Order::factory()->create([
         'status' => OrderStatus::Processing,
         'payment_status' => PaymentStatus::Paid,
     ]);
 
-    Livewire::actingAs($admin)
+    Livewire::actingAs($admin, 'admin')
         ->test(EditOrder::class, ['record' => $order->id])
         ->callAction('markShipped');
 
     expect($order->fresh()->status)->toBe(OrderStatus::Shipped);
 
-    Livewire::actingAs($admin)
+    Livewire::actingAs($admin, 'admin')
         ->test(EditOrder::class, ['record' => $order->id])
         ->callAction('markDelivered');
 
@@ -69,7 +70,7 @@ test('admin can mark order as shipped and delivered via filament action', functi
 });
 
 test('admin can cancel order in filament and reserved stock is released to inventory', function () {
-    $admin = User::factory()->admin()->create();
+    $admin = AdminUser::factory()->superAdmin()->create();
 
     $product = Product::factory()->create([
         'track_inventory' => true,
@@ -87,7 +88,7 @@ test('admin can cancel order in filament and reserved stock is released to inven
         'quantity' => 2,
     ]);
 
-    Livewire::actingAs($admin)
+    Livewire::actingAs($admin, 'admin')
         ->test(EditOrder::class, ['record' => $order->id])
         ->callAction('cancelOrder');
 
@@ -96,7 +97,7 @@ test('admin can cancel order in filament and reserved stock is released to inven
 });
 
 test('admin can issue full refund in filament and inventory is restocked', function () {
-    $admin = User::factory()->admin()->create();
+    $admin = AdminUser::factory()->superAdmin()->create();
 
     $product = Product::factory()->create([
         'track_inventory' => true,
@@ -118,7 +119,7 @@ test('admin can issue full refund in filament and inventory is restocked', funct
         'quantity' => 3,
     ]);
 
-    Livewire::actingAs($admin)
+    Livewire::actingAs($admin, 'admin')
         ->test(EditOrder::class, ['record' => $order->id])
         ->callAction('refund', [
             'amount' => 60.00,
@@ -133,7 +134,7 @@ test('admin can issue full refund in filament and inventory is restocked', funct
 });
 
 test('admin can issue partial refund in filament without changing order status to refunded', function () {
-    $admin = User::factory()->admin()->create();
+    $admin = AdminUser::factory()->superAdmin()->create();
 
     $paymentOption = PaymentOption::factory()->bankTransfer()->create();
 
@@ -144,7 +145,7 @@ test('admin can issue partial refund in filament without changing order status t
         'total' => 100.00,
     ]);
 
-    Livewire::actingAs($admin)
+    Livewire::actingAs($admin, 'admin')
         ->test(EditOrder::class, ['record' => $order->id])
         ->callAction('refund', [
             'amount' => 30.00,
@@ -158,14 +159,14 @@ test('admin can issue partial refund in filament without changing order status t
 });
 
 test('refund action is not visible on unpaid orders', function () {
-    $admin = User::factory()->admin()->create();
+    $admin = AdminUser::factory()->superAdmin()->create();
 
     $order = Order::factory()->create([
         'status' => OrderStatus::PendingPayment,
         'payment_status' => PaymentStatus::Unpaid,
     ]);
 
-    Livewire::actingAs($admin)
+    Livewire::actingAs($admin, 'admin')
         ->test(EditOrder::class, ['record' => $order->id])
         ->assertActionHidden('refund');
 });

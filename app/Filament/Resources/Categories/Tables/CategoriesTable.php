@@ -24,7 +24,7 @@ class CategoriesTable
                 ImageColumn::make('image')
                     ->label('Image')
                     ->square()
-                    ->size(48),
+                    ->imageSize(48),
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
@@ -51,11 +51,11 @@ class CategoriesTable
                 TernaryFilter::make('is_active')->label('Active'),
                 TrashedFilter::make(),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),

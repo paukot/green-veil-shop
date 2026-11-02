@@ -3,6 +3,7 @@
 use App\Filament\Resources\PaymentOptions\Pages\CreatePaymentOption;
 use App\Filament\Resources\PaymentOptions\Pages\EditPaymentOption;
 use App\Filament\Resources\PaymentOptions\Pages\ListPaymentOptions;
+use App\Models\AdminUser;
 use App\Models\PaymentOption;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,34 +13,34 @@ uses(RefreshDatabase::class);
 
 describe('PaymentOptionResource in Filament', function () {
     beforeEach(function () {
-        $this->admin = User::factory()->admin()->create();
+        $this->admin = AdminUser::factory()->superAdmin()->create();
     });
 
     it('denies access to non-admins', function () {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->create();
 
-        $this->actingAs($user)
+        $this->actingAs($user, 'web')
             ->get('/admin/payment-options')
-            ->assertForbidden();
+            ->assertRedirect('/admin/login');
     });
 
     it('renders list page with payment options', function () {
         $stripeOption = PaymentOption::factory()->stripe()->create();
         $bankOption = PaymentOption::factory()->bankTransfer()->create();
 
-        $this->actingAs($this->admin)
+        $this->actingAs($this->admin, 'admin')
             ->get('/admin/payment-options')
             ->assertOk()
             ->assertSee($stripeOption->name)
             ->assertSee($bankOption->name);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(ListPaymentOptions::class)
             ->assertCanSeeTableRecords([$stripeOption, $bankOption]);
     });
 
     it('allows admin to create a new payment option', function () {
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(CreatePaymentOption::class)
             ->fillForm([
                 'name' => 'Cash On Delivery',
@@ -66,7 +67,7 @@ describe('PaymentOptionResource in Filament', function () {
             'instructions' => 'Old bank details',
         ]);
 
-        Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin, 'admin')
             ->test(EditPaymentOption::class, ['record' => $option->id])
             ->fillForm([
                 'instructions' => 'IBAN: IE99NEWBANK12345678',

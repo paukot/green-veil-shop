@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\SliderItems\Tables;
 
+use App\Models\SliderItem;
+use App\Services\StorageImageService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -23,16 +25,18 @@ class SliderItemsTable
             ->columns([
                 ImageColumn::make('image')
                     ->label('Image')
-                    ->height(60)
-                    ->width(120),
+                    ->imageHeight(60)
+                    ->width(120)
+                    ->getStateUsing(fn (SliderItem $record): ?string => app(StorageImageService::class)->getImage($record->image)),
                 TextColumn::make('title')
                     ->label('Title')
                     ->searchable()
                     ->sortable()
+                    ->wrap()
                     ->placeholder('(no title)'),
                 TextColumn::make('url')
                     ->label('URL')
-                    ->limit(40)
+                    ->limit(30)
                     ->placeholder('—')
                     ->url(fn ($record) => $record->url, shouldOpenInNewTab: true)
                     ->toggleable(),
@@ -59,11 +63,11 @@ class SliderItemsTable
                 TernaryFilter::make('is_active')->label('Active'),
                 TrashedFilter::make(),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),

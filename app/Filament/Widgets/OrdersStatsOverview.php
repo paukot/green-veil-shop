@@ -12,6 +12,13 @@ class OrdersStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    public static function canView(): bool
+    {
+        $user = filament()->auth()->user();
+
+        return ($user?->hasCategoryAccess('orders') || $user?->hasCategoryAccess('finance')) ?? false;
+    }
+
     protected function getStats(): array
     {
         $now = now();
