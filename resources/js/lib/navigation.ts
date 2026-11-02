@@ -4,6 +4,7 @@ export type NavigationLayout = {
     columnCount: number;
     isMegaMenu: boolean;
     containerWidthClass: string;
+    innerCardClass: string;
     gridColsClass: string;
     columns: CategoryNavigationItem[][];
 };
@@ -14,10 +15,10 @@ export type NavigationLayout = {
  * standards without any hardcoded category slugs.
  *
  * Automatic sizing tiers:
- * - 1 to 6 items   => 1 column  (compact w-56)
- * - 7 to 14 items  => 2 columns (medium w-[420px])
- * - 15 to 24 items => 3 columns (wide w-[640px])
- * - 25+ items      => 4 columns (mega-menu w-[840px])
+ * - 1 to 6 items   => 1 column  (compact w-56 centered)
+ * - 7 to 14 items  => 2 columns (medium w-96 centered)
+ * - 15 to 24 items => 3 columns (mega-menu max-w-3xl container-anchored)
+ * - 25+ items      => 4 columns (mega-menu max-w-5xl container-anchored)
  */
 export function getNavigationLayout(
     cat: CategoryNavigationItem,
@@ -29,7 +30,8 @@ export function getNavigationLayout(
         return {
             columnCount: 1,
             isMegaMenu: false,
-            containerWidthClass: 'w-56 left-0',
+            containerWidthClass: 'w-56 left-1/2 -translate-x-1/2',
+            innerCardClass: 'w-full',
             gridColsClass: 'grid-cols-1',
             columns: [],
         };
@@ -37,32 +39,37 @@ export function getNavigationLayout(
 
     let columnCount = 1;
     let isMegaMenu = false;
-    let containerWidthClass = 'w-56 left-0';
+    let containerWidthClass = 'w-56 left-1/2 -translate-x-1/2';
+    let innerCardClass = 'w-full';
     let gridColsClass = 'grid-cols-1';
 
     if (count > 24) {
         // Large department (25+ items, e.g. 44 items in Makeup) => 4-Column Mega-Menu
         columnCount = 4;
         isMegaMenu = true;
-        containerWidthClass = 'w-[820px] xl:w-[880px] -left-20 xl:-left-36';
+        containerWidthClass = 'left-0 right-0 w-full';
+        innerCardClass = 'mx-auto max-w-5xl';
         gridColsClass = 'grid-cols-4';
     } else if (count > 14) {
-        // Medium-large department (15-24 items) => 3-Column Dropdown
+        // Medium-large department (15-24 items) => 3-Column Mega-Menu
         columnCount = 3;
         isMegaMenu = true;
-        containerWidthClass = 'w-[640px] -left-12 xl:-left-20';
+        containerWidthClass = 'left-0 right-0 w-full';
+        innerCardClass = 'mx-auto max-w-3xl';
         gridColsClass = 'grid-cols-3';
     } else if (count > 6) {
-        // Medium department (7-14 items, e.g. Hair, Skincare) => 2-Column Dropdown
+        // Medium department (7-14 items, e.g. Hair Care, Skincare, Body) => 2-Column Dropdown
         columnCount = 2;
         isMegaMenu = false;
-        containerWidthClass = 'w-[420px] -left-6';
+        containerWidthClass = 'w-96 left-1/2 -translate-x-1/2';
+        innerCardClass = 'w-full';
         gridColsClass = 'grid-cols-2';
     } else {
-        // Small department (1-6 items, e.g. Men) => 1-Column Dropdown
+        // Compact department (1-6 items, e.g. Perfumes, Men) => 1-Column Dropdown
         columnCount = 1;
         isMegaMenu = false;
-        containerWidthClass = 'w-56 left-0';
+        containerWidthClass = 'w-56 left-1/2 -translate-x-1/2';
+        innerCardClass = 'w-full';
         gridColsClass = 'grid-cols-1';
     }
 
@@ -82,6 +89,7 @@ export function getNavigationLayout(
         columnCount,
         isMegaMenu,
         containerWidthClass,
+        innerCardClass,
         gridColsClass,
         columns,
     };

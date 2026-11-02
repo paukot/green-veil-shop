@@ -111,88 +111,25 @@ function submitSearch() {
         <header
             class="sticky top-0 z-40 border-b border-cream-200 bg-cream-50/95 backdrop-blur-md transition-colors"
         >
+            <!-- Tier 1: Brand Logo, Desktop Search & Utility Actions -->
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="flex h-20 items-center justify-between">
-                    <!-- Mobile Menu Button -->
-                    <div class="flex items-center lg:hidden">
-                        <button
-                            type="button"
-                            class="-ml-2 rounded-md p-2 text-charcoal-700 hover:text-sage-700 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            aria-label="Toggle navigation menu"
-                            :aria-expanded="mobileMenuOpen"
-                            @click="mobileMenuOpen = !mobileMenuOpen"
-                        >
-                            <svg
-                                v-if="!mobileMenuOpen"
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                <div
+                    class="flex h-16 items-center justify-between gap-4 sm:h-18"
+                >
+                    <!-- Left: Mobile Menu Toggle & Brand Logo -->
+                    <div class="flex items-center gap-3">
+                        <!-- Mobile Menu Button (lg:hidden) -->
+                        <div class="flex items-center lg:hidden">
+                            <button
+                                type="button"
+                                class="-ml-2 rounded-md p-2 text-charcoal-700 hover:text-sage-700 focus:ring-2 focus:ring-sage-500 focus:outline-none"
+                                aria-label="Toggle navigation menu"
+                                :aria-expanded="mobileMenuOpen"
+                                @click="mobileMenuOpen = !mobileMenuOpen"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                                />
-                            </svg>
-                            <svg
-                                v-else
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Brand Logo -->
-                    <div class="flex items-center">
-                        <Link :href="home.url()" class="group flex flex-col">
-                            <span
-                                class="font-serif text-2xl tracking-tight text-sage-900 transition-colors group-hover:text-sage-700 sm:text-3xl"
-                                >Green Veil</span
-                            >
-                            <span
-                                class="-mt-1 text-[10px] tracking-widest text-sage-600 uppercase"
-                                >Botanical Apothecary</span
-                            >
-                        </Link>
-                    </div>
-
-                    <!-- Desktop Navigation Links -->
-                    <nav
-                        class="hidden items-center space-x-8 text-sm font-medium tracking-wide lg:flex"
-                        aria-label="Primary"
-                    >
-                        <Link
-                            :href="productsIndex.url()"
-                            class="border-b-2 border-transparent py-1 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
-                        >
-                            All Products
-                        </Link>
-                        <div
-                            v-for="cat in navigation"
-                            :key="cat.id"
-                            class="group relative shrink-0"
-                        >
-                            <Link
-                                :href="categoryShow.url(cat.slug)"
-                                class="inline-flex items-center gap-1 border-b-2 border-transparent py-1 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
-                            >
-                                <span>{{ cat.name }}</span>
                                 <svg
-                                    v-if="
-                                        cat.children && cat.children.length > 0
-                                    "
-                                    class="text-charcoal-400 h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180 group-hover:text-sage-700"
+                                    v-if="!mobileMenuOpen"
+                                    class="h-6 w-6"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
@@ -200,130 +137,65 @@ function submitSearch() {
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7"
+                                        stroke-width="1.5"
+                                        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
                                     />
                                 </svg>
-                            </Link>
-
-                            <!-- Submenu if category has children -->
-                            <div
-                                v-if="cat.children && cat.children.length > 0"
-                                class="pointer-events-none absolute top-full z-50 pt-3 opacity-0 transition-all duration-200 ease-out group-hover:pointer-events-auto group-hover:opacity-100"
-                                :class="
-                                    getNavigationLayout(cat).containerWidthClass
-                                "
-                            >
-                                <div
-                                    class="rounded-2xl border border-cream-200/90 bg-cream-50/98 p-5 shadow-2xl backdrop-blur-md"
+                                <svg
+                                    v-else
+                                    class="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
                                 >
-                                    <!-- Mega Menu Header (for large departments) -->
-                                    <div
-                                        v-if="
-                                            getNavigationLayout(cat).isMegaMenu
-                                        "
-                                        class="mb-4 flex items-center justify-between border-b border-cream-200/80 pb-3"
-                                    >
-                                        <div class="flex items-center gap-2.5">
-                                            <h3
-                                                class="font-serif text-base font-medium text-sage-900"
-                                            >
-                                                {{ cat.name }} Department
-                                            </h3>
-                                            <span
-                                                class="rounded-full bg-sage-100 px-2.5 py-0.5 text-[11px] font-semibold text-sage-800"
-                                            >
-                                                {{ cat.children.length }}
-                                                Subcategories
-                                            </span>
-                                        </div>
-                                        <Link
-                                            :href="categoryShow.url(cat.slug)"
-                                            class="group/link flex items-center gap-1 text-xs font-semibold text-sage-700 hover:text-sage-900"
-                                        >
-                                            <span
-                                                >Explore All
-                                                {{ cat.name }}</span
-                                            >
-                                            <span
-                                                class="transition-transform group-hover/link:translate-x-0.5"
-                                                >&rarr;</span
-                                            >
-                                        </Link>
-                                    </div>
-
-                                    <!-- Multi-Column Grid dynamically balanced -->
-                                    <div
-                                        class="grid max-h-[68vh] gap-x-6 gap-y-2 overflow-y-auto pr-1"
-                                        :class="
-                                            getNavigationLayout(cat)
-                                                .gridColsClass
-                                        "
-                                    >
-                                        <div
-                                            v-for="(
-                                                column, colIdx
-                                            ) in getNavigationLayout(cat)
-                                                .columns"
-                                            :key="colIdx"
-                                            class="space-y-1"
-                                        >
-                                            <Link
-                                                v-for="child in column"
-                                                :key="child.id"
-                                                :href="
-                                                    categoryShow.url(child.slug)
-                                                "
-                                                class="block rounded-md px-2.5 py-1.5 text-xs text-charcoal-700 transition-colors hover:bg-sage-100/70 hover:text-sage-900"
-                                            >
-                                                {{ child.name }}
-                                            </Link>
-                                        </div>
-                                    </div>
-
-                                    <!-- Bottom quick bar for mega-menu -->
-                                    <div
-                                        v-if="
-                                            getNavigationLayout(cat).isMegaMenu
-                                        "
-                                        class="text-charcoal-500 mt-4 flex items-center justify-between border-t border-cream-200/80 pt-3 text-[11px]"
-                                    >
-                                        <span
-                                            >Clean botanical ingredients &bull;
-                                            100% cruelty-free</span
-                                        >
-                                        <Link
-                                            :href="categoryShow.url(cat.slug)"
-                                            class="font-medium text-sage-700 hover:text-sage-900 hover:underline"
-                                        >
-                                            Shop full collection &rarr;
-                                        </Link>
-                                    </div>
-
-                                    <!-- Simple view all link for smaller categories -->
-                                    <div
-                                        v-else
-                                        class="mt-2.5 border-t border-cream-200/80 pt-2"
-                                    >
-                                        <Link
-                                            :href="categoryShow.url(cat.slug)"
-                                            class="flex items-center justify-between rounded-md px-2 py-1 text-xs font-semibold text-sage-700 hover:bg-sage-50 hover:text-sage-900"
-                                        >
-                                            <span>All {{ cat.name }}</span>
-                                            <span>&rarr;</span>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
                         </div>
-                    </nav>
 
-                    <!-- Utility Actions (Search, Favourites, Cart, Account) -->
-                    <div class="flex items-center space-x-2 sm:space-x-4">
-                        <!-- Search Toggle Button -->
+                        <!-- Brand Logo -->
+                        <Link
+                            :href="home.url()"
+                            class="group flex shrink-0 flex-col"
+                        >
+                            <span
+                                class="font-serif text-2xl tracking-tight text-sage-900 transition-colors group-hover:text-sage-700 sm:text-3xl"
+                            >
+                                Green Veil
+                            </span>
+                            <span
+                                class="-mt-1 text-[10px] tracking-widest text-sage-600 uppercase"
+                            >
+                                Botanical Apothecary
+                            </span>
+                        </Link>
+                    </div>
+
+                    <!-- Center: Search Input Bar (Visible on desktop lg+) -->
+                    <form
+                        @submit.prevent="submitSearch"
+                        class="hidden max-w-md flex-1 items-center lg:flex xl:max-w-lg"
+                    >
+                        <SearchInput
+                            v-model="searchQuery"
+                            placeholder="Search botanicals, perfumes, skincare..."
+                            size="sm"
+                        />
+                    </form>
+
+                    <!-- Right: Utility Actions (Search Toggle, Favourites, Cart, Account) -->
+                    <div
+                        class="flex shrink-0 items-center space-x-1 sm:space-x-3"
+                    >
+                        <!-- Search Toggle Button (Mobile & Tablet only) -->
                         <button
                             type="button"
-                            class="rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
+                            class="rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700 lg:hidden"
                             aria-label="Search products"
                             @click="searchOpen = !searchOpen"
                         >
@@ -468,8 +340,11 @@ function submitSearch() {
                     </div>
                 </div>
 
-                <!-- Search Input Bar Dropdown -->
-                <div v-if="searchOpen" class="border-t border-cream-200 py-3">
+                <!-- Mobile / Tablet Search Input Dropdown -->
+                <div
+                    v-if="searchOpen"
+                    class="border-t border-cream-200 py-3 lg:hidden"
+                >
                     <form
                         @submit.prevent="submitSearch"
                         class="mx-auto flex max-w-xl items-center gap-2"
@@ -489,6 +364,170 @@ function submitSearch() {
                     </form>
                 </div>
             </div>
+
+            <!-- Tier 2: Category Navigation Bar (Desktop lg+) -->
+            <nav
+                class="hidden border-t border-cream-200/70 bg-cream-50/90 lg:block"
+                aria-label="Primary"
+            >
+                <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div
+                        class="flex h-11 items-center justify-center gap-6 text-xs font-medium tracking-wide xl:gap-8 xl:text-sm"
+                    >
+                        <Link
+                            :href="productsIndex.url()"
+                            class="border-b-2 border-transparent py-2.5 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
+                        >
+                            All Products
+                        </Link>
+
+                        <div
+                            v-for="cat in navigation"
+                            :key="cat.id"
+                            class="group py-2.5"
+                            :class="{
+                                relative: !getNavigationLayout(cat).isMegaMenu,
+                            }"
+                        >
+                            <Link
+                                :href="categoryShow.url(cat.slug)"
+                                class="inline-flex items-center gap-1 border-b-2 border-transparent text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
+                            >
+                                <span>{{ cat.name }}</span>
+                                <svg
+                                    v-if="
+                                        cat.children && cat.children.length > 0
+                                    "
+                                    class="text-charcoal-400 h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180 group-hover:text-sage-700"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    />
+                                </svg>
+                            </Link>
+
+                            <!-- Submenu / Mega-Menu if category has children -->
+                            <div
+                                v-if="cat.children && cat.children.length > 0"
+                                class="pointer-events-none absolute top-full z-50 pt-1.5 opacity-0 transition-all duration-150 ease-out group-hover:pointer-events-auto group-hover:opacity-100"
+                                :class="
+                                    getNavigationLayout(cat).containerWidthClass
+                                "
+                            >
+                                <div
+                                    class="rounded-2xl border border-cream-200/90 bg-cream-50/98 p-5 shadow-2xl backdrop-blur-md"
+                                    :class="
+                                        getNavigationLayout(cat).innerCardClass
+                                    "
+                                >
+                                    <!-- Mega Menu Header (for large departments) -->
+                                    <div
+                                        v-if="
+                                            getNavigationLayout(cat).isMegaMenu
+                                        "
+                                        class="mb-4 flex items-center justify-between border-b border-cream-200/80 pb-3"
+                                    >
+                                        <div class="flex items-center gap-2.5">
+                                            <h3
+                                                class="font-serif text-base font-medium text-sage-900"
+                                            >
+                                                {{ cat.name }} Department
+                                            </h3>
+                                            <span
+                                                class="rounded-full bg-sage-100 px-2.5 py-0.5 text-[11px] font-semibold text-sage-800"
+                                            >
+                                                {{ cat.children.length }}
+                                                Subcategories
+                                            </span>
+                                        </div>
+                                        <Link
+                                            :href="categoryShow.url(cat.slug)"
+                                            class="group/link flex items-center gap-1 text-xs font-semibold text-sage-700 hover:text-sage-900"
+                                        >
+                                            <span
+                                                >Explore All
+                                                {{ cat.name }}</span
+                                            >
+                                            <span
+                                                class="transition-transform group-hover/link:translate-x-0.5"
+                                                >&rarr;</span
+                                            >
+                                        </Link>
+                                    </div>
+
+                                    <!-- Multi-Column Grid dynamically balanced -->
+                                    <div
+                                        class="grid max-h-[65vh] gap-x-6 gap-y-2 overflow-y-auto pr-1"
+                                        :class="
+                                            getNavigationLayout(cat)
+                                                .gridColsClass
+                                        "
+                                    >
+                                        <div
+                                            v-for="(
+                                                column, colIdx
+                                            ) in getNavigationLayout(cat)
+                                                .columns"
+                                            :key="colIdx"
+                                            class="space-y-1"
+                                        >
+                                            <Link
+                                                v-for="child in column"
+                                                :key="child.id"
+                                                :href="
+                                                    categoryShow.url(child.slug)
+                                                "
+                                                class="block rounded-md px-2.5 py-1.5 text-xs text-charcoal-700 transition-colors hover:bg-sage-100/70 hover:text-sage-900"
+                                            >
+                                                {{ child.name }}
+                                            </Link>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom quick bar for mega-menu -->
+                                    <div
+                                        v-if="
+                                            getNavigationLayout(cat).isMegaMenu
+                                        "
+                                        class="text-charcoal-500 mt-4 flex items-center justify-between border-t border-cream-200/80 pt-3 text-[11px]"
+                                    >
+                                        <span
+                                            >Clean botanical ingredients &bull;
+                                            100% cruelty-free</span
+                                        >
+                                        <Link
+                                            :href="categoryShow.url(cat.slug)"
+                                            class="font-medium text-sage-700 hover:text-sage-900 hover:underline"
+                                        >
+                                            Shop full collection &rarr;
+                                        </Link>
+                                    </div>
+
+                                    <!-- Simple view all link for smaller categories -->
+                                    <div
+                                        v-else
+                                        class="mt-2.5 border-t border-cream-200/80 pt-2"
+                                    >
+                                        <Link
+                                            :href="categoryShow.url(cat.slug)"
+                                            class="flex items-center justify-between rounded-md px-2 py-1 text-xs font-semibold text-sage-700 hover:bg-sage-50 hover:text-sage-900"
+                                        >
+                                            <span>All {{ cat.name }}</span>
+                                            <span>&rarr;</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
         </header>
 
         <!-- Mobile Navigation Drawer -->
