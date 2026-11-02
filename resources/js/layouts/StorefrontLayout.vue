@@ -10,6 +10,7 @@ import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryCon
 import { index as cartIndex } from '@/routes/cart';
 import { index as favouritesIndex } from '@/routes/favourites';
 import { profile } from '@/routes/account';
+import { getNavigationLayout } from '@/lib/navigation';
 
 const page = usePage<SharedProps>();
 const mobileMenuOpen = ref(false);
@@ -21,6 +22,12 @@ const navigation = computed(() => page.props.navigation || []);
 const cartCount = computed(() => page.props.cart?.count ?? 0);
 const favouritesCount = computed(() => page.props.favourites?.length ?? 0);
 const flash = computed(() => page.props.flash || {});
+const isDemoMode = computed(() => Boolean(page.props.demo_mode));
+const demoNotice = computed(
+    () =>
+        page.props.demo_notice ||
+        'This website is for demonstration purposes only. Payments are not processed and orders will not be fulfilled.',
+);
 
 const showToast = ref(false);
 const toastMessage = ref('');
@@ -72,15 +79,32 @@ function submitSearch() {
             Skip to main content
         </a>
 
-        <!-- Top Announcement Bar -->
+        <!-- Top Announcement Bar / Demo Mode Notice -->
         <aside
             aria-label="Announcement"
-            class="bg-sage-800 px-4 py-2 text-center text-xs tracking-wide text-cream-100"
+            :class="
+                isDemoMode
+                    ? 'border-b border-amber-600/40 bg-amber-900 px-4 py-2 text-center text-xs tracking-wide text-amber-100 shadow-xs'
+                    : 'bg-sage-800 px-4 py-2 text-center text-xs tracking-wide text-cream-100'
+            "
         >
-            <span
-                >Botanical formulation, conscious ingredients &bull;
-                Complimentary standard delivery over €50</span
+            <div
+                v-if="isDemoMode"
+                class="flex flex-wrap items-center justify-center gap-2 font-medium"
             >
+                <span
+                    class="rounded-sm bg-amber-950/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-300 uppercase"
+                >
+                    Demo Mode
+                </span>
+                <span>
+                    {{ demoNotice }}
+                </span>
+            </div>
+            <span v-else>
+                Botanical formulation, conscious ingredients &bull;
+                Complimentary standard delivery over €50
+            </span>
         </aside>
 
         <!-- Main Header -->
@@ -149,12 +173,6 @@ function submitSearch() {
                         aria-label="Primary"
                     >
                         <Link
-                            :href="home.url()"
-                            class="border-b-2 border-transparent py-1 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
-                        >
-                            Home
-                        </Link>
-                        <Link
                             :href="productsIndex.url()"
                             class="border-b-2 border-transparent py-1 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
                         >
@@ -163,7 +181,7 @@ function submitSearch() {
                         <div
                             v-for="cat in navigation"
                             :key="cat.id"
-                            class="group relative"
+                            class="group relative shrink-0"
                         >
                             <Link
                                 :href="categoryShow.url(cat.slug)"
@@ -174,7 +192,7 @@ function submitSearch() {
                                     v-if="
                                         cat.children && cat.children.length > 0
                                     "
-                                    class="text-charcoal-400 h-3.5 w-3.5 transition-transform group-hover:rotate-180 group-hover:text-sage-700"
+                                    class="text-charcoal-400 h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180 group-hover:text-sage-700"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
@@ -191,19 +209,110 @@ function submitSearch() {
                             <!-- Submenu if category has children -->
                             <div
                                 v-if="cat.children && cat.children.length > 0"
-                                class="pointer-events-none absolute top-full left-0 z-50 w-48 pt-2 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
+                                class="pointer-events-none absolute top-full z-50 pt-3 opacity-0 transition-all duration-200 ease-out group-hover:pointer-events-auto group-hover:opacity-100"
+                                :class="
+                                    getNavigationLayout(cat).containerWidthClass
+                                "
                             >
                                 <div
-                                    class="rounded-lg border border-cream-200 bg-cream-50 py-2 shadow-lg"
+                                    class="rounded-2xl border border-cream-200/90 bg-cream-50/98 p-5 shadow-2xl backdrop-blur-md"
                                 >
-                                    <Link
-                                        v-for="child in cat.children"
-                                        :key="child.id"
-                                        :href="categoryShow.url(child.slug)"
-                                        class="block px-4 py-2 text-xs text-charcoal-700 transition-colors hover:bg-sage-50 hover:text-sage-800"
+                                    <!-- Mega Menu Header (for large departments) -->
+                                    <div
+                                        v-if="
+                                            getNavigationLayout(cat).isMegaMenu
+                                        "
+                                        class="mb-4 flex items-center justify-between border-b border-cream-200/80 pb-3"
                                     >
-                                        {{ child.name }}
-                                    </Link>
+                                        <div class="flex items-center gap-2.5">
+                                            <h3
+                                                class="font-serif text-base font-medium text-sage-900"
+                                            >
+                                                {{ cat.name }} Department
+                                            </h3>
+                                            <span
+                                                class="rounded-full bg-sage-100 px-2.5 py-0.5 text-[11px] font-semibold text-sage-800"
+                                            >
+                                                {{ cat.children.length }}
+                                                Subcategories
+                                            </span>
+                                        </div>
+                                        <Link
+                                            :href="categoryShow.url(cat.slug)"
+                                            class="group/link flex items-center gap-1 text-xs font-semibold text-sage-700 hover:text-sage-900"
+                                        >
+                                            <span
+                                                >Explore All
+                                                {{ cat.name }}</span
+                                            >
+                                            <span
+                                                class="transition-transform group-hover/link:translate-x-0.5"
+                                                >&rarr;</span
+                                            >
+                                        </Link>
+                                    </div>
+
+                                    <!-- Multi-Column Grid dynamically balanced -->
+                                    <div
+                                        class="grid max-h-[68vh] gap-x-6 gap-y-2 overflow-y-auto pr-1"
+                                        :class="
+                                            getNavigationLayout(cat)
+                                                .gridColsClass
+                                        "
+                                    >
+                                        <div
+                                            v-for="(
+                                                column, colIdx
+                                            ) in getNavigationLayout(cat)
+                                                .columns"
+                                            :key="colIdx"
+                                            class="space-y-1"
+                                        >
+                                            <Link
+                                                v-for="child in column"
+                                                :key="child.id"
+                                                :href="
+                                                    categoryShow.url(child.slug)
+                                                "
+                                                class="block rounded-md px-2.5 py-1.5 text-xs text-charcoal-700 transition-colors hover:bg-sage-100/70 hover:text-sage-900"
+                                            >
+                                                {{ child.name }}
+                                            </Link>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom quick bar for mega-menu -->
+                                    <div
+                                        v-if="
+                                            getNavigationLayout(cat).isMegaMenu
+                                        "
+                                        class="text-charcoal-500 mt-4 flex items-center justify-between border-t border-cream-200/80 pt-3 text-[11px]"
+                                    >
+                                        <span
+                                            >Clean botanical ingredients &bull;
+                                            100% cruelty-free</span
+                                        >
+                                        <Link
+                                            :href="categoryShow.url(cat.slug)"
+                                            class="font-medium text-sage-700 hover:text-sage-900 hover:underline"
+                                        >
+                                            Shop full collection &rarr;
+                                        </Link>
+                                    </div>
+
+                                    <!-- Simple view all link for smaller categories -->
+                                    <div
+                                        v-else
+                                        class="mt-2.5 border-t border-cream-200/80 pt-2"
+                                    >
+                                        <Link
+                                            :href="categoryShow.url(cat.slug)"
+                                            class="flex items-center justify-between rounded-md px-2 py-1 text-xs font-semibold text-sage-700 hover:bg-sage-50 hover:text-sage-900"
+                                        >
+                                            <span>All {{ cat.name }}</span>
+                                            <span>&rarr;</span>
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -460,9 +569,7 @@ function submitSearch() {
         </main>
 
         <!-- Storefront Footer -->
-        <footer
-            class="mt-20 border-t border-cream-200 bg-cream-100 pt-16 pb-12"
-        >
+        <footer class="mt-18 border-t border-cream-200 bg-cream-100 pt-4 pb-4">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 gap-10 md:grid-cols-4">
                     <!-- Brand Ethos -->
@@ -551,7 +658,7 @@ function submitSearch() {
                 </div>
 
                 <div
-                    class="text-charcoal-500 mt-12 flex flex-col items-center justify-between gap-4 border-t border-cream-200 pt-8 text-xs sm:flex-row"
+                    class="text-charcoal-500 mt-12 flex flex-col items-center justify-between gap-4 border-t border-cream-200 p-2 text-xs sm:flex-row"
                 >
                     <p>
                         &copy; {{ new Date().getFullYear() }} Green Veil

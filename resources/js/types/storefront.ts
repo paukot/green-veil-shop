@@ -26,6 +26,8 @@ export type CustomerUser = {
 
 export type SharedProps = {
     name: string;
+    demo_mode?: boolean;
+    demo_notice?: string;
     navigation: CategoryNavigationItem[];
     auth: {
         user: CustomerUser | null;

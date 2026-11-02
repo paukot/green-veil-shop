@@ -75,6 +75,11 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name', 'Green Veil'),
+            'demo_mode' => (bool) config('app.demo_mode', false),
+            'demo_notice' => (string) config(
+                'app.demo_notice',
+                'This website is for demonstration purposes only. Payments are not processed and orders will not be fulfilled.'
+            ),
             'navigation' => $navigation,
             'auth' => [
                 'user' => $user ? [

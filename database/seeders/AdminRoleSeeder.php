@@ -66,7 +66,7 @@ class AdminRoleSeeder extends Seeder
             ]
         );
 
-        // 3. Ensure Default Super Admin Account exists
+        // 3. Ensure Default Super Admin
         AdminUser::updateOrCreate(
             ['email' => 'admin@example.com'],
             [

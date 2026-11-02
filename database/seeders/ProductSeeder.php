@@ -63,6 +63,16 @@ class ProductSeeder extends Seeder
             'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
             'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=600&q=80',
         ],
+        'health-care' => [
+            'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80',
+        ],
+        'gifts' => [
+            'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1513201099705-a9742e15a5bb?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=600&q=80',
+        ],
     ];
 
     /**
@@ -165,87 +175,120 @@ class ProductSeeder extends Seeder
         $batches = [];
         $imageBatches = [];
 
-        for ($i = 1; $i <= $totalProducts; $i++) {
-            $catIndex = ($i - 1) % $categoryCount;
-            /** @var Category $category */
-            $category = $categoryList[$catIndex];
+        $existingProductCount = DB::table('products')->count();
 
-            // Resolve domain category key for imagery and vocabulary
-            $domainKey = $this->resolveDomainKey($category);
+        if ($existingProductCount === 0) {
+            for ($i = 1; $i <= $totalProducts; $i++) {
+                $catIndex = ($i - 1) % $categoryCount;
+                /** @var Category $category */
+                $category = $categoryList[$catIndex];
 
-            $brand = self::BRANDS[$i % $brandCount];
-            $active = self::ACTIVES[($i * 3) % $activeCount];
-            $formulations = self::FORMULATIONS[$domainKey] ?? self::FORMULATIONS['skincare'];
-            $formulation = $formulations[($i * 7) % count($formulations)];
+                // Resolve domain category key for imagery and vocabulary
+                $domainKey = $this->resolveDomainKey($category);
 
-            // Include shades for makeup or lip/eye categories
-            $hasShade = in_array($domainKey, ['makeup', 'makeup-lips', 'makeup-eyes', 'makeup-face'], true);
-            $shade = $hasShade ? ' - '.self::SHADES[($i * 5) % $shadeCount] : '';
+                $brand = self::BRANDS[$i % $brandCount];
+                $active = self::ACTIVES[($i * 3) % $activeCount];
+                $formulations = self::FORMULATIONS[$domainKey] ?? self::FORMULATIONS['skincare'];
+                $formulation = $formulations[($i * 7) % count($formulations)];
 
-            $name = "{$brand} {$active} {$formulation}{$shade}";
-            $sku = sprintf('GV-%s-%05d', strtoupper(substr($domainKey, 0, 3)), $i);
-            $slug = Str::slug("{$name}-{$sku}");
+                // Include shades for makeup or lip/eye categories
+                $hasShade = in_array($domainKey, ['makeup', 'makeup-lips', 'makeup-eyes', 'makeup-face'], true);
+                $shade = $hasShade ? ' - '.self::SHADES[($i * 5) % $shadeCount] : '';
 
-            // Pricing logic
-            $basePrice = round((float) (8.50 + (($i * 17) % 120) + ((($i * 31) % 99) / 100)), 2);
-            $hasDiscount = ($i % 3 === 0);
-            $compareAtPrice = $hasDiscount ? round($basePrice * 1.25, 2) : null;
+                $name = "{$brand} {$active} {$formulation}{$shade}";
+                $sku = sprintf('GV-%s-%05d', strtoupper(substr($domainKey, 0, 3)), $i);
+                $slug = Str::slug("{$name}-{$sku}");
 
-            // Inventory logic: 93% in stock, 7% out of stock
-            $stockQuantity = ($i % 15 === 0) ? 0 : (($i * 11) % 180 + 5);
+                // Pricing logic
+                $basePrice = round((float) (8.50 + (($i * 17) % 120) + ((($i * 31) % 99) / 100)), 2);
+                $hasDiscount = ($i % 3 === 0);
+                $compareAtPrice = $hasDiscount ? round($basePrice * 1.25, 2) : null;
 
-            // Images
-            $imagePool = self::CATEGORY_IMAGE_POOLS[$domainKey] ?? self::CATEGORY_IMAGE_POOLS['skincare'];
-            $mainImage = $imagePool[($i * 3) % count($imagePool)];
+                // Inventory logic: 93% in stock, 7% out of stock
+                $stockQuantity = ($i % 15 === 0) ? 0 : (($i * 11) % 180 + 5);
 
-            // Featured flag for the first 150 items
-            $isFeatured = ($i <= 150);
+                // Images
+                $imagePool = self::CATEGORY_IMAGE_POOLS[$domainKey] ?? self::CATEGORY_IMAGE_POOLS['skincare'];
+                $mainImage = $imagePool[($i * 3) % count($imagePool)];
 
-            $batches[] = [
-                'category_id' => $category->id,
-                'sku' => $sku,
-                'slug' => $slug,
-                'price' => $basePrice,
-                'compare_at_price' => $compareAtPrice,
-                'stock_quantity' => $stockQuantity,
-                'track_inventory' => true,
-                'is_active' => true,
-                'is_featured' => $isFeatured,
-                'sort_order' => $i % 100,
-                'main_image' => $mainImage,
-                'name' => $name,
-                'short_description' => "Enriched with {$active} to deliver visible radiance, nourishment, and professional results.",
-                'description' => "Crafted by {$brand}, this clean beauty essential features {$active} in a dermatologist-tested, hypoallergenic formula. Designed for daily rituals, it revitalizes the skin barrier without synthetic parabens, phthalates, or harsh sulfates. 100% vegan and cruelty-free.",
-                'meta_title' => "{$name} | Green Veil Clean Cosmetics",
-                'meta_description' => "Shop {$name} by {$brand}. Dermatologically formulated with {$active} for exceptional beauty care.",
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+                // Featured flag for the first 150 items
+                $isFeatured = ($i <= 150);
 
-            if (count($batches) >= $batchSize) {
+                $batches[] = [
+                    'category_id' => $category->id,
+                    'sku' => $sku,
+                    'slug' => $slug,
+                    'price' => $basePrice,
+                    'compare_at_price' => $compareAtPrice,
+                    'stock_quantity' => $stockQuantity,
+                    'track_inventory' => true,
+                    'is_active' => true,
+                    'is_featured' => $isFeatured,
+                    'sort_order' => $i % 100,
+                    'main_image' => $mainImage,
+                    'name' => $name,
+                    'short_description' => "Enriched with {$active} to deliver visible radiance, nourishment, and professional results.",
+                    'description' => "Crafted by {$brand}, this clean beauty essential features {$active} in a dermatologist-tested, hypoallergenic formula. Designed for daily rituals, it revitalizes the skin barrier without synthetic parabens, phthalates, or harsh sulfates. 100% vegan and cruelty-free.",
+                    'meta_title' => "{$name} | Green Veil Clean Cosmetics",
+                    'meta_description' => "Shop {$name} by {$brand}. Dermatologically formulated with {$active} for exceptional beauty care.",
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                if (count($batches) >= $batchSize) {
+                    DB::table('products')->insert($batches);
+                    $batches = [];
+                }
+            }
+
+            if (! empty($batches)) {
                 DB::table('products')->insert($batches);
                 $batches = [];
             }
         }
 
-        if (! empty($batches)) {
-            DB::table('products')->insert($batches);
-            $batches = [];
-        }
-
         // 2. Add extra gallery images for the top 150 featured products
         $featuredProducts = DB::table('products')->where('is_featured', true)->take(150)->get(['id', 'category_id', 'name']);
+        $categoriesById = Category::with('parent')->get()->keyBy('id');
+        $existingGalleryPairs = DB::table('product_images')->select('product_id', 'path')->get()
+            ->mapWithKeys(fn ($row) => ["{$row->product_id}:{$row->path}" => true])
+            ->all();
+
         foreach ($featuredProducts as $product) {
-            $imagePool = self::CATEGORY_IMAGE_POOLS['makeup'];
-            $imageBatches[] = [
-                'product_id' => $product->id,
-                'path' => $imagePool[$product->id % count($imagePool)],
-                'alt_text' => "{$product->name} alternate texture view",
-                'sort_order' => 1,
-                'is_primary' => false,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            $cat = $categoriesById->get($product->category_id);
+            $domainKey = $cat ? $this->resolveDomainKey($cat) : 'skincare';
+            $imagePool = self::CATEGORY_IMAGE_POOLS[$domainKey] ?? self::CATEGORY_IMAGE_POOLS['skincare'];
+            $poolCount = count($imagePool);
+
+            // 1) Alternate formula & texture shot
+            $path1 = $imagePool[($product->id + 1) % $poolCount];
+            if (! isset($existingGalleryPairs["{$product->id}:{$path1}"])) {
+                $imageBatches[] = [
+                    'product_id' => $product->id,
+                    'path' => $path1,
+                    'alt_text' => "{$product->name} texture & formula detail",
+                    'sort_order' => 1,
+                    'is_primary' => false,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                $existingGalleryPairs["{$product->id}:{$path1}"] = true;
+            }
+
+            // 2) Botanical packaging & ritual shot
+            $path2 = $imagePool[($product->id + 2) % $poolCount];
+            if (! isset($existingGalleryPairs["{$product->id}:{$path2}"])) {
+                $imageBatches[] = [
+                    'product_id' => $product->id,
+                    'path' => $path2,
+                    'alt_text' => "{$product->name} botanical packaging",
+                    'sort_order' => 2,
+                    'is_primary' => false,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                $existingGalleryPairs["{$product->id}:{$path2}"] = true;
+            }
         }
 
         if (! empty($imageBatches)) {

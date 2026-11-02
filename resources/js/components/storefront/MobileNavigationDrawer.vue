@@ -260,59 +260,98 @@ onUnmounted(() => {
                                     Botanical Collections
                                 </p>
 
-                                <nav class="mt-2 space-y-1">
+                                <nav class="mt-2 space-y-1.5">
                                     <div
                                         v-for="cat in props.navigation"
                                         :key="cat.id"
-                                        class="rounded-xl transition-colors"
+                                        class="overflow-hidden rounded-xl border transition-colors"
+                                        :class="
+                                            expandedCategories[cat.id]
+                                                ? 'border-sage-200/90 bg-sage-50/50'
+                                                : 'border-transparent'
+                                        "
                                     >
-                                        <div
-                                            class="flex items-center justify-between rounded-xl hover:bg-cream-100"
+                                        <!-- Row button for categories with children (entire row clickable) -->
+                                        <button
+                                            v-if="
+                                                cat.children &&
+                                                cat.children.length > 0
+                                            "
+                                            type="button"
+                                            class="flex w-full items-center justify-between rounded-xl px-3.5 py-3 text-left transition-colors focus:outline-none"
+                                            :class="
+                                                expandedCategories[cat.id]
+                                                    ? 'text-sage-950 bg-sage-100/70 font-semibold'
+                                                    : 'font-medium text-charcoal-800 hover:bg-cream-100/80'
+                                            "
+                                            :aria-expanded="
+                                                expandedCategories[cat.id]
+                                            "
+                                            :aria-label="`Toggle ${cat.name} subcategories`"
+                                            @click="toggleCategory(cat.id)"
                                         >
-                                            <Link
-                                                :href="
-                                                    categoryShow.url(cat.slug)
-                                                "
-                                                class="flex-1 px-3 py-2.5 text-sm font-medium text-charcoal-800 hover:text-sage-800"
-                                                @click="close"
+                                            <span
+                                                class="text-sm tracking-wide"
+                                                >{{ cat.name }}</span
                                             >
-                                                {{ cat.name }}
-                                            </Link>
 
-                                            <!-- Expand/Collapse Button for categories with children -->
-                                            <button
-                                                v-if="
-                                                    cat.children &&
-                                                    cat.children.length > 0
-                                                "
-                                                type="button"
-                                                class="text-charcoal-400 rounded-lg p-2 hover:text-sage-800 focus:outline-hidden"
-                                                :aria-label="`Toggle ${cat.name} subcategories`"
-                                                @click.stop="
-                                                    toggleCategory(cat.id)
-                                                "
+                                            <div
+                                                class="flex items-center gap-2"
                                             >
-                                                <svg
-                                                    class="h-4 w-4 transition-transform duration-200"
-                                                    :class="{
-                                                        'rotate-180 text-sage-800':
-                                                            expandedCategories[
-                                                                cat.id
-                                                            ],
-                                                    }"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
+                                                <span
+                                                    class="rounded-full bg-cream-200/80 px-2 py-0.5 text-[10px] font-semibold text-sage-800"
                                                 >
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 9l-7 7-7-7"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </div>
+                                                    {{ cat.children.length }}
+                                                </span>
+                                                <span
+                                                    class="flex h-7 w-7 items-center justify-center rounded-full transition-transform duration-200"
+                                                    :class="
+                                                        expandedCategories[
+                                                            cat.id
+                                                        ]
+                                                            ? 'rotate-180 bg-sage-200 text-sage-900'
+                                                            : 'text-charcoal-500 bg-cream-200/60'
+                                                    "
+                                                >
+                                                    <svg
+                                                        class="h-4 w-4"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 9l-7 7-7-7"
+                                                        />
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                        </button>
+
+                                        <!-- Direct Link for categories without children -->
+                                        <Link
+                                            v-else
+                                            :href="categoryShow.url(cat.slug)"
+                                            class="flex w-full items-center justify-between rounded-xl px-3.5 py-3 text-sm font-medium text-charcoal-800 transition-colors hover:bg-cream-100 hover:text-sage-800"
+                                            @click="close"
+                                        >
+                                            <span>{{ cat.name }}</span>
+                                            <svg
+                                                class="text-charcoal-400 h-4 w-4"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="1.5"
+                                                    d="M9 5l7 7-7 7"
+                                                />
+                                            </svg>
+                                        </Link>
 
                                         <!-- Children subcategories accordion -->
                                         <div
@@ -321,19 +360,67 @@ onUnmounted(() => {
                                                 cat.children.length > 0 &&
                                                 expandedCategories[cat.id]
                                             "
-                                            class="my-1 ml-4 space-y-1 border-l-2 border-sage-200/80 pl-4"
+                                            class="space-y-3 p-3 pt-1"
                                         >
+                                            <!-- Prominent View All Category Link -->
                                             <Link
-                                                v-for="child in cat.children"
-                                                :key="child.id"
                                                 :href="
-                                                    categoryShow.url(child.slug)
+                                                    categoryShow.url(cat.slug)
                                                 "
-                                                class="text-charcoal-600 block rounded-lg px-2.5 py-1.5 text-xs transition-colors hover:bg-cream-100 hover:text-sage-900"
+                                                class="flex items-center justify-between rounded-lg bg-sage-800 px-3 py-2 text-xs font-semibold text-cream-50 shadow-2xs transition-colors hover:bg-sage-900"
                                                 @click="close"
                                             >
-                                                {{ child.name }}
+                                                <span
+                                                    >Explore All
+                                                    {{ cat.name }}</span
+                                                >
+                                                <span
+                                                    class="font-bold text-cream-200"
+                                                    >&rarr;</span
+                                                >
                                             </Link>
+
+                                            <!-- Subcategories (2-column chips for longer lists, vertical list for compact categories) -->
+                                            <div
+                                                v-if="cat.children.length > 6"
+                                                class="grid grid-cols-2 gap-1.5 pt-1"
+                                            >
+                                                <Link
+                                                    v-for="child in cat.children"
+                                                    :key="child.id"
+                                                    :href="
+                                                        categoryShow.url(
+                                                            child.slug,
+                                                        )
+                                                    "
+                                                    class="hover:border-sage-400 truncate rounded-lg border border-cream-200/90 bg-white/90 px-2.5 py-2 text-xs text-charcoal-700 shadow-2xs transition-colors hover:bg-white hover:text-sage-900"
+                                                    :title="child.name"
+                                                    @click="close"
+                                                >
+                                                    {{ child.name }}
+                                                </Link>
+                                            </div>
+                                            <div v-else class="space-y-1 pt-1">
+                                                <Link
+                                                    v-for="child in cat.children"
+                                                    :key="child.id"
+                                                    :href="
+                                                        categoryShow.url(
+                                                            child.slug,
+                                                        )
+                                                    "
+                                                    class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-900"
+                                                    @click="close"
+                                                >
+                                                    <span>{{
+                                                        child.name
+                                                    }}</span>
+                                                    <span
+                                                        class="text-charcoal-400"
+                                                        >&rarr;</span
+                                                    >
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 </nav>

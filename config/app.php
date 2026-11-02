@@ -43,6 +43,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Demo Mode
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, a prominent notice is displayed across the storefront
+    | informing visitors that the site is running in demo/portfolio mode and
+    | payments are not real.
+    |
+    */
+
+    'demo_mode' => (bool) env('APP_DEMO_MODE', env('DEMO_MODE', false)),
+
+    'demo_notice' => env(
+        'APP_DEMO_NOTICE',
+        'This website is for demonstration purposes only. Payments are not processed and orders will not be fulfilled.'
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

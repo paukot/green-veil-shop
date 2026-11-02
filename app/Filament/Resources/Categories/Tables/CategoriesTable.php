@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Categories\Tables;
 
+use App\Models\Category;
+use App\Services\StorageImageService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -24,7 +26,9 @@ class CategoriesTable
                 ImageColumn::make('image')
                     ->label('Image')
                     ->square()
-                    ->imageSize(48),
+                    ->imageSize(48)
+                    ->getStateUsing(fn (Category $record): ?string => app(StorageImageService::class)->getImage($record->image))
+                    ->defaultImageUrl(asset('images/placeholder.png')),
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable()

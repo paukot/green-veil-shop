@@ -46,3 +46,21 @@ test('shared auth user does not expose sensitive admin or password fields', func
         ->missing('auth.user.is_admin')
     );
 });
+
+test('shared demo mode props reflect configuration', function () {
+    config(['app.demo_mode' => true, 'app.demo_notice' => 'Custom demo notice for testing']);
+
+    $response = $this->get('/');
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->where('demo_mode', true)
+        ->where('demo_notice', 'Custom demo notice for testing')
+    );
+
+    config(['app.demo_mode' => false]);
+    $responseInactive = $this->get('/');
+    $responseInactive->assertOk();
+    $responseInactive->assertInertia(fn ($page) => $page
+        ->where('demo_mode', false)
+    );
+});
