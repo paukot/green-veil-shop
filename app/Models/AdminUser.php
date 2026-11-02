@@ -163,6 +163,7 @@ class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentic
         }
 
         $category = self::mapAbilityToCategory($ability);
+
         return $category && in_array($category, $permissions, true);
     }
 
