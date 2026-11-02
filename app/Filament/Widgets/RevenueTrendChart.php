@@ -13,6 +13,7 @@ class RevenueTrendChart extends ChartWidget
     protected ?string $description = 'Daily paid order revenue in EUR';
 
     protected static ?int $sort = 2;
+
     protected ?string $maxHeight = '500px';
 
     protected int|string|array $columnSpan = [

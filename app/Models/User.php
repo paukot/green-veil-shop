@@ -9,6 +9,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -49,5 +50,23 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         return (bool) $this->is_admin;
+    }
+
+    /** @return HasMany<Order, $this> */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class)->latest();
+    }
+
+    /** @return HasMany<CartItem, $this> */
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class)->latest();
+    }
+
+    /** @return HasMany<Favourite, $this> */
+    public function favourites(): HasMany
+    {
+        return $this->hasMany(Favourite::class)->latest();
     }
 }

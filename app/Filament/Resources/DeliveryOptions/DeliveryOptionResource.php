@@ -21,7 +21,7 @@ class DeliveryOptionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTruck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Shop';
+    protected static string|UnitEnum|null $navigationGroup = 'Shop Settings';
 
     protected static ?string $navigationLabel = 'Delivery Options';
 
