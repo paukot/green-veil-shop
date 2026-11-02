@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Category|null $parent
  */
 #[Fillable(['parent_id', 'slug', 'image', 'is_active', 'sort_order', 'name', 'description'])]
 class Category extends Model

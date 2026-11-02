@@ -131,7 +131,7 @@ class Order extends Model
     /** @return HasMany<StripeEvent, $this> */
     public function stripeEvents(): HasMany
     {
-        return $this->hasMany(StripeEvent::class)->orderBy('created_at', 'desc');
+        return $this->hasMany(StripeEvent::class)->orderBy('created_at', 'asc');
     }
 
     /** Generate a unique, human-readable order number. */

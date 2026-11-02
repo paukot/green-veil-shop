@@ -8,24 +8,31 @@ use Illuminate\Database\Seeder;
 
 class ProductImageSeeder extends Seeder
 {
+    /**
+     * Seed supplementary high-resolution product gallery images.
+     */
     public function run(): void
     {
-        $images = [
-            ['sku' => 'GV-SKIN-001', 'path' => 'products/botanical-cleansing-oil.jpg', 'sort_order' => 0, 'is_primary' => true],
-            ['sku' => 'GV-SKIN-002', 'path' => 'products/rosewater-hydrating-mist.jpg', 'sort_order' => 0, 'is_primary' => true],
-            ['sku' => 'GV-MAKE-001', 'path' => 'products/mineral-tinted-moisturizer.jpg', 'sort_order' => 0, 'is_primary' => true],
-            ['sku' => 'GV-BODY-001', 'path' => 'products/lavender-body-butter.jpg', 'sort_order' => 0, 'is_primary' => true],
+        $galleryImages = [
+            'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1608248597359-0a6723c34898?auto=format&fit=crop&w=600&q=80',
         ];
 
-        foreach ($images as $image) {
-            $product = Product::query()->where('sku', $image['sku'])->firstOrFail();
+        // Attach gallery photos to featured products if not already seeded
+        $products = Product::query()->where('is_featured', true)->take(50)->get();
 
-            ProductImage::updateOrCreate(
-                ['product_id' => $product->id, 'path' => $image['path']],
+        foreach ($products as $index => $product) {
+            $path = $galleryImages[$index % count($galleryImages)];
+
+            ProductImage::firstOrCreate(
+                ['product_id' => $product->id, 'path' => $path],
                 [
-                    'alt_text' => $product->name,
-                    'sort_order' => $image['sort_order'],
-                    'is_primary' => $image['is_primary'],
+                    'alt_text' => "{$product->name} detail shot",
+                    'sort_order' => 2,
+                    'is_primary' => false,
                 ],
             );
         }

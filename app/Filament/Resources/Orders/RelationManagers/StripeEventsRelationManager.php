@@ -30,7 +30,7 @@ class StripeEventsRelationManager extends RelationManager
 
         return $table
             ->recordTitleAttribute('stripe_event_id')
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('created_at', 'asc')
             ->columns([
                 TextColumn::make('type')
                     ->label('Event')
