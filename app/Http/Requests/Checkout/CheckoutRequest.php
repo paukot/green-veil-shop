@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Checkout;
 
 use App\Actions\Checkout\CheckoutData;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CheckoutRequest extends FormRequest
@@ -57,7 +58,7 @@ class CheckoutRequest extends FormRequest
             shippingAddress: $shipping,
             billingAddress: $billing,
             notes: $this->validated('notes'),
-            user: $this->user(),
+            user: ($user = $this->user()) instanceof User ? $user : null,
         );
     }
 }

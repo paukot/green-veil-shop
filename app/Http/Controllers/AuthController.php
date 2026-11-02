@@ -69,12 +69,11 @@ class AuthController extends Controller
         $guestCart = $request->session()->get('cart', []);
         $guestFavourites = $request->session()->get('favourites', []);
 
-        // Security critical: customer registration must NEVER set is_admin to true
+        // Register customer on storefront (User model, web guard)
         $user = User::create([
             'name' => $request->string('name')->trim()->value(),
             'email' => $request->string('email')->trim()->lower()->value(),
             'password' => Hash::make($request->string('password')->value()),
-            'is_admin' => false,
         ]);
 
         Auth::login($user);

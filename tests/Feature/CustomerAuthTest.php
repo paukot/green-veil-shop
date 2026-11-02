@@ -17,7 +17,6 @@ test('users can authenticate using the login screen', function () {
     $user = User::factory()->create([
         'email' => 'customer@greenveil.test',
         'password' => bcrypt('botanical123'),
-        'is_admin' => false,
     ]);
 
     $response = $this->post('/login', [
@@ -76,26 +75,23 @@ test('registration screen can be rendered', function () {
         );
 });
 
-test('new customers can register and are created with is_admin set to false', function () {
+test('new customers can register as storefront users', function () {
     $response = $this->post('/register', [
         'name' => 'Rosemary Green',
         'email' => 'rosemary@greenveil.test',
         'password' => 'password123',
         'password_confirmation' => 'password123',
-        // Attempt mass-assignment exploit
-        'is_admin' => true,
     ]);
 
-    $this->assertAuthenticated();
+    $this->assertAuthenticated('web');
     $response->assertRedirect(route('home'));
 
     $user = User::where('email', 'rosemary@greenveil.test')->first();
     expect($user)->not->toBeNull();
     expect($user->name)->toBe('Rosemary Green');
-    expect($user->is_admin)->toBeFalse();
 });
 
-test('newly registered customer is strictly blocked from the filament admin panel with 403', function () {
+test('newly registered customer is strictly blocked from the filament admin panel', function () {
     $this->post('/register', [
         'name' => 'Lavender Bloom',
         'email' => 'lavender@greenveil.test',
@@ -103,10 +99,10 @@ test('newly registered customer is strictly blocked from the filament admin pane
         'password_confirmation' => 'secret12345',
     ]);
 
-    $this->assertAuthenticated();
+    $this->assertAuthenticated('web');
 
     $response = $this->get('/admin');
-    $response->assertForbidden();
+    $response->assertRedirect('/admin/login');
 });
 
 test('authenticated users can log out', function () {

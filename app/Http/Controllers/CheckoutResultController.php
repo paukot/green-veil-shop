@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Checkout\MarkOrderPaid;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Resources\OrderResource;
@@ -11,13 +12,17 @@ use App\Payments\PaymentManager;
 use App\Services\CartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Stripe\StripeClient;
 
 class CheckoutResultController extends Controller
 {
     public function __construct(
         protected CartService $cartService,
+        protected StripeClient $stripeClient,
+        protected MarkOrderPaid $markOrderPaid,
     ) {}
 
     public function success(Request $request): Response|RedirectResponse
@@ -40,6 +45,26 @@ class CheckoutResultController extends Controller
         // If order belongs to an authenticated user, don't show it to another logged-in user
         if ($order->user_id && $request->user() && $request->user()->id !== $order->user_id) {
             abort(403);
+        }
+
+        // If Stripe payment is still pending, synchronously reconcile with Stripe API
+        if (
+            $order->payment_status !== PaymentStatus::Paid
+            && ! empty($order->stripe_session_id)
+            && ($order->paymentOption?->driver === 'stripe')
+        ) {
+            try {
+                $session = $this->stripeClient->checkout->sessions->retrieve($order->stripe_session_id);
+                if (($session->payment_status ?? null) === 'paid') {
+                    $this->markOrderPaid->execute($order, $session->toArray());
+                    $order->refresh();
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Unable to reconcile Stripe checkout session on success page: '.$e->getMessage(), [
+                    'order_id' => $order->id,
+                    'stripe_session_id' => $order->stripe_session_id,
+                ]);
+            }
         }
 
         // Clear cart session if not yet cleared

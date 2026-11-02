@@ -38,6 +38,11 @@ class HandleStripeWebhook implements ShouldQueue
         $payload = $eventRecord->payload;
         $dataObject = $payload['data']['object'] ?? [];
 
+        $resolvedOrder = $this->resolveOrder($dataObject);
+        if ($resolvedOrder && $eventRecord->order_id !== $resolvedOrder->id) {
+            $eventRecord->update(['order_id' => $resolvedOrder->id]);
+        }
+
         match ($type) {
             'checkout.session.completed' => $this->handleSessionCompleted($dataObject, $markOrderPaid),
             'checkout.session.async_payment_succeeded' => $this->handleAsyncPaymentSucceeded($dataObject, $markOrderPaid),
@@ -217,6 +222,14 @@ class HandleStripeWebhook implements ShouldQueue
         $sessionId = $dataObject['id'] ?? null;
         if (! empty($sessionId)) {
             $order = Order::where('stripe_session_id', $sessionId)->first();
+            if ($order) {
+                return $order;
+            }
+        }
+
+        $paymentIntentId = $dataObject['payment_intent'] ?? null;
+        if (! empty($paymentIntentId)) {
+            $order = Order::where('stripe_payment_intent_id', $paymentIntentId)->first();
             if ($order) {
                 return $order;
             }

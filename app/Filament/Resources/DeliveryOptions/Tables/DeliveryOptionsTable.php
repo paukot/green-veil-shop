@@ -51,11 +51,11 @@ class DeliveryOptionsTable
             ->filters([
                 TernaryFilter::make('is_active')->label('Active'),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

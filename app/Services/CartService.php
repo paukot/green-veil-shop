@@ -19,7 +19,7 @@ class CartService
     public function getItems(Request $request): Collection
     {
         $user = $request->user();
-        if ($user) {
+        if ($user instanceof User) {
             return $this->getItemsFromUser($user);
         }
 

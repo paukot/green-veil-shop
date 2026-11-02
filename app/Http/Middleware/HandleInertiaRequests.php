@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Category;
+use App\Models\User;
 use App\Services\CartService;
 use App\Services\FavouriteService;
 use Illuminate\Http\Request;
@@ -80,7 +81,7 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'email_verified_at' => $user->email_verified_at?->toISOString(),
+                    'email_verified_at' => $user instanceof User ? $user->email_verified_at?->toISOString() : null,
                     'created_at' => $user->created_at?->toISOString(),
                 ] : null,
             ],

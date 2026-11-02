@@ -128,6 +128,12 @@ class Order extends Model
         return $this->hasMany(Payment::class);
     }
 
+    /** @return HasMany<StripeEvent, $this> */
+    public function stripeEvents(): HasMany
+    {
+        return $this->hasMany(StripeEvent::class)->orderBy('created_at', 'desc');
+    }
+
     /** Generate a unique, human-readable order number. */
     public static function generateNumber(): string
     {

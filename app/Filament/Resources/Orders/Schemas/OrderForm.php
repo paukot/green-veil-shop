@@ -4,7 +4,9 @@ namespace App\Filament\Resources\Orders\Schemas;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Models\Order;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -43,17 +45,34 @@ class OrderForm
                                         TextInput::make('currency')
                                             ->label('Currency')
                                             ->disabled(),
-                                        TextInput::make('placed_at')
+                                        DateTimePicker::make('placed_at')
                                             ->label('Placed At')
+                                            ->timezone('Europe/Warsaw')
+                                            ->displayFormat('d.m.Y H:i')
+                                            ->seconds(false)
+                                            ->native(false)
                                             ->disabled(),
-                                        TextInput::make('paid_at')
+                                        DateTimePicker::make('paid_at')
                                             ->label('Paid At')
+                                            ->timezone('Europe/Warsaw')
+                                            ->displayFormat('d.m.Y H:i')
+                                            ->seconds(false)
+                                            ->native(false)
                                             ->disabled()
                                             ->placeholder('Unpaid'),
                                     ]),
                             ]),
 
                         Section::make('Payment & Gateway Details')
+                            ->description(fn (?Order $record): string => $record
+                                ? match ($record->payment_status) {
+                                    PaymentStatus::Paid => "Payment completed & confirmed ({$record->stripeEvents()->count()} Stripe audit events logged).",
+                                    PaymentStatus::Unpaid => 'Payment pending customer completion / gateway confirmation.',
+                                    PaymentStatus::Failed, PaymentStatus::Expired => 'Payment failed or expired.',
+                                    PaymentStatus::Refunded, PaymentStatus::PartiallyRefunded => 'Refund processed for this order.',
+                                }
+                                : 'Payment gateway lifecycle details.'
+                            )
                             ->schema([
                                 Grid::make(2)
                                     ->schema([
@@ -61,6 +80,30 @@ class OrderForm
                                             ->label('Payment Method')
                                             ->disabled()
                                             ->placeholder('—'),
+                                        TextInput::make('payment_flow_stage')
+                                            ->label('Payment Lifecycle Flow')
+                                            ->disabled()
+                                            ->placeholder('—')
+                                            ->formatStateUsing(function (?string $state, ?Order $record): string {
+                                                if (! $record) {
+                                                    return '—';
+                                                }
+
+                                                $driver = $record->paymentOption->driver ?? 'stripe';
+                                                if ($driver !== 'stripe') {
+                                                    return strtoupper($driver).' - '.$record->payment_status->label();
+                                                }
+
+                                                if ($record->payment_status === PaymentStatus::Paid) {
+                                                    return 'Paid';
+                                                }
+
+                                                if ($record->stripe_session_id) {
+                                                    return 'Awaiting Payment';
+                                                }
+
+                                                return $record->payment_status->label();
+                                            }),
                                         TextInput::make('stripe_session_id')
                                             ->label('Stripe Checkout Session ID')
                                             ->disabled()

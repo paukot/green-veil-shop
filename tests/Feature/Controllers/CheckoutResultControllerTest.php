@@ -12,6 +12,8 @@ use App\Payments\DTOs\CheckoutResult;
 use App\Payments\Stripe\StripeGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Stripe\Checkout\Session;
+use Stripe\StripeClient;
 
 uses(RefreshDatabase::class);
 
@@ -71,19 +73,52 @@ describe('CheckoutResultController', function () {
             $response->assertForbidden();
         });
 
-        it('allows guest to view their order success page', function () {
-            $order = Order::factory()->guest()->create([
-                'customer_name' => 'Guest Botanist',
+        it('reconciles unpaid Stripe order directly with Stripe API on success page', function () {
+            $sessionId = 'cs_test_mock_'.uniqid();
+            $stripePaymentOption = PaymentOption::factory()->create([
+                'driver' => 'stripe',
             ]);
+
+            $order = Order::factory()->guest()->create([
+                'payment_option_id' => $stripePaymentOption->id,
+                'stripe_session_id' => $sessionId,
+                'payment_status' => PaymentStatus::Unpaid,
+                'status' => OrderStatus::Pending,
+                'total' => 45.00,
+                'currency' => 'EUR',
+            ]);
+
+            $mockSession = Session::constructFrom([
+                'id' => $sessionId,
+                'payment_status' => 'paid',
+                'payment_intent' => 'pi_test_reconciled',
+                'amount_total' => 4500,
+                'currency' => 'eur',
+            ]);
+
+            $mockClient = Mockery::mock(StripeClient::class);
+            $mockClient->checkout = new stdClass;
+            $mockClient->checkout->sessions = Mockery::mock();
+            $mockClient->checkout->sessions
+                ->shouldReceive('retrieve')
+                ->with($sessionId)
+                ->once()
+                ->andReturn($mockSession);
+
+            $this->app->instance(StripeClient::class, $mockClient);
 
             $response = $this->get(route('checkout.success', ['order' => $order->public_id]));
 
             $response->assertOk();
             $response->assertInertia(fn (Assert $page) => $page
                 ->component('Checkout/Success')
-                ->where('order.public_id', $order->public_id)
-                ->where('order.customer_name', 'Guest Botanist')
+                ->where('order.payment_status', 'paid')
+                ->where('order.status', 'processing')
             );
+
+            $order->refresh();
+            expect($order->payment_status)->toBe(PaymentStatus::Paid);
+            expect($order->status)->toBe(OrderStatus::Processing);
         });
     });
 

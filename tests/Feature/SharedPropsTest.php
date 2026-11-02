@@ -31,7 +31,7 @@ test('shared inertia props include navigation, cart, favourites and flash', func
 });
 
 test('shared auth user does not expose sensitive admin or password fields', function () {
-    $user = User::factory()->admin()->create([
+    $user = User::factory()->create([
         'name' => 'Test Admin',
         'email' => 'admin_test@example.com',
     ]);

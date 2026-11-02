@@ -69,7 +69,7 @@ class OrdersTable
                 SelectFilter::make('payment_status')
                     ->options(PaymentStatus::class),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make()
                     ->label('Manage'),
                 ActionGroup::make([
@@ -100,7 +100,7 @@ class OrdersTable
                         ->modalHeading(fn (Order $record): string => "Refund Order #{$record->number}")
                         ->modalDescription('Process a full or partial refund. If this order was paid via Stripe, the refund is executed directly with the Stripe gateway.')
                         ->visible(fn (Order $record): bool => in_array($record->payment_status, [PaymentStatus::Paid, PaymentStatus::PartiallyRefunded]))
-                        ->form([
+                        ->schema([
                             TextInput::make('amount')
                                 ->label('Refund Amount (€)')
                                 ->numeric()
@@ -190,7 +190,7 @@ class OrdersTable
                         ->visible(fn (Order $record): bool => filled($record->stripe_payment_intent_id) || filled($record->stripe_session_id)),
                 ]),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

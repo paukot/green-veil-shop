@@ -64,7 +64,7 @@ class ImagesRelationManager extends RelationManager
                 Action::make('create')
                     ->label('Add Image')
                     ->modalHeading('Add Image')
-                    ->form([
+                    ->schema([
                         FileUpload::make('path')
                             ->label('Image')
                             ->image()
@@ -85,10 +85,10 @@ class ImagesRelationManager extends RelationManager
                         }
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
