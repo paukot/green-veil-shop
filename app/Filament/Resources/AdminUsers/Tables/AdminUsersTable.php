@@ -14,6 +14,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 class AdminUsersTable
 {
@@ -92,8 +93,11 @@ class AdminUsersTable
                         ->action(function (Collection $records) {
                             $currentAdminId = filament()->auth()->id();
                             $records
-                                ->filter(fn (AdminUser $admin) => $admin->id !== $currentAdminId)
-                                ->filter(function (AdminUser $admin) {
+                                ->filter(function (Model $admin) use ($currentAdminId): bool {
+                                    if (! $admin instanceof AdminUser || $admin->id === $currentAdminId) {
+                                        return false;
+                                    }
+
                                     if ($admin->isSuperAdmin()) {
                                         $count = AdminUser::query()
                                             ->where('is_active', true)

@@ -16,7 +16,7 @@ class OrdersStatsOverview extends BaseWidget
     {
         $user = filament()->auth()->user();
 
-        return ($user?->hasCategoryAccess('orders') || $user?->hasCategoryAccess('finance')) ?? false;
+        return (bool) ($user?->hasCategoryAccess('orders') || $user?->hasCategoryAccess('finance'));
     }
 
     protected function getStats(): array
@@ -49,7 +49,7 @@ class OrdersStatsOverview extends BaseWidget
                 ->where('payment_status', PaymentStatus::Paid)
                 ->whereDate('created_at', $day)
                 ->sum('total');
-            $sparkline[] = (int) round($dailySum);
+            $sparkline[] = (float) round($dailySum);
         }
 
         // Percentage change

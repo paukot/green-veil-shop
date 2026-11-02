@@ -178,7 +178,7 @@ class StripePayloadSanitizer
 
         return array_filter([
             'brand' => ucfirst((string) ($card['brand'] ?? '')),
-            'last4' => $card['last4'] ?? null,
+            'last4' => $card['last4'],
             'funding' => ucfirst((string) ($card['funding'] ?? '')),
             'country' => $card['country'] ?? null,
             'exp_month' => $card['exp_month'] ?? null,

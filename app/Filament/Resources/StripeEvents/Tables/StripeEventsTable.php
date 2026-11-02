@@ -99,7 +99,7 @@ class StripeEventsTable
                                     ->disabled(),
                                 TextInput::make('linked_order')
                                     ->label('Linked Order')
-                                    ->default($record->order?->number ?? 'Unassigned')
+                                    ->default($record->order->number ?? 'Unassigned')
                                     ->disabled(),
                                 TextInput::make('payment_method')
                                     ->label('Payment Method')

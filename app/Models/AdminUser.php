@@ -156,23 +156,22 @@ class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentic
             return true;
         }
 
-        $permissions = $this->adminRole?->permissions ?? [];
+        $permissions = $this->adminRole->permissions;
 
         if (in_array('*', $permissions, true) || in_array($ability, $permissions, true)) {
             return true;
         }
 
         $category = self::mapAbilityToCategory($ability);
-        if ($category && in_array($category, $permissions, true)) {
-            return true;
-        }
-
-        return false;
+        return $category && in_array($category, $permissions, true);
     }
 
     /**
      * Determine if the entity has the given abilities.
      * Overrides Authorizable to resolve granular string permissions through role and category access.
+     *
+     * @param  iterable<int|string, mixed>|string  $abilities
+     * @param  array<int|string, mixed>|mixed  $arguments
      */
     public function can($abilities, $arguments = []): bool
     {
@@ -184,17 +183,13 @@ class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentic
             return $this->hasPermission($abilities);
         }
 
-        if (is_iterable($abilities)) {
-            foreach ($abilities as $ability) {
-                if ($this->hasPermission((string) $ability)) {
-                    return true;
-                }
+        foreach ($abilities as $ability) {
+            if ($this->hasPermission((string) $ability)) {
+                return true;
             }
-
-            return false;
         }
 
-        return app(Gate::class)->forUser($this)->check($abilities, $arguments);
+        return false;
     }
 
     /**

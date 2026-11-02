@@ -11,6 +11,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 class AdminRolesTable
 {
@@ -58,7 +59,7 @@ class AdminRolesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->action(function (Collection $records) {
-                            $records->filter(fn (AdminRole $role) => ! $role->is_system)->each->delete();
+                            $records->filter(fn (Model $role): bool => $role instanceof AdminRole && ! $role->is_system)->each->delete();
                         }),
                 ]),
             ]);

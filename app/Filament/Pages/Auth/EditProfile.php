@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages\Auth;
 
+use App\Models\AdminUser;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Forms\Components\FileUpload;
 use Filament\Infolists\Components\TextEntry;
@@ -27,8 +28,8 @@ class EditProfile extends BaseEditProfile
                     ->label('Assigned Role')
                     ->state(function (): HtmlString {
                         $user = $this->getUser();
-                        $roleName = e($user->adminRole?->name ?? 'No Role');
-                        $perms = e(implode(', ', $user->adminRole?->permissions ?? ['none']));
+                        $roleName = e($user instanceof AdminUser ? $user->adminRole->name : 'No Role');
+                        $perms = e($user instanceof AdminUser ? implode(', ', $user->adminRole->permissions) : 'none');
 
                         return new HtmlString("<span class=\"font-semibold text-primary-600 dark:text-primary-400\">{$roleName}</span> <span class=\"text-xs text-gray-500 dark:text-gray-400\">({$perms})</span>");
                     }),

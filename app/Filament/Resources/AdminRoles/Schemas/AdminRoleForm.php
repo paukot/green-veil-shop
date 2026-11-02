@@ -37,9 +37,9 @@ class AdminRoleForm
                             ->required()
                             ->maxLength(100)
                             ->live(onBlur: true)
-                            ->disabled(fn (?AdminRole $record): bool => $record?->is_system ?? false)
+                            ->disabled(fn (?AdminRole $record): bool => (bool) $record?->is_system)
                             ->afterStateUpdated(function (Set $set, ?string $state, ?AdminRole $record) {
-                                if (! ($record?->is_system ?? false)) {
+                                if (! (bool) $record?->is_system) {
                                     $set('slug', Str::slug($state ?? ''));
                                 }
                             }),
@@ -48,7 +48,7 @@ class AdminRoleForm
                             ->required()
                             ->maxLength(100)
                             ->unique(AdminRole::class, 'slug', ignoreRecord: true)
-                            ->disabled(fn (?AdminRole $record): bool => $record?->is_system ?? false)
+                            ->disabled(fn (?AdminRole $record): bool => (bool) $record?->is_system)
                             ->helperText('System identifier for the role'),
                         Textarea::make('description')
                             ->label('Description')
@@ -59,7 +59,7 @@ class AdminRoleForm
                             ->label('System Protected Role')
                             ->disabled()
                             ->dehydrated(false)
-                            ->visible(fn (?AdminRole $record): bool => $record?->is_system ?? false)
+                            ->visible(fn (?AdminRole $record): bool => (bool) $record?->is_system)
                             ->helperText('This is a permanent core system role and cannot be modified or deleted.'),
                     ]),
 
@@ -71,7 +71,7 @@ class AdminRoleForm
                             ->options(self::CATEGORY_OPTIONS)
                             ->columns(1)
                             ->required()
-                            ->disabled(fn (?AdminRole $record): bool => $record?->is_system ?? false)
+                            ->disabled(fn (?AdminRole $record): bool => (bool) $record?->is_system)
                             ->helperText('Staff members assigned this role will only have access to selected categories.'),
                     ]),
             ]);

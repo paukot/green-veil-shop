@@ -92,11 +92,11 @@ class PaymentsTable
                         Grid::make(2)->schema([
                             TextInput::make('order_number')
                                 ->label('Order Number')
-                                ->default($record->order?->number ?? '—')
+                                ->default($record->order->number)
                                 ->disabled(),
                             TextInput::make('customer')
                                 ->label('Customer Name')
-                                ->default($record->order?->customer_name ?? '—')
+                                ->default($record->order->customer_name)
                                 ->disabled(),
                             TextInput::make('gateway')
                                 ->label('Gateway Driver')

@@ -18,7 +18,7 @@ class RevenueTrendChart extends ChartWidget
     {
         $user = filament()->auth()->user();
 
-        return ($user?->hasCategoryAccess('finance') || $user?->hasCategoryAccess('orders')) ?? false;
+        return (bool) ($user?->hasCategoryAccess('finance') || $user?->hasCategoryAccess('orders'));
     }
 
     protected ?string $maxHeight = '500px';
