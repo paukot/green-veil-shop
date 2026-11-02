@@ -142,4 +142,54 @@ describe('StripeWebhookController', function () {
         $response->assertOk();
         $response->assertJson(['status' => 'already_processed']);
     });
+
+    it('processes checkout.session.completed and flips order to paid', function () {
+        $secret = 'whsec_test_secret_for_suite';
+        $sessionId = 'cs_test_session_'.uniqid();
+        $order = \App\Models\Order::factory()->create([
+            'stripe_session_id' => $sessionId,
+            'payment_status' => \App\Enums\PaymentStatus::Unpaid,
+            'status' => \App\Enums\OrderStatus::Pending,
+        ]);
+
+        $eventId = 'evt_completed_'.uniqid();
+        $payload = json_encode([
+            'id' => $eventId,
+            'type' => 'checkout.session.completed',
+            'data' => [
+                'object' => [
+                    'id' => $sessionId,
+                    'payment_status' => 'paid',
+                    'payment_intent' => 'pi_test_intent_'.uniqid(),
+                    'metadata' => [
+                        'order_id' => (string) $order->id,
+                        'public_id' => $order->public_id,
+                    ],
+                ],
+            ],
+        ]);
+
+        $signature = WebhookSignature::generateSignatureHeader($payload, $secret);
+
+        $response = $this->call(
+            'POST',
+            route('stripe.webhook'),
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => $signature,
+            ],
+            $payload
+        );
+
+        $response->assertOk();
+        $response->assertJson(['status' => 'received']);
+
+        $order->refresh();
+        expect($order->payment_status)->toBe(\App\Enums\PaymentStatus::Paid);
+        expect($order->status)->toBe(\App\Enums\OrderStatus::Processing);
+    });
 });
+
