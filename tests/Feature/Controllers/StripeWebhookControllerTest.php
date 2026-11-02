@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
+use App\Models\Order;
 use App\Models\StripeEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
@@ -146,10 +149,10 @@ describe('StripeWebhookController', function () {
     it('processes checkout.session.completed and flips order to paid', function () {
         $secret = 'whsec_test_secret_for_suite';
         $sessionId = 'cs_test_session_'.uniqid();
-        $order = \App\Models\Order::factory()->create([
+        $order = Order::factory()->create([
             'stripe_session_id' => $sessionId,
-            'payment_status' => \App\Enums\PaymentStatus::Unpaid,
-            'status' => \App\Enums\OrderStatus::Pending,
+            'payment_status' => PaymentStatus::Unpaid,
+            'status' => OrderStatus::Pending,
         ]);
 
         $eventId = 'evt_completed_'.uniqid();
@@ -188,8 +191,7 @@ describe('StripeWebhookController', function () {
         $response->assertJson(['status' => 'received']);
 
         $order->refresh();
-        expect($order->payment_status)->toBe(\App\Enums\PaymentStatus::Paid);
-        expect($order->status)->toBe(\App\Enums\OrderStatus::Processing);
+        expect($order->payment_status)->toBe(PaymentStatus::Paid);
+        expect($order->status)->toBe(OrderStatus::Processing);
     });
 });
-

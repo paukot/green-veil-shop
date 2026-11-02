@@ -12,6 +12,8 @@ use App\Payments\DTOs\CheckoutResult;
 use App\Payments\Stripe\StripeGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Stripe\Checkout\Session;
+use Stripe\StripeClient;
 
 uses(RefreshDatabase::class);
 
@@ -86,7 +88,7 @@ describe('CheckoutResultController', function () {
                 'currency' => 'EUR',
             ]);
 
-            $mockSession = \Stripe\Checkout\Session::constructFrom([
+            $mockSession = Session::constructFrom([
                 'id' => $sessionId,
                 'payment_status' => 'paid',
                 'payment_intent' => 'pi_test_reconciled',
@@ -94,8 +96,8 @@ describe('CheckoutResultController', function () {
                 'currency' => 'eur',
             ]);
 
-            $mockClient = Mockery::mock(\Stripe\StripeClient::class);
-            $mockClient->checkout = new stdClass();
+            $mockClient = Mockery::mock(StripeClient::class);
+            $mockClient->checkout = new stdClass;
             $mockClient->checkout->sessions = Mockery::mock();
             $mockClient->checkout->sessions
                 ->shouldReceive('retrieve')
@@ -103,7 +105,7 @@ describe('CheckoutResultController', function () {
                 ->once()
                 ->andReturn($mockSession);
 
-            $this->app->instance(\Stripe\StripeClient::class, $mockClient);
+            $this->app->instance(StripeClient::class, $mockClient);
 
             $response = $this->get(route('checkout.success', ['order' => $order->public_id]));
 
@@ -119,7 +121,6 @@ describe('CheckoutResultController', function () {
             expect($order->status)->toBe(OrderStatus::Processing);
         });
     });
-
 
     describe('cancel', function () {
         it('redirects to cart if order query parameter is missing on cancel', function () {

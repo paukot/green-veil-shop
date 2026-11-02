@@ -161,9 +161,9 @@ class EditOrder extends EditRecord
                     Notification::make()->title('Order cancelled and inventory released')->warning()->send();
                 }),
 
-            DeleteAction::make(),
-            ForceDeleteAction::make(),
-            RestoreAction::make(),
+            //            DeleteAction::make(),
+            //            ForceDeleteAction::make(),
+            //            RestoreAction::make(),
         ];
     }
 }
