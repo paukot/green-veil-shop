@@ -124,7 +124,7 @@ class CategorySeeder extends Seeder
             ],
             [
                 'slug' => 'body-care',
-                'name' => 'Body & Bath',
+                'name' => 'Body',
                 'description' => 'Aromatherapeutic shower gels, body butters, and scrubs.',
                 'image' => 'https://images.unsplash.com/photo-1599817878414-43ef36677cf0?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 5,
