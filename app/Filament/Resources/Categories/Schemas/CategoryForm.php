@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Categories\Schemas;
 
 use App\Models\Category;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -35,12 +34,6 @@ class CategoryForm
                             ->required()
                             ->unique(Category::class, 'slug', ignoreRecord: true)
                             ->helperText('Auto-filled from name'),
-                        Select::make('parent_id')
-                            ->label('Parent Category')
-                            ->relationship('parent', 'slug')
-                            ->nullable()
-                            ->searchable()
-                            ->preload(),
                         TextInput::make('sort_order')
                             ->label('Sort Order')
                             ->numeric()
