@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CustomerUser } from '@/types/storefront';
@@ -9,7 +10,7 @@ import { index as cartIndex } from '@/routes/cart';
 import { logout } from '@/routes';
 
 const page = usePage<{ auth: { user: CustomerUser | null } }>();
-const user = page.props.auth.user;
+const user = computed(() => page.props.auth?.user);
 </script>
 
 <template>

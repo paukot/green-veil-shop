@@ -28,17 +28,28 @@ function toggle() {
     if (isToggling.value) return;
 
     isToggling.value = true;
-    router.post(
-        toggleFavourite.url(props.productId),
-        {},
-        {
-            preserveScroll: true,
-            preserveState: true,
-            onFinish: () => {
-                isToggling.value = false;
+    router
+        .optimistic((pageProps: unknown) => {
+            const propsRecord = pageProps as SharedProps;
+            const list = propsRecord.favourites ?? [];
+            const exists = list.includes(props.productId);
+            return {
+                favourites: exists
+                    ? list.filter((id) => id !== props.productId)
+                    : [...list, props.productId],
+            };
+        })
+        .post(
+            toggleFavourite.url(props.productId),
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => {
+                    isToggling.value = false;
+                },
             },
-        },
-    );
+        );
 }
 
 const iconSizeClasses = computed(() => {

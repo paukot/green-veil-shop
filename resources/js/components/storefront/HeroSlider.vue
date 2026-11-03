@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import type { HeroSlide } from '@/types/storefront';
+import { resolveStorageUrl } from '@/lib/utils';
 
 const props = defineProps<{
     slides: HeroSlide[];
@@ -57,12 +58,7 @@ onUnmounted(() => {
                 <div class="absolute inset-0 bg-sage-900">
                     <img
                         v-if="slide.image"
-                        :src="
-                            slide.image.startsWith('http') ||
-                            slide.image.startsWith('/')
-                                ? slide.image
-                                : `/storage/${slide.image}`
-                        "
+                        :src="resolveStorageUrl(slide.image) || ''"
                         :alt="slide.alt_text || slide.title || 'Slide image'"
                         class="h-full w-full object-cover object-center opacity-85"
                         loading="eager"

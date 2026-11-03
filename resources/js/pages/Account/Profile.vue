@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { TextField } from '@/components/form';
+import Button from '@/components/ui/Button.vue';
 import AccountLayout from '@/layouts/AccountLayout.vue';
 import {
     updateProfile as updateProfileRoute,
@@ -92,39 +93,18 @@ const updatePassword = () => {
                 />
 
                 <div class="flex items-center gap-4 pt-2">
-                    <button
+                    <Button
                         type="submit"
-                        :disabled="
-                            profileForm.processing || !profileForm.isDirty
-                        "
-                        class="flex items-center gap-2 rounded-xl bg-sage-800 px-6 py-2.5 text-xs font-medium tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="!profileForm.isDirty"
+                        :loading="profileForm.processing"
+                        size="md"
                     >
-                        <svg
-                            v-if="profileForm.processing"
-                            class="mr-1.5 -ml-1 h-3.5 w-3.5 animate-spin text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                        <span>{{
+                        {{
                             profileForm.processing
                                 ? 'Saving...'
                                 : 'Save Profile'
-                        }}</span>
-                    </button>
+                        }}
+                    </Button>
 
                     <span
                         v-if="profileForm.recentlySuccessful"
@@ -191,37 +171,17 @@ const updatePassword = () => {
                 />
 
                 <div class="flex items-center gap-4 pt-2">
-                    <button
+                    <Button
                         type="submit"
-                        :disabled="passwordForm.processing"
-                        class="flex items-center gap-2 rounded-xl bg-sage-800 px-6 py-2.5 text-xs font-medium tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        :loading="passwordForm.processing"
+                        size="md"
                     >
-                        <svg
-                            v-if="passwordForm.processing"
-                            class="mr-1.5 -ml-1 h-3.5 w-3.5 animate-spin text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                        <span>{{
+                        {{
                             passwordForm.processing
                                 ? 'Updating...'
                                 : 'Update Password'
-                        }}</span>
-                    </button>
+                        }}
+                    </Button>
 
                     <span
                         v-if="passwordForm.recentlySuccessful"

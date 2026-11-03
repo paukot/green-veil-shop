@@ -2,9 +2,11 @@
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import FavouriteButton from '@/components/storefront/FavouriteButton.vue';
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import type { ProductCardData } from '@/types/storefront';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
 import { store as cartItemsStore } from '@/actions/App/Http/Controllers/CartItemController';
+import { formatCurrency } from '@/lib/utils';
 
 const props = defineProps<{
     product: ProductCardData;
@@ -27,19 +29,11 @@ function addToBag() {
     );
 }
 
-const formattedPrice = computed(() => {
-    return new Intl.NumberFormat('en-IE', {
-        style: 'currency',
-        currency: 'EUR',
-    }).format(props.product.price);
-});
+const formattedPrice = computed(() => formatCurrency(props.product.price));
 
 const formattedComparePrice = computed(() => {
     if (!props.product.compare_at_price) return null;
-    return new Intl.NumberFormat('en-IE', {
-        style: 'currency',
-        currency: 'EUR',
-    }).format(props.product.compare_at_price);
+    return formatCurrency(props.product.compare_at_price);
 });
 </script>
 
@@ -51,6 +45,7 @@ const formattedComparePrice = computed(() => {
         <div class="relative aspect-square w-full overflow-hidden bg-cream-100">
             <Link
                 :href="productShow.url(product.slug)"
+                prefetch
                 class="block h-full w-full"
             >
                 <img
@@ -98,6 +93,7 @@ const formattedComparePrice = computed(() => {
                 </span>
                 <Link
                     :href="productShow.url(product.slug)"
+                    prefetch
                     class="line-clamp-1 font-serif text-base text-charcoal-900 transition-colors group-hover:text-sage-800 sm:text-lg"
                 >
                     {{ product.name }}
@@ -150,26 +146,7 @@ const formattedComparePrice = computed(() => {
                             d="M12 4.5v15m7.5-7.5h-15"
                         />
                     </svg>
-                    <svg
-                        v-else
-                        class="h-4 w-4 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        ></circle>
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                    </svg>
+                    <LoadingSpinner v-else size="sm" />
                 </button>
                 <span
                     v-else

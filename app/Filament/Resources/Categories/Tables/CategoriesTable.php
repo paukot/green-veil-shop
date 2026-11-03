@@ -16,12 +16,14 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class CategoriesTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereNull('parent_id'))
             ->columns([
                 ImageColumn::make('image')
                     ->label('Image')
@@ -35,9 +37,18 @@ class CategoriesTable
                     ->sortable(),
                 TextColumn::make('slug')
                     ->searchable(),
-                TextColumn::make('parent.slug')
-                    ->label('Parent')
-                    ->placeholder('—'),
+                TextColumn::make('children_count')
+                    ->counts('children')
+                    ->label('Subcategories')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+                TextColumn::make('products_count')
+                    ->counts('products')
+                    ->label('Products')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable(),
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean(),

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { SearchInput } from '@/components/form';
 import type { CategoryNavigationItem, CustomerUser } from '@/types/storefront';
 import { home, login, logout, register } from '@/routes';
 import { index as productsIndex } from '@/routes/products';
@@ -170,38 +171,12 @@ onUnmounted(() => {
                                 @submit.prevent="submitSearch"
                                 class="relative flex items-center"
                             >
-                                <input
+                                <SearchInput
                                     v-model="searchQuery"
-                                    type="search"
                                     placeholder="Search botanicals, concerns..."
-                                    class="placeholder:text-charcoal-400 w-full rounded-full border border-cream-300 bg-white py-2.5 pr-10 pl-10 text-xs text-charcoal-900 focus:border-sage-600 focus:ring-1 focus:ring-sage-600 focus:outline-hidden"
+                                    size="sm"
+                                    @clear="searchQuery = ''"
                                 />
-                                <div
-                                    class="text-charcoal-400 pointer-events-none absolute left-3.5 flex items-center"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                                        />
-                                    </svg>
-                                </div>
-                                <button
-                                    v-if="searchQuery"
-                                    type="button"
-                                    class="text-charcoal-400 absolute right-3 hover:text-charcoal-700"
-                                    aria-label="Clear search"
-                                    @click="searchQuery = ''"
-                                >
-                                    &times;
-                                </button>
                             </form>
                         </div>
 
