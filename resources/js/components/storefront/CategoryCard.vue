@@ -3,26 +3,19 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import type { CategoryCardData } from '@/types/storefront';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
+import { resolveStorageUrl } from '@/lib/utils';
 
 const props = defineProps<{
     category: CategoryCardData;
 }>();
 
-const imageUrl = computed(() => {
-    if (!props.category.image) return null;
-    if (
-        props.category.image.startsWith('http') ||
-        props.category.image.startsWith('/')
-    ) {
-        return props.category.image;
-    }
-    return `/storage/${props.category.image}`;
-});
+const imageUrl = computed(() => resolveStorageUrl(props.category.image));
 </script>
 
 <template>
     <Link
         :href="categoryShow.url(category.slug)"
+        prefetch
         class="group relative flex min-h-[220px] flex-col justify-end overflow-hidden rounded-2xl border border-cream-200 bg-cream-100 p-6 transition-all duration-300 hover:shadow-md sm:p-8"
     >
         <!-- Background image or botanical texture -->
