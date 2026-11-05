@@ -23,7 +23,8 @@ class ProductCatalogService
     {
         $query = Product::query()
             ->where('is_active', true)
-            ->with(['category:id,slug,name', 'brand:id,slug,name']);
+            ->with(['category:id,slug,name', 'brand:id,slug,name'])
+            ->withCount('variants');
 
         // Search term
         if (! empty($filters['q'])) {
@@ -109,7 +110,7 @@ class ProductCatalogService
             $query->whereIn('spf', $spf);
         }
 
-        $origins = $this->parseList($filters['manufactured_in'] ?? $filters['origin'] ?? null);
+        $origins = $this->parseList($filters['manufactured_in'] ?? $filters['origin'] ?? $filters['origins'] ?? null);
         if (! empty($origins)) {
             $query->whereIn('manufactured_in', $origins);
         }
@@ -147,12 +148,16 @@ class ProductCatalogService
 
     /**
      * Compute available filter facets with product counts.
+     * Optionally scoped to specific category IDs (e.g. for a category page).
      *
+     * @param  array<int>|null  $categoryIds
      * @return array<string, mixed>
      */
-    public function getFilterFacets(): array
+    public function getFilterFacets(?array $categoryIds = null): array
     {
-        $activeProductsConstraint = fn (Builder $q) => $q->where('is_active', true);
+        $activeProductsConstraint = $categoryIds
+            ? fn (Builder $q) => $q->where('is_active', true)->whereIn('category_id', $categoryIds)
+            : fn (Builder $q) => $q->where('is_active', true);
 
         return [
             'brands' => Brand::query()
@@ -193,6 +198,7 @@ class ProductCatalogService
 
             'classifications' => Product::query()
                 ->where('is_active', true)
+                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
                 ->whereNotNull('classification')
                 ->selectRaw('classification as value, count(*) as count')
                 ->groupBy('classification')
@@ -200,6 +206,7 @@ class ProductCatalogService
 
             'formula_types' => Product::query()
                 ->where('is_active', true)
+                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
                 ->whereNotNull('formula_type')
                 ->selectRaw('formula_type as value, count(*) as count')
                 ->groupBy('formula_type')
@@ -207,14 +214,35 @@ class ProductCatalogService
 
             'genders' => Product::query()
                 ->where('is_active', true)
+                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
                 ->whereNotNull('gender')
                 ->selectRaw('gender as value, count(*) as count')
                 ->groupBy('gender')
                 ->get(),
 
+            'spf' => Product::query()
+                ->where('is_active', true)
+                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
+                ->whereNotNull('spf')
+                ->selectRaw('spf as value, count(*) as count')
+                ->groupBy('spf')
+                ->get(),
+
+            'origins' => Product::query()
+                ->where('is_active', true)
+                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
+                ->whereNotNull('manufactured_in')
+                ->selectRaw('manufactured_in as value, count(*) as count')
+                ->groupBy('manufactured_in')
+                ->get(),
+
             'price_bounds' => [
-                'min' => (float) (Product::where('is_active', true)->min('price') ?? 0),
-                'max' => (float) (Product::where('is_active', true)->max('price') ?? 0),
+                'min' => (float) (Product::where('is_active', true)
+                    ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
+                    ->min('price') ?? 0),
+                'max' => (float) (Product::where('is_active', true)
+                    ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
+                    ->max('price') ?? 0),
             ],
         ];
     }

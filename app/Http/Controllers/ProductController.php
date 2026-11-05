@@ -46,10 +46,15 @@ class ProductController extends Controller
             'claim',
             'claims',
             'classification',
+            'classifications',
             'formula_type',
+            'formula_types',
             'gender',
+            'genders',
             'spf',
             'manufactured_in',
+            'origin',
+            'origins',
         ]);
 
         $products = $this->catalogService
@@ -57,26 +62,33 @@ class ProductController extends Controller
             ->paginate(self::DEFAULT_PAGINATION)
             ->withQueryString();
 
+        $facets = $this->catalogService->getFilterFacets();
+
         $categories = Category::query()
             ->where('is_active', true)
             ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
             ->orderBy('sort_order')
             ->get(['id', 'slug', 'name']);
 
-        $activeProductsQuery = Product::query()->where('is_active', true);
-
-        $priceRange = [
-            'min' => (float) ($activeProductsQuery->clone()->min('price') ?? 0),
-            'max' => (float) ($activeProductsQuery->clone()->max('price') ?? 100),
-        ];
-
         return Inertia::render('Catalog/Index', [
             'products' => ProductResource::collection($products)->additional(['total' => $products->total()]),
             'categories' => SimpleCategoryResource::collection($categories)->resolve(),
-            'priceRange' => $priceRange,
+            'facets' => $facets,
+            'priceRange' => $facets['price_bounds'],
             'filters' => [
                 'q' => $request->query('q', ''),
                 'category' => $request->query('category', ''),
+                'brands' => $request->query('brands', $request->query('brand', '')),
+                'skin_types' => $request->query('skin_types', $request->query('skin_type', '')),
+                'hair_types' => $request->query('hair_types', $request->query('hair_type', '')),
+                'effects' => $request->query('effects', $request->query('effect', '')),
+                'ingredients' => $request->query('ingredients', $request->query('ingredient', '')),
+                'claims' => $request->query('claims', $request->query('claim', '')),
+                'classifications' => $request->query('classifications', $request->query('classification', '')),
+                'formula_types' => $request->query('formula_types', $request->query('formula_type', '')),
+                'genders' => $request->query('genders', $request->query('gender', '')),
+                'spf' => $request->query('spf', ''),
+                'manufactured_in' => $request->query('manufactured_in', $request->query('origin', '')),
                 'min_price' => $request->query('min_price'),
                 'max_price' => $request->query('max_price'),
                 'in_stock' => $request->boolean('in_stock'),
@@ -91,15 +103,23 @@ class ProductController extends Controller
 
         $product->load([
             'category:id,slug,name',
+            'brand:id,slug,name,logo_path',
             'images' => fn ($query) => $query->orderBy('sort_order'),
             'promotions' => fn ($query) => $query->where('is_active', true),
+            'variants' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order'),
+            'skinTypes:id,name,slug',
+            'hairTypes:id,name,slug',
+            'effects:id,name,slug',
+            'ingredients:id,name,slug',
+            'claims:id,name,slug',
         ]);
 
         $relatedProducts = Product::query()
             ->where('is_active', true)
             ->where('id', '!=', $product->id)
             ->when($product->category_id, fn ($query) => $query->where('category_id', $product->category_id))
-            ->with(['category:id,slug,name'])
+            ->with(['category:id,slug,name', 'brand:id,slug,name'])
+            ->withCount('variants')
             ->inRandomOrder()
             ->limit(self::DEFAULT_FEATURED_PAGINATION)
             ->get();

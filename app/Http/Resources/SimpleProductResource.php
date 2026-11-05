@@ -30,7 +30,20 @@ class SimpleProductResource extends JsonResource
             'category' => SimpleCategoryResource::make($this->whenLoaded('category')),
             'is_in_stock' => $this->isInStock(),
 
-            //            'promotions' => PromotionResource::collection($this->whenLoaded('promotions')),
+            // Brand (for card display)
+            'brand' => $this->when($this->relationLoaded('brand') && $this->brand, fn () => [
+                'id' => $this->brand->id,
+                'name' => $this->brand->name,
+                'slug' => $this->brand->slug,
+            ]),
+
+            // Volume & Unit Pricing
+            'volume' => $this->volume ? (float) $this->volume : null,
+            'unit' => $this->unit,
+            'formatted_unit_price' => $this->formattedUnitPrice(),
+
+            // Variant count indicator for cards
+            'variants_count' => $this->whenCounted('variants'),
         ];
     }
 }

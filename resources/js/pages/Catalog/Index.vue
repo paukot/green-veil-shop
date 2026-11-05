@@ -23,6 +23,19 @@ const activeFilterCount = computed(() => {
     if (props.filters.in_stock) count++;
     if (props.filters.sort && props.filters.sort !== 'featured') count++;
     if (props.filters.q) count++;
+    const countFacet = (val?: string) =>
+        val ? val.split(',').filter(Boolean).length : 0;
+    count += countFacet(props.filters.brands);
+    count += countFacet(props.filters.skin_types);
+    count += countFacet(props.filters.hair_types);
+    count += countFacet(props.filters.effects);
+    count += countFacet(props.filters.ingredients);
+    count += countFacet(props.filters.claims);
+    count += countFacet(props.filters.classifications);
+    count += countFacet(props.filters.formula_types);
+    count += countFacet(props.filters.genders);
+    count += countFacet(props.filters.spf);
+    count += countFacet(props.filters.manufactured_in);
     return count;
 });
 
@@ -127,6 +140,7 @@ const pageTitle = computed(() => {
                 <FilterSidebar
                     :categories="categories"
                     :filters="filters"
+                    :facets="facets"
                     :price-range="priceRange"
                     :base-url="productsIndex.url()"
                 />
@@ -230,6 +244,7 @@ const pageTitle = computed(() => {
                 <FilterSidebar
                     :categories="categories"
                     :filters="filters"
+                    :facets="facets"
                     :price-range="priceRange"
                     :base-url="productsIndex.url()"
                     @close="mobileFilterOpen = false"
