@@ -74,6 +74,8 @@ export type ProductCardData = {
         slug: string;
         name: string;
     } | null;
+    stock_quantity?: number;
+    track_inventory?: boolean;
     is_in_stock: boolean;
     brand?: {
         id: number;
@@ -317,7 +319,6 @@ export type ProductDetail = {
     ingredients?: CosmeticLookupItem[];
     claims?: CosmeticLookupItem[];
 };
-
 
 export type ProductDetailPageProps = {
     product: ProductDetail;

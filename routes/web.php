@@ -22,6 +22,7 @@ Route::middleware(['web'])->group(function () {
 
     // Cart routes
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/sync', [CartController::class, 'sync'])->name('cart.sync');
     Route::post('/cart/items', [CartItemController::class, 'store'])->name('cart.items.store');
     Route::patch('/cart/items/{item}', [CartItemController::class, 'update'])->name('cart.items.update');
     Route::delete('/cart/items/{item}', [CartItemController::class, 'destroy'])->name('cart.items.destroy');
@@ -36,6 +37,7 @@ Route::middleware(['web'])->group(function () {
 
     // Favourites routes
     Route::get('/favourites', [FavouriteController::class, 'index'])->name('favourites.index');
+    Route::post('/favourites/sync', [FavouriteController::class, 'sync'])->name('favourites.sync');
     Route::post('/favourites/{product}', [FavouriteController::class, 'toggle'])->name('favourites.toggle');
 
     // Customer Authentication routes

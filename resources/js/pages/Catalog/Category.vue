@@ -8,7 +8,6 @@ import Breadcrumbs from '@/components/storefront/Breadcrumbs.vue';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CategoryPageProps } from '@/types/storefront';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
-import { index as productsIndex } from '@/routes/products';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -85,7 +84,7 @@ const activeFilterCount = computed(() => {
             </h1>
             <p
                 v-if="category.description"
-                class="text-charcoal-600 mt-4 text-sm leading-relaxed font-light sm:text-base max-w-2xl mx-auto"
+                class="text-charcoal-600 mx-auto mt-4 max-w-2xl text-sm leading-relaxed font-light sm:text-base"
             >
                 {{ category.description }}
             </p>
@@ -221,7 +220,9 @@ const activeFilterCount = computed(() => {
                     <p
                         class="text-charcoal-600 mb-6 text-xs font-light sm:text-sm"
                     >
-                        We couldn't find any products in this collection matching your active filters. Try adjusting or clearing your filters.
+                        We couldn't find any products in this collection
+                        matching your active filters. Try adjusting or clearing
+                        your filters.
                     </p>
                     <Link
                         :href="categoryShow.url(category.slug)"

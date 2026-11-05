@@ -12,6 +12,9 @@ import { index as favouritesIndex } from '@/routes/favourites';
 import { profile } from '@/routes/account';
 import { getNavigationLayout } from '@/lib/navigation';
 
+import { useCart } from '@/composables/useCart';
+import { useFavourites } from '@/composables/useFavourites';
+
 const mobileMenuOpen = defineModel<boolean>('mobileMenuOpen', {
     default: false,
 });
@@ -19,11 +22,21 @@ const mobileMenuOpen = defineModel<boolean>('mobileMenuOpen', {
 const page = usePage<SharedProps>();
 const searchOpen = ref(false);
 const searchQuery = ref('');
+const cart = useCart();
+const favourites = useFavourites();
 
 const user = computed(() => page.props.auth?.user);
 const navigation = computed(() => page.props.navigation || []);
-const cartCount = computed(() => page.props.cart?.count ?? 0);
-const favouritesCount = computed(() => page.props.favourites?.length ?? 0);
+const cartCount = computed(() => {
+    return cart.count.value > 0
+        ? cart.count.value
+        : (page.props.cart?.count ?? 0);
+});
+const favouritesCount = computed(() => {
+    return favourites.productIds.value.length > 0
+        ? favourites.count.value
+        : (page.props.favourites?.length ?? 0);
+});
 const isDemoMode = computed(() => Boolean(page.props.demo_mode));
 const demoNotice = computed(
     () =>

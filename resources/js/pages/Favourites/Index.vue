@@ -1,17 +1,31 @@
 <script setup lang="ts">
+import { computed, onMounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import type { ProductCardData } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
+import { useFavourites } from '@/composables/useFavourites';
 
 defineOptions({
     layout: StorefrontLayout,
 });
 
-defineProps<{
+const props = defineProps<{
     products: ProductCardData[];
 }>();
+
+const favourites = useFavourites();
+
+onMounted(() => {
+    if (props.products.length > 0) {
+        favourites.initFromServer(props.products.map((p) => p.id));
+    }
+});
+
+const displayedProducts = computed(() => {
+    return props.products.filter((p) => favourites.isFavourited(p.id));
+});
 </script>
 
 <template>
@@ -43,14 +57,14 @@ defineProps<{
 
     <!-- Main Favourites Content -->
     <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-        <div v-if="products.length > 0">
+        <div v-if="displayedProducts.length > 0">
             <div
                 class="text-charcoal-600 mb-8 flex items-center justify-between border-b border-cream-200 pb-4 text-xs sm:text-sm"
             >
                 <div>
                     Saved items:
                     <span class="font-semibold text-charcoal-900">{{
-                        products.length
+                        displayedProducts.length
                     }}</span>
                 </div>
                 <Link
@@ -62,7 +76,7 @@ defineProps<{
                 </Link>
             </div>
 
-            <ProductGrid :products="products" />
+            <ProductGrid :products="displayedProducts" />
         </div>
 
         <!-- Empty Wishlist State -->

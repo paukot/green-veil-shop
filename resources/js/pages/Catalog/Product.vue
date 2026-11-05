@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import FavouriteButton from '@/components/storefront/FavouriteButton.vue';
@@ -8,20 +8,18 @@ import Breadcrumbs from '@/components/storefront/Breadcrumbs.vue';
 import { QuantityInput } from '@/components/form';
 import type {
     ProductDetailPageProps,
-    SharedProps,
     ProductVariantItem,
 } from '@/types/storefront';
-import { store as cartItemsStore } from '@/actions/App/Http/Controllers/CartItemController';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import { index as productsIndex } from '@/routes/products';
 import { formatCurrency } from '@/lib/utils';
+import { useCart } from '@/composables/useCart';
 
 defineOptions({
     layout: StorefrontLayout,
 });
 
 const props = defineProps<ProductDetailPageProps>();
-const page = usePage<SharedProps>();
 
 // Variant selection state
 const selectedVariant = ref<ProductVariantItem | null>(
@@ -50,7 +48,8 @@ const currentPrice = computed(() => {
 
 const currentComparePrice = computed(() => {
     return (
-        selectedVariant.value?.compare_at_price ?? props.product.compare_at_price
+        selectedVariant.value?.compare_at_price ??
+        props.product.compare_at_price
     );
 });
 
@@ -124,26 +123,40 @@ const maxQuantity = computed(() => {
     return Math.max(1, stockQuantity.value);
 });
 
-// Add to Cart
-const isAddingToCart = ref(false);
+const cart = useCart();
+const addedToCartNotice = ref(false);
+
 function addToCart() {
     if (!isInStock.value) return;
 
-    isAddingToCart.value = true;
-    router.post(
-        cartItemsStore.url(),
+    cart.addItem(
         {
-            product_id: props.product.id,
-            quantity: quantity.value,
+            id: props.product.id,
+            name: props.product.name,
+            slug: props.product.slug,
+            sku: selectedVariant.value?.sku || props.product.sku,
+            price: currentPrice.value,
+            compare_at_price: currentComparePrice.value,
+            discount_percentage: props.product.discount_percentage,
+            main_image: props.product.main_image,
+            volume: props.product.volume,
+            unit: props.product.unit,
+            formatted_unit_price: props.product.formatted_unit_price,
+            track_inventory: selectedVariant.value
+                ? selectedVariant.value.track_inventory
+                : props.product.track_inventory,
+            stock_quantity: stockQuantity.value,
+            is_in_stock: isInStock.value,
+            brand: props.product.brand,
+            category: props.product.category,
         },
-        {
-            preserveScroll: true,
-            preserveState: true,
-            onFinish: () => {
-                isAddingToCart.value = false;
-            },
-        },
+        quantity.value,
     );
+
+    addedToCartNotice.value = true;
+    setTimeout(() => {
+        addedToCartNotice.value = false;
+    }, 2000);
 }
 
 // Active tab for cosmetic information disclosures
@@ -222,7 +235,9 @@ const manufacturedCountryName = computed(() => {
 
     <!-- Product Main Showcase -->
     <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <div class="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-16">
+        <div
+            class="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-16"
+        >
             <!-- Gallery Column -->
             <div class="space-y-4">
                 <!-- Main Image Stage -->
@@ -314,29 +329,39 @@ const manufacturedCountryName = computed(() => {
                                         query: { brands: product.brand.slug },
                                     })
                                 "
-                                class="font-bold tracking-widest text-sage-800 uppercase hover:text-sage-950 hover:underline"
+                                class="hover:text-sage-950 font-bold tracking-widest text-sage-800 uppercase hover:underline"
                             >
                                 {{ product.brand.name }}
                             </Link>
-                            <span v-if="product.brand && product.category" class="text-charcoal-300">&bull;</span>
+                            <span
+                                v-if="product.brand && product.category"
+                                class="text-charcoal-300"
+                                >&bull;</span
+                            >
                             <!-- Category Link -->
                             <Link
                                 v-if="product.category"
                                 :href="categoryShow.url(product.category.slug)"
-                                class="font-medium tracking-wider text-charcoal-500 uppercase hover:text-sage-800"
+                                class="text-charcoal-500 font-medium tracking-wider uppercase hover:text-sage-800"
                             >
                                 {{ product.category.name }}
                             </Link>
                         </div>
 
                         <!-- SKU / Code -->
-                        <span v-if="product.sku" class="text-charcoal-400 font-mono text-[11px]">
+                        <span
+                            v-if="product.sku"
+                            class="text-charcoal-400 font-mono text-[11px]"
+                        >
                             SKU: {{ selectedVariant?.sku || product.sku }}
                         </span>
                     </div>
 
                     <!-- Series / Product Line Subtitle -->
-                    <div v-if="product.series" class="text-xs font-medium text-sage-700 tracking-wide">
+                    <div
+                        v-if="product.series"
+                        class="text-xs font-medium tracking-wide text-sage-700"
+                    >
                         Series: {{ product.series }}
                     </div>
                 </div>
@@ -350,15 +375,19 @@ const manufacturedCountryName = computed(() => {
 
                 <!-- Cosmetic Quick Badge Pills -->
 
-
                 <!-- Pricing Section with EU Unit Pricing (Directive 98/6/EC) -->
                 <div class="py-4">
                     <div class="flex items-baseline gap-3">
-                        <span class="text-2xl font-semibold text-charcoal-900 sm:text-3xl">
+                        <span
+                            class="text-2xl font-semibold text-charcoal-900 sm:text-3xl"
+                        >
                             {{ formatCurrency(currentPrice) }}
                         </span>
                         <span
-                            v-if="currentComparePrice && currentComparePrice > currentPrice"
+                            v-if="
+                                currentComparePrice &&
+                                currentComparePrice > currentPrice
+                            "
                             class="text-charcoal-400 text-lg line-through"
                         >
                             {{ formatCurrency(currentComparePrice) }}
@@ -368,11 +397,23 @@ const manufacturedCountryName = computed(() => {
                     <!-- EU Unit Pricing line -->
                     <div
                         v-if="product.formatted_unit_price || product.volume"
-                        class="mt-1 text-xs text-charcoal-500 font-light"
+                        class="text-charcoal-500 mt-1 text-xs font-light"
                     >
-                        <span v-if="product.volume">Net volume: {{ product.volume }} {{ product.unit || 'ml' }}</span>
-                        <span v-if="product.volume && product.formatted_unit_price"> &middot; </span>
-                        <span v-if="product.formatted_unit_price" class="font-medium text-charcoal-700">
+                        <span v-if="product.volume"
+                            >Net volume: {{ product.volume }}
+                            {{ product.unit || 'ml' }}</span
+                        >
+                        <span
+                            v-if="
+                                product.volume && product.formatted_unit_price
+                            "
+                        >
+                            &middot;
+                        </span>
+                        <span
+                            v-if="product.formatted_unit_price"
+                            class="font-medium text-charcoal-700"
+                        >
                             ({{ product.formatted_unit_price }})
                         </span>
                     </div>
@@ -388,11 +429,16 @@ const manufacturedCountryName = computed(() => {
                         :key="promo.id"
                         class="flex items-center gap-2 text-xs text-sage-900"
                     >
-                        <span class="rounded bg-sage-200 px-2 py-0.5 font-mono font-bold text-sage-800">
+                        <span
+                            class="rounded bg-sage-200 px-2 py-0.5 font-mono font-bold text-sage-800"
+                        >
                             {{ promo.code }}
                         </span>
                         <span class="font-medium">{{ promo.name }}</span>
-                        <span v-if="promo.discount_type === 'percentage'" class="text-sage-700">
+                        <span
+                            v-if="promo.discount_type === 'percentage'"
+                            class="text-sage-700"
+                        >
                             ({{ promo.discount_value }}% off)
                         </span>
                         <span v-else class="text-sage-700">
@@ -407,10 +453,15 @@ const manufacturedCountryName = computed(() => {
                     class="space-y-3 rounded-xl border border-cream-200 bg-cream-50/60 p-4"
                 >
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-semibold text-charcoal-800 uppercase tracking-wider">
+                        <span
+                            class="font-semibold tracking-wider text-charcoal-800 uppercase"
+                        >
                             Choose Shade / Variant:
                         </span>
-                        <span v-if="selectedVariant" class="font-medium text-sage-800">
+                        <span
+                            v-if="selectedVariant"
+                            class="font-medium text-sage-800"
+                        >
                             {{ selectedVariant.name }}
                         </span>
                     </div>
@@ -425,18 +476,21 @@ const manufacturedCountryName = computed(() => {
                             class="relative flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all"
                             :class="
                                 selectedVariant?.id === variant.id
-                                    ? 'border-sage-700 bg-white shadow-xs ring-2 ring-sage-300 text-charcoal-900'
-                                    : 'border-cream-300 bg-white/80 hover:border-sage-400 text-charcoal-700'
+                                    ? 'border-sage-700 bg-white text-charcoal-900 shadow-xs ring-2 ring-sage-300'
+                                    : 'hover:border-sage-400 border-cream-300 bg-white/80 text-charcoal-700'
                             "
                         >
                             <!-- Color Swatch Circle if color_hex present -->
                             <span
                                 v-if="variant.color_hex"
-                                class="h-4 w-4 rounded-full border border-charcoal-200 shadow-inner shrink-0"
+                                class="border-charcoal-200 h-4 w-4 shrink-0 rounded-full border shadow-inner"
                                 :style="{ backgroundColor: variant.color_hex }"
                             />
                             <span>{{ variant.name }}</span>
-                            <span v-if="!variant.is_in_stock" class="text-[10px] text-rose-500 font-normal">
+                            <span
+                                v-if="!variant.is_in_stock"
+                                class="text-[10px] font-normal text-rose-500"
+                            >
                                 (Out)
                             </span>
                         </button>
@@ -449,14 +503,18 @@ const manufacturedCountryName = computed(() => {
                         class="h-2.5 w-2.5 rounded-full"
                         :class="isInStock ? 'bg-emerald-500' : 'bg-rose-500'"
                     />
-                    <span v-if="isInStock" class="font-medium text-charcoal-700">
+                    <span
+                        v-if="isInStock"
+                        class="font-medium text-charcoal-700"
+                    >
                         In Stock
                         <span
                             v-if="
-                                (selectedVariant?.track_inventory ?? product.track_inventory) &&
+                                (selectedVariant?.track_inventory ??
+                                    product.track_inventory) &&
                                 stockQuantity <= 5
                             "
-                            class="ml-1 text-amber-700 font-semibold"
+                            class="ml-1 font-semibold text-amber-700"
                         >
                             (Only {{ stockQuantity }} remaining)
                         </span>
@@ -478,10 +536,14 @@ const manufacturedCountryName = computed(() => {
                 <div class="space-y-2 border-t border-cream-200 pt-4">
                     <!-- Skin Types -->
                     <div
-                        v-if="product.skin_types && product.skin_types.length > 0"
+                        v-if="
+                            product.skin_types && product.skin_types.length > 0
+                        "
                         class="flex items-start gap-2 text-xs"
                     >
-                        <span class="font-semibold text-charcoal-700 shrink-0">Skin Type:</span>
+                        <span class="shrink-0 font-semibold text-charcoal-700"
+                            >Skin Type:</span
+                        >
                         <div class="flex flex-wrap gap-1">
                             <span
                                 v-for="st in product.skin_types"
@@ -498,7 +560,9 @@ const manufacturedCountryName = computed(() => {
                         v-if="product.effects && product.effects.length > 0"
                         class="flex items-start gap-2 text-xs"
                     >
-                        <span class="font-semibold text-charcoal-700 shrink-0">Action:</span>
+                        <span class="shrink-0 font-semibold text-charcoal-700"
+                            >Action:</span
+                        >
                         <div class="flex flex-wrap gap-1">
                             <span
                                 v-for="ef in product.effects"
@@ -512,10 +576,15 @@ const manufacturedCountryName = computed(() => {
 
                     <!-- Active Ingredients -->
                     <div
-                        v-if="product.ingredients && product.ingredients.length > 0"
+                        v-if="
+                            product.ingredients &&
+                            product.ingredients.length > 0
+                        "
                         class="flex items-start gap-2 text-xs"
                     >
-                        <span class="font-semibold text-charcoal-700 shrink-0">Actives:</span>
+                        <span class="shrink-0 font-semibold text-charcoal-700"
+                            >Actives:</span
+                        >
                         <div class="flex flex-wrap gap-1">
                             <span
                                 v-for="ing in product.ingredients"
@@ -532,7 +601,9 @@ const manufacturedCountryName = computed(() => {
                         v-if="product.claims && product.claims.length > 0"
                         class="flex items-start gap-2 text-xs"
                     >
-                        <span class="font-semibold text-charcoal-700 shrink-0">Claims:</span>
+                        <span class="shrink-0 font-semibold text-charcoal-700"
+                            >Claims:</span
+                        >
                         <div class="flex flex-wrap gap-1">
                             <span
                                 v-for="cl in product.claims"
@@ -552,22 +623,25 @@ const manufacturedCountryName = computed(() => {
                         <QuantityInput
                             v-model="quantity"
                             :max="maxQuantity"
-                            :disabled="!isInStock || isAddingToCart"
+                            :disabled="!isInStock"
                         />
 
                         <!-- Add to Cart Button -->
                         <button
                             type="button"
                             @click="addToCart"
-                            :disabled="!isInStock || isAddingToCart"
+                            :disabled="!isInStock"
                             class="flex flex-1 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-xs font-semibold tracking-wider uppercase shadow-sm transition-all sm:text-sm"
                             :class="
-                                isInStock
-                                    ? 'bg-sage-800 text-cream-50 hover:bg-sage-900 hover:shadow-md active:scale-[0.99]'
-                                    : 'text-charcoal-400 cursor-not-allowed bg-cream-200'
+                                addedToCartNotice
+                                    ? 'bg-emerald-700 text-white shadow-md'
+                                    : isInStock
+                                      ? 'bg-sage-800 text-cream-50 hover:bg-sage-900 hover:shadow-md active:scale-[0.99]'
+                                      : 'text-charcoal-400 cursor-not-allowed bg-cream-200'
                             "
                         >
                             <svg
+                                v-if="!addedToCartNotice"
                                 class="h-4 w-4"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -580,7 +654,27 @@ const manufacturedCountryName = computed(() => {
                                     d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
                                 />
                             </svg>
-                            <span>{{ isInStock ? 'Add to Bag' : 'Out of Stock' }}</span>
+                            <svg
+                                v-else
+                                class="h-4 w-4 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M4.5 12.75l6 6 9-13.5"
+                                />
+                            </svg>
+                            <span>{{
+                                addedToCartNotice
+                                    ? 'Added to Bag ✓'
+                                    : isInStock
+                                      ? 'Add to Bag'
+                                      : 'Out of Stock'
+                            }}</span>
                         </button>
 
                         <!-- Favourite Toggle Button -->
@@ -627,7 +721,7 @@ const manufacturedCountryName = computed(() => {
                     :class="
                         activeTab === 'description'
                             ? 'border-sage-800 text-sage-900'
-                            : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
+                            : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
                     "
                 >
                     Ritual & Description
@@ -641,7 +735,7 @@ const manufacturedCountryName = computed(() => {
                     :class="
                         activeTab === 'inci'
                             ? 'border-sage-800 text-sage-900'
-                            : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
+                            : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
                     "
                 >
                     Ingredients (INCI)
@@ -655,7 +749,7 @@ const manufacturedCountryName = computed(() => {
                     :class="
                         activeTab === 'usage'
                             ? 'border-sage-800 text-sage-900'
-                            : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
+                            : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
                     "
                 >
                     How to Use
@@ -669,7 +763,7 @@ const manufacturedCountryName = computed(() => {
                     :class="
                         activeTab === 'warnings'
                             ? 'border-sage-800 text-sage-900'
-                            : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
+                            : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
                     "
                 >
                     Safety & Warnings
@@ -682,7 +776,7 @@ const manufacturedCountryName = computed(() => {
                     :class="
                         activeTab === 'specs'
                             ? 'border-sage-800 text-sage-900'
-                            : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
+                            : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
                     "
                 >
                     Specifications
@@ -690,131 +784,278 @@ const manufacturedCountryName = computed(() => {
             </div>
 
             <!-- Tab 1: Description -->
-            <div v-show="activeTab === 'description'" class="py-8 max-w-4xl space-y-4">
-                <h3 class="font-serif text-xl text-charcoal-900">Botanical Ritual & Care</h3>
+            <div
+                v-show="activeTab === 'description'"
+                class="max-w-4xl space-y-4 py-8"
+            >
+                <h3 class="font-serif text-xl text-charcoal-900">
+                    Botanical Ritual & Care
+                </h3>
                 <div
                     v-if="product.description"
                     class="space-y-4 text-sm leading-relaxed font-light whitespace-pre-line text-charcoal-700"
                 >
                     {{ product.description }}
                 </div>
-                <p v-else class="text-sm font-light text-charcoal-500 italic">
-                    {{ product.short_description || 'Detailed botanical description coming soon.' }}
+                <p v-else class="text-charcoal-500 text-sm font-light italic">
+                    {{
+                        product.short_description ||
+                        'Detailed botanical description coming soon.'
+                    }}
                 </p>
             </div>
 
             <!-- Tab 2: Full INCI Formulation -->
-            <div v-show="activeTab === 'inci'" class="py-8 max-w-4xl space-y-6">
+            <div v-show="activeTab === 'inci'" class="max-w-4xl space-y-6 py-8">
                 <div>
-                    <h3 class="font-serif text-xl text-charcoal-900">Complete Chemical Composition (INCI)</h3>
-                    <p class="mt-1 text-xs text-charcoal-500 font-light">
-                        Full international nomenclature of cosmetic ingredients as required by EU Regulation (EC) No 1223/2009.
+                    <h3 class="font-serif text-xl text-charcoal-900">
+                        Complete Chemical Composition (INCI)
+                    </h3>
+                    <p class="text-charcoal-500 mt-1 text-xs font-light">
+                        Full international nomenclature of cosmetic ingredients
+                        as required by EU Regulation (EC) No 1223/2009.
                     </p>
                 </div>
 
-                <div class="rounded-xl border border-cream-200 bg-cream-50/80 p-5 font-mono text-xs leading-relaxed text-charcoal-800 whitespace-pre-line">
+                <div
+                    class="rounded-xl border border-cream-200 bg-cream-50/80 p-5 font-mono text-xs leading-relaxed whitespace-pre-line text-charcoal-800"
+                >
                     {{ product.inci_list }}
                 </div>
 
-                <div class="rounded-lg border border-sage-200 bg-sage-50/70 p-4 text-xs text-sage-900">
-                    <span class="font-semibold text-sage-950">Clean Beauty Notice:</span>
-                    Green Veil continuously formulates with verified natural and active cosmetic compounds.
-                    Always refer to the ingredient list printed directly on the physical packaging for the most current batch composition.
+                <div
+                    class="rounded-lg border border-sage-200 bg-sage-50/70 p-4 text-xs text-sage-900"
+                >
+                    <span class="text-sage-950 font-semibold"
+                        >Clean Beauty Notice:</span
+                    >
+                    Green Veil continuously formulates with verified natural and
+                    active cosmetic compounds. Always refer to the ingredient
+                    list printed directly on the physical packaging for the most
+                    current batch composition.
                 </div>
             </div>
 
             <!-- Tab 3: How to Use -->
-            <div v-show="activeTab === 'usage'" class="py-8 max-w-4xl space-y-4">
-                <h3 class="font-serif text-xl text-charcoal-900">Application Ritual</h3>
-                <div class="space-y-4 text-sm leading-relaxed font-light whitespace-pre-line text-charcoal-700">
+            <div
+                v-show="activeTab === 'usage'"
+                class="max-w-4xl space-y-4 py-8"
+            >
+                <h3 class="font-serif text-xl text-charcoal-900">
+                    Application Ritual
+                </h3>
+                <div
+                    class="space-y-4 text-sm leading-relaxed font-light whitespace-pre-line text-charcoal-700"
+                >
                     {{ product.how_to_use }}
                 </div>
             </div>
 
             <!-- Tab 4: Warnings & Safety -->
-            <div v-show="activeTab === 'warnings'" class="py-8 max-w-4xl space-y-6">
-                <h3 class="font-serif text-xl text-charcoal-900">Precautions & Regulatory Information</h3>
+            <div
+                v-show="activeTab === 'warnings'"
+                class="max-w-4xl space-y-6 py-8"
+            >
+                <h3 class="font-serif text-xl text-charcoal-900">
+                    Precautions & Regulatory Information
+                </h3>
 
                 <div v-if="product.warnings" class="space-y-3">
-                    <h4 class="text-xs font-semibold text-charcoal-800 uppercase tracking-wider">Safety Warnings</h4>
-                    <div class="text-sm leading-relaxed font-light whitespace-pre-line text-charcoal-700">
+                    <h4
+                        class="text-xs font-semibold tracking-wider text-charcoal-800 uppercase"
+                    >
+                        Safety Warnings
+                    </h4>
+                    <div
+                        class="text-sm leading-relaxed font-light whitespace-pre-line text-charcoal-700"
+                    >
                         {{ product.warnings }}
                     </div>
                 </div>
 
-                <div v-if="product.responsible_person" class="rounded-lg border border-cream-200 bg-cream-50 p-4 text-xs text-charcoal-700">
-                    <span class="font-semibold text-charcoal-900">EU Responsible Person:</span>
-                    <span class="ml-2 font-mono">{{ product.responsible_person }}</span>
+                <div
+                    v-if="product.responsible_person"
+                    class="rounded-lg border border-cream-200 bg-cream-50 p-4 text-xs text-charcoal-700"
+                >
+                    <span class="font-semibold text-charcoal-900"
+                        >EU Responsible Person:</span
+                    >
+                    <span class="ml-2 font-mono">{{
+                        product.responsible_person
+                    }}</span>
                 </div>
             </div>
 
             <!-- Tab 5: Specifications Table -->
-            <div v-show="activeTab === 'specs'" class="py-8 max-w-4xl">
-                <h3 class="font-serif text-xl text-charcoal-900 mb-6">Product Specifications</h3>
+            <div v-show="activeTab === 'specs'" class="max-w-4xl py-8">
+                <h3 class="mb-6 font-serif text-xl text-charcoal-900">
+                    Product Specifications
+                </h3>
 
-                <div class="overflow-hidden rounded-xl border border-cream-200 bg-white">
+                <div
+                    class="overflow-hidden rounded-xl border border-cream-200 bg-white"
+                >
                     <table class="w-full text-left text-xs">
                         <tbody class="divide-y divide-cream-200">
                             <tr v-if="product.brand">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600 w-1/3">Brand</td>
-                                <td class="px-4 py-3 font-semibold text-charcoal-900">{{ product.brand.name }}</td>
+                                <td
+                                    class="text-charcoal-600 w-1/3 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Brand
+                                </td>
+                                <td
+                                    class="px-4 py-3 font-semibold text-charcoal-900"
+                                >
+                                    {{ product.brand.name }}
+                                </td>
                             </tr>
                             <tr v-if="product.series">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Series</td>
-                                <td class="px-4 py-3 text-charcoal-800">{{ product.series }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Series
+                                </td>
+                                <td class="px-4 py-3 text-charcoal-800">
+                                    {{ product.series }}
+                                </td>
                             </tr>
                             <tr v-if="product.category">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Category</td>
-                                <td class="px-4 py-3 text-charcoal-800">{{ product.category.name }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Category
+                                </td>
+                                <td class="px-4 py-3 text-charcoal-800">
+                                    {{ product.category.name }}
+                                </td>
                             </tr>
                             <tr v-if="product.volume">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Volume / Net Content</td>
-                                <td class="px-4 py-3 text-charcoal-800">{{ product.volume }} {{ product.unit || 'ml' }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Volume / Net Content
+                                </td>
+                                <td class="px-4 py-3 text-charcoal-800">
+                                    {{ product.volume }}
+                                    {{ product.unit || 'ml' }}
+                                </td>
                             </tr>
                             <tr v-if="product.formatted_unit_price">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">EU Unit Price</td>
-                                <td class="px-4 py-3 text-charcoal-800">{{ product.formatted_unit_price }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    EU Unit Price
+                                </td>
+                                <td class="px-4 py-3 text-charcoal-800">
+                                    {{ product.formatted_unit_price }}
+                                </td>
                             </tr>
                             <tr v-if="product.classification">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Classification</td>
-                                <td class="px-4 py-3 capitalize text-charcoal-800">{{ product.classification }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Classification
+                                </td>
+                                <td
+                                    class="px-4 py-3 text-charcoal-800 capitalize"
+                                >
+                                    {{ product.classification }}
+                                </td>
                             </tr>
                             <tr v-if="product.formula_type">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Formula / Texture</td>
-                                <td class="px-4 py-3 capitalize text-charcoal-800">{{ product.formula_type }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Formula / Texture
+                                </td>
+                                <td
+                                    class="px-4 py-3 text-charcoal-800 capitalize"
+                                >
+                                    {{ product.formula_type }}
+                                </td>
                             </tr>
                             <tr v-if="product.gender">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Target Audience</td>
-                                <td class="px-4 py-3 capitalize text-charcoal-800">{{ product.gender }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Target Audience
+                                </td>
+                                <td
+                                    class="px-4 py-3 text-charcoal-800 capitalize"
+                                >
+                                    {{ product.gender }}
+                                </td>
                             </tr>
                             <tr v-if="product.spf">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Sun Protection (SPF)</td>
-                                <td class="px-4 py-3 text-charcoal-800">{{ product.spf }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Sun Protection (SPF)
+                                </td>
+                                <td class="px-4 py-3 text-charcoal-800">
+                                    {{ product.spf }}
+                                </td>
                             </tr>
                             <tr v-if="product.pao_months">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Period After Opening (PAO)</td>
-                                <td class="px-4 py-3 text-charcoal-800">{{ product.pao_months }} months</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Period After Opening (PAO)
+                                </td>
+                                <td class="px-4 py-3 text-charcoal-800">
+                                    {{ product.pao_months }} months
+                                </td>
                             </tr>
                             <tr v-if="manufacturedCountryName">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Country of Origin</td>
-                                <td class="px-4 py-3 text-charcoal-800">{{ manufacturedCountryName }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Country of Origin
+                                </td>
+                                <td class="px-4 py-3 text-charcoal-800">
+                                    {{ manufacturedCountryName }}
+                                </td>
                             </tr>
                             <tr v-if="product.barcode">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">Barcode / EAN</td>
-                                <td class="px-4 py-3 font-mono text-charcoal-800">{{ product.barcode }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    Barcode / EAN
+                                </td>
+                                <td
+                                    class="px-4 py-3 font-mono text-charcoal-800"
+                                >
+                                    {{ product.barcode }}
+                                </td>
                             </tr>
                             <tr v-if="product.sku">
-                                <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">SKU</td>
-                                <td class="px-4 py-3 font-mono text-charcoal-800">{{ selectedVariant?.sku || product.sku }}</td>
+                                <td
+                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                >
+                                    SKU
+                                </td>
+                                <td
+                                    class="px-4 py-3 font-mono text-charcoal-800"
+                                >
+                                    {{ selectedVariant?.sku || product.sku }}
+                                </td>
                             </tr>
                             <!-- Custom Characteristics Key-Values -->
                             <template v-if="product.custom_characteristics">
                                 <tr
-                                    v-for="(val, key) in product.custom_characteristics"
+                                    v-for="(
+                                        val, key
+                                    ) in product.custom_characteristics"
                                     :key="key"
                                 >
-                                    <td class="bg-cream-50/60 px-4 py-3 font-medium text-charcoal-600">{{ key }}</td>
-                                    <td class="px-4 py-3 text-charcoal-800">{{ val }}</td>
+                                    <td
+                                        class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
+                                    >
+                                        {{ key }}
+                                    </td>
+                                    <td class="px-4 py-3 text-charcoal-800">
+                                        {{ val }}
+                                    </td>
                                 </tr>
                             </template>
                         </tbody>

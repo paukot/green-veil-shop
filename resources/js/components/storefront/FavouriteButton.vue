@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import type { SharedProps } from '@/types/storefront';
-import { toggle as toggleFavourite } from '@/actions/App/Http/Controllers/FavouriteController';
+import { useFavourites } from '@/composables/useFavourites';
 
 const props = withDefaults(
     defineProps<{
@@ -18,38 +18,20 @@ const props = withDefaults(
 );
 
 const page = usePage<SharedProps>();
-const isToggling = ref(false);
+const favourites = useFavourites();
 
 const isFavourited = computed(() => {
-    return page.props.favourites?.includes(props.productId) ?? false;
+    if (favourites.productIds.value.length > 0) {
+        return favourites.isFavourited(props.productId);
+    }
+    return (
+        favourites.isFavourited(props.productId) ||
+        (page.props.favourites?.includes(props.productId) ?? false)
+    );
 });
 
 function toggle() {
-    if (isToggling.value) return;
-
-    isToggling.value = true;
-    router
-        .optimistic((pageProps: unknown) => {
-            const propsRecord = pageProps as SharedProps;
-            const list = propsRecord.favourites ?? [];
-            const exists = list.includes(props.productId);
-            return {
-                favourites: exists
-                    ? list.filter((id) => id !== props.productId)
-                    : [...list, props.productId],
-            };
-        })
-        .post(
-            toggleFavourite.url(props.productId),
-            {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onFinish: () => {
-                    isToggling.value = false;
-                },
-            },
-        );
+    favourites.toggle(props.productId);
 }
 
 const iconSizeClasses = computed(() => {
@@ -98,7 +80,6 @@ const wrapperClasses = computed(() => {
                 ? `Remove ${productName || 'product'} from favourites`
                 : `Save ${productName || 'product'} to favourites`
         "
-        :disabled="isToggling"
     >
         <svg
             :class="[

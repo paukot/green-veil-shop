@@ -6,6 +6,7 @@ use App\Http\Resources\SimpleProductResource;
 use App\Models\Product;
 use App\Services\FavouriteService;
 use App\Services\ProductCatalogService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -38,5 +39,21 @@ class FavouriteController extends Controller
             : "Removed {$product->name} from your favourites.";
 
         return back()->with('success', $message);
+    }
+
+    public function sync(Request $request): JsonResponse
+    {
+        /** @var array{product_ids: array<int, int>} $validated */
+        $validated = $request->validate([
+            'product_ids' => ['present', 'array'],
+            'product_ids.*' => ['integer'],
+        ]);
+
+        $result = $this->favouriteService->syncFavourites(
+            $request,
+            $validated['product_ids']
+        );
+
+        return response()->json($result);
     }
 }
