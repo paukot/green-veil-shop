@@ -154,11 +154,12 @@ const { stop } = usePoll(
                 class="mt-6 rounded-2xl border border-sage-200 bg-sage-50/60 p-4 text-center text-xs text-sage-800"
             >
                 <p v-if="pollCount < maxPolls">
-                    We are waiting for payment confirmation from the payment processor.
+                    We are waiting for payment confirmation from the payment
+                    processor.
                 </p>
                 <p v-else>
-                    Your payment is being verified in the background. A
-                    formal receipt will be emailed to
+                    Your payment is being verified in the background. A formal
+                    receipt will be emailed to
                     {{ order.customer_email }} as soon as Stripe completes
                     processing.
                 </p>
