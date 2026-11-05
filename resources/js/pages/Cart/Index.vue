@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import { QuantityInput } from '@/components/form';
 import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
-import type { CartPageProps, CartItemData } from '@/types/storefront';
+import type { CartPageProps } from '@/types/storefront';
+import { useCart } from '@/composables/useCart';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
-import {
-    update as cartItemsUpdate,
-    destroy as cartItemsDestroy,
-} from '@/actions/App/Http/Controllers/CartItemController';
 import { show as checkoutShow } from '@/actions/App/Http/Controllers/CheckoutController';
 import { index as productsIndex } from '@/routes/products';
 
@@ -17,82 +14,123 @@ defineOptions({ layout: StorefrontLayout });
 
 const props = defineProps<CartPageProps>();
 
-const updatingItemId = ref<number | string | null>(null);
-const removingItemId = ref<number | string | null>(null);
+const cart = useCart();
+const isNavigatingToCheckout = ref(false);
 
-function updateQuantity(item: CartItemData, newQuantity: number) {
-    const itemKey = item.id ?? item.product_id;
+onMounted(() => {
+    cart.initFromServer(props.items);
+});
 
-    if (newQuantity < 1) {
-        removeItem(item);
-        return;
-    }
-
-    if (
-        item.product.track_inventory &&
-        newQuantity > item.product.stock_quantity
-    ) {
-        return;
-    }
-
-    updatingItemId.value = itemKey;
-    router.patch(
-        cartItemsUpdate.url(itemKey),
-        { quantity: newQuantity },
-        {
-            preserveScroll: true,
-            preserveState: true,
-            onFinish: () => {
-                updatingItemId.value = null;
-            },
-        },
-    );
-}
-
-function removeItem(item: CartItemData) {
-    const itemKey = item.id ?? item.product_id;
-    removingItemId.value = itemKey;
-    router.delete(cartItemsDestroy.url(itemKey), {
-        preserveScroll: true,
-        preserveState: true,
-        onFinish: () => {
-            removingItemId.value = null;
-        },
-    });
-}
+const freeShippingThreshold = computed(() => {
+    return props.summary.free_shipping_threshold > 0
+        ? props.summary.free_shipping_threshold
+        : 50;
+});
 
 const freeShippingProgress = computed(() => {
-    if (props.summary.free_shipping_threshold <= 0) return 100;
-    const percentage =
-        (props.summary.subtotal / props.summary.free_shipping_threshold) * 100;
-    return Math.min(100, Math.round(percentage));
+    return cart.freeShippingProgress(freeShippingThreshold.value);
 });
+
+const qualifiesForFreeShipping = computed(() => {
+    return cart.qualifiesForFreeShipping(freeShippingThreshold.value);
+});
+
+const amountUntilFreeShipping = computed(() => {
+    return cart.amountUntilFreeShipping(freeShippingThreshold.value);
+});
+
+const computedDeliveryOptions = computed(() => {
+    return props.deliveryOptions.map((option) => {
+        const isFree = Boolean(
+            option.free_threshold &&
+            cart.subtotal.value >= option.free_threshold,
+        );
+        return {
+            ...option,
+            is_free: isFree,
+        };
+    });
+});
+
+function dismissWarnings() {
+    cart.syncWarnings.value = [];
+}
+
+async function proceedToCheckout() {
+    if (cart.isEmpty.value || isNavigatingToCheckout.value) return;
+    isNavigatingToCheckout.value = true;
+    try {
+        await cart.flushSync();
+        router.visit(checkoutShow.url());
+    } catch {
+        isNavigatingToCheckout.value = false;
+    }
+}
 </script>
 
 <template>
     <Head title="Your Shopping Bag | Green Veil" />
 
     <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-        <h1
-            class="mb-8 font-serif text-3xl tracking-tight text-charcoal-900 sm:text-4xl"
-        >
-            Your Shopping Bag
-        </h1>
-
         <!-- If Cart has items -->
         <div
-            v-if="items.length > 0"
+            v-if="!cart.isEmpty.value"
             class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12"
         >
             <!-- Cart Items List (8 cols) -->
             <div class="space-y-6 lg:col-span-8">
+                <!-- Sync Warnings Alert -->
+                <div
+                    v-if="cart.syncWarnings.value.length > 0"
+                    class="space-y-1.5 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-xs text-amber-900 shadow-xs"
+                >
+                    <div
+                        class="flex items-center justify-between font-semibold text-amber-800"
+                    >
+                        <span class="flex items-center gap-1.5">
+                            <svg
+                                class="h-4 w-4 text-amber-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
+                            </svg>
+                            Inventory Adjustment Notice
+                        </span>
+                        <button
+                            type="button"
+                            @click="dismissWarnings"
+                            class="text-base leading-none text-amber-600 hover:text-amber-800"
+                            aria-label="Dismiss warnings"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                    <ul
+                        class="list-inside list-disc space-y-0.5 text-amber-800"
+                    >
+                        <li
+                            v-for="(warn, idx) in cart.syncWarnings.value"
+                            :key="idx"
+                        >
+                            {{ warn }}
+                        </li>
+                    </ul>
+                </div>
+
                 <!-- Free Shipping Progress Banner -->
                 <div
                     class="space-y-2.5 rounded-2xl border border-cream-200 bg-white p-4 shadow-xs sm:p-5"
                 >
                     <div class="flex items-center justify-between text-xs">
                         <span
-                            v-if="summary.qualifies_for_free_shipping"
+                            v-if="qualifiesForFreeShipping"
                             class="flex items-center gap-1.5 font-medium text-emerald-800"
                         >
                             <svg
@@ -116,9 +154,7 @@ const freeShippingProgress = computed(() => {
                         <span v-else class="text-charcoal-700">
                             Add
                             <span class="font-semibold text-sage-800">{{
-                                formatCurrency(
-                                    summary.amount_until_free_shipping,
-                                )
+                                formatCurrency(amountUntilFreeShipping)
                             }}</span>
                             more for free standard delivery
                         </span>
@@ -138,28 +174,24 @@ const freeShippingProgress = computed(() => {
 
                 <!-- Items Card Table -->
                 <div
-                    class="divide-y divide-cream-100 overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-xs"
+                    class="divide-y overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-xs"
                 >
                     <div
-                        v-for="item in items"
-                        :key="item.id ?? item.product_id"
+                        v-for="item in cart.items.value"
+                        :key="item.product_id"
                         class="flex flex-col items-start justify-between gap-4 p-4 transition-colors hover:bg-cream-50/50 sm:flex-row sm:items-center sm:p-6"
                     >
                         <!-- Product Image & Meta -->
                         <div class="flex min-w-0 flex-1 items-center gap-4">
                             <Link
-                                :href="productShow.url(item.product.slug)"
+                                :href="productShow.url(item.slug)"
                                 prefetch
                                 class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-cream-200 bg-cream-100 sm:h-24 sm:w-24"
                             >
                                 <img
-                                    v-if="item.product.main_image"
-                                    :src="
-                                        resolveStorageUrl(
-                                            item.product.main_image,
-                                        )
-                                    "
-                                    :alt="item.product.name"
+                                    v-if="item.main_image"
+                                    :src="resolveStorageUrl(item.main_image)"
+                                    :alt="item.name"
                                     class="h-full w-full object-cover object-center"
                                     loading="lazy"
                                 />
@@ -185,32 +217,31 @@ const freeShippingProgress = computed(() => {
 
                             <div class="min-w-0 space-y-1">
                                 <span
-                                    v-if="item.product.category"
+                                    v-if="item.category"
                                     class="block text-[11px] font-medium tracking-wider text-sage-600 uppercase"
                                 >
-                                    {{ item.product.category.name }}
+                                    {{ item.category.name }}
                                 </span>
                                 <Link
-                                    :href="productShow.url(item.product.slug)"
+                                    :href="productShow.url(item.slug)"
                                     prefetch
                                     class="block truncate font-serif text-sm text-charcoal-900 transition-colors hover:text-sage-700 sm:text-base"
                                 >
-                                    {{ item.product.name }}
+                                    {{ item.name }}
                                 </Link>
                                 <div class="text-charcoal-500 text-xs">
-                                    {{ formatCurrency(item.product.price) }}
+                                    {{ formatCurrency(item.price) }}
                                     each
                                 </div>
                                 <div
                                     v-if="
-                                        item.product.track_inventory &&
-                                        item.product.stock_quantity <= 5
+                                        item.track_inventory &&
+                                        item.stock_quantity <= 5
                                     "
                                     class="text-[11px] text-amber-700"
                                 >
                                     Only
-                                    {{ item.product.stock_quantity }} left in
-                                    stock
+                                    {{ item.stock_quantity }} left in stock
                                 </div>
                             </div>
                         </div>
@@ -224,38 +255,30 @@ const freeShippingProgress = computed(() => {
                                 :model-value="item.quantity"
                                 :min="1"
                                 :max="
-                                    item.product.track_inventory
-                                        ? item.product.stock_quantity
+                                    item.track_inventory
+                                        ? item.stock_quantity
                                         : 99
                                 "
-                                :disabled="
-                                    updatingItemId ===
-                                        (item.id ?? item.product_id) ||
-                                    removingItemId ===
-                                        (item.id ?? item.product_id)
+                                @change="
+                                    (qty) =>
+                                        cart.updateQuantity(
+                                            item.product_id,
+                                            qty,
+                                        )
                                 "
-                                :loading="
-                                    updatingItemId ===
-                                    (item.id ?? item.product_id)
-                                "
-                                @change="(qty) => updateQuantity(item, qty)"
                             />
 
                             <!-- Subtotal for item -->
                             <div
                                 class="w-20 text-right text-sm font-medium text-charcoal-900"
                             >
-                                {{ formatCurrency(item.subtotal) }}
+                                {{ formatCurrency(item.price * item.quantity) }}
                             </div>
 
                             <!-- Remove button -->
                             <button
                                 type="button"
-                                @click="removeItem(item)"
-                                :disabled="
-                                    removingItemId ===
-                                    (item.id ?? item.product_id)
-                                "
+                                @click="cart.removeItem(item.product_id)"
                                 class="text-charcoal-400 rounded-full p-1.5 transition-colors hover:bg-rose-50 hover:text-rose-600"
                                 aria-label="Remove item from bag"
                             >
@@ -279,7 +302,7 @@ const freeShippingProgress = computed(() => {
             </div>
 
             <!-- Order Summary Sidebar (4 cols) -->
-            <div class="space-y-6 lg:sticky lg:top-28 lg:col-span-4">
+            <div class="space-y-6 lg:sticky lg:top-32 lg:col-span-4">
                 <div
                     class="space-y-5 rounded-2xl border border-cream-200 bg-white p-6 shadow-xs"
                 >
@@ -293,9 +316,9 @@ const freeShippingProgress = computed(() => {
                     <div
                         class="flex items-center justify-between text-xs text-charcoal-700 sm:text-sm"
                     >
-                        <span>Subtotal ({{ summary.count }} items)</span>
+                        <span>Subtotal ({{ cart.count.value }} items)</span>
                         <span class="font-medium text-charcoal-900">{{
-                            formatCurrency(summary.subtotal)
+                            formatCurrency(cart.subtotal.value)
                         }}</span>
                     </div>
 
@@ -309,7 +332,7 @@ const freeShippingProgress = computed(() => {
                             Shipping Estimate
                         </span>
                         <div
-                            v-for="option in deliveryOptions"
+                            v-for="option in computedDeliveryOptions"
                             :key="option.id"
                             class="text-charcoal-600 flex items-center justify-between py-1"
                         >
@@ -337,7 +360,7 @@ const freeShippingProgress = computed(() => {
                             <span
                                 class="text-xl font-semibold text-charcoal-900"
                             >
-                                {{ formatCurrency(summary.subtotal) }}
+                                {{ formatCurrency(cart.subtotal.value) }}
                             </span>
                             <span class="text-charcoal-400 block text-[10px]"
                                 >+ Shipping calculated at checkout</span
@@ -345,13 +368,66 @@ const freeShippingProgress = computed(() => {
                         </div>
                     </div>
 
+                    <!-- Sync status indicator -->
+                    <div
+                        class="text-charcoal-400 flex items-center justify-center gap-1.5 text-[11px]"
+                    >
+                        <template v-if="cart.isSyncing.value">
+                            <svg
+                                class="h-3.5 w-3.5 animate-spin text-sage-600"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"
+                                ></path>
+                            </svg>
+                            <span>Syncing bag with apothecary...</span>
+                        </template>
+                    </div>
+
                     <!-- Checkout CTA -->
                     <div class="pt-2">
-                        <Link
-                            :href="checkoutShow.url()"
-                            class="flex w-full items-center justify-center gap-2 rounded-full bg-sage-800 px-6 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md active:scale-[0.99]"
+                        <button
+                            type="button"
+                            @click="proceedToCheckout"
+                            :disabled="
+                                isNavigatingToCheckout || cart.isEmpty.value
+                            "
+                            class="flex w-full items-center justify-center gap-2 rounded-full bg-sage-800 px-6 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <svg
+                                v-if="isNavigatingToCheckout"
+                                class="h-4 w-4 animate-spin text-cream-100"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"
+                                ></path>
+                            </svg>
+                            <svg
+                                v-else
                                 class="h-4 w-4"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -364,8 +440,12 @@ const freeShippingProgress = computed(() => {
                                     d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
                                 />
                             </svg>
-                            <span>Proceed to Checkout</span>
-                        </Link>
+                            <span>{{
+                                isNavigatingToCheckout
+                                    ? 'Securing Bag...'
+                                    : 'Proceed to Checkout'
+                            }}</span>
+                        </button>
                     </div>
 
                     <div class="text-center">

@@ -1,32 +1,53 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import FavouriteButton from '@/components/storefront/FavouriteButton.vue';
-import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import type { ProductCardData } from '@/types/storefront';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
-import { store as cartItemsStore } from '@/actions/App/Http/Controllers/CartItemController';
 import { formatCurrency } from '@/lib/utils';
+import { useCart } from '@/composables/useCart';
 
 const props = defineProps<{
     product: ProductCardData;
 }>();
 
-const isAdding = ref(false);
-function addToBag() {
-    if (!props.product.is_in_stock || isAdding.value) return;
-    isAdding.value = true;
-    router.post(
-        cartItemsStore.url(),
-        { product_id: props.product.id, quantity: 1 },
-        {
-            preserveScroll: true,
-            preserveState: true,
-            onFinish: () => {
-                isAdding.value = false;
-            },
-        },
+const cart = useCart();
+const justAdded = ref(false);
+
+const cartItem = computed(() => {
+    return cart.items.value.find(
+        (item) => item.product_id === props.product.id,
     );
+});
+
+const quantityInCart = computed(() => cartItem.value?.quantity ?? 0);
+
+const isMaxStockReached = computed(() => {
+    if (!props.product.track_inventory) return false;
+    const max = props.product.stock_quantity ?? 99;
+    return quantityInCart.value >= max;
+});
+
+function addToBag() {
+    if (!props.product.is_in_stock) return;
+    cart.addItem(props.product, 1);
+    justAdded.value = true;
+    setTimeout(() => {
+        justAdded.value = false;
+    }, 800);
+}
+
+function incrementInBag() {
+    if (!props.product.is_in_stock || isMaxStockReached.value) return;
+    cart.updateQuantity(props.product.id, quantityInCart.value + 1);
+}
+
+function decrementFromBag() {
+    if (quantityInCart.value <= 1) {
+        cart.removeItem(props.product.id);
+    } else {
+        cart.updateQuantity(props.product.id, quantityInCart.value - 1);
+    }
 }
 
 const formattedPrice = computed(() => formatCurrency(props.product.price));
@@ -67,6 +88,12 @@ const formattedComparePrice = computed(() => {
                     -{{ product.discount_percentage }}%
                 </span>
                 <span
+                    v-if="product.variants_count && product.variants_count > 1"
+                    class="rounded-full border border-cream-300 bg-cream-50/95 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs"
+                >
+                    +{{ product.variants_count }} options
+                </span>
+                <span
                     v-if="!product.is_in_stock"
                     class="rounded-full bg-charcoal-700 px-2 py-0.5 text-[10px] font-medium tracking-wider text-cream-100 uppercase"
                 >
@@ -85,12 +112,26 @@ const formattedComparePrice = computed(() => {
         <!-- Product Info -->
         <div class="flex grow flex-col justify-between space-y-3 p-5">
             <div class="space-y-1">
-                <span
-                    v-if="product.category"
-                    class="block text-[11px] font-medium tracking-wider text-sage-600 uppercase"
+                <!-- Brand & Category Label -->
+                <div
+                    class="flex items-center gap-1.5 truncate text-[11px] font-medium tracking-wider text-sage-600 uppercase"
                 >
-                    {{ product.category.name }}
-                </span>
+                    <span
+                        v-if="product.brand"
+                        class="font-semibold text-charcoal-700"
+                    >
+                        {{ product.brand.name }}
+                    </span>
+                </div>
+
+                <div
+                    class="flex items-center gap-1.5 truncate text-[9px] font-medium tracking-wider text-sage-600 uppercase"
+                >
+                    <span v-if="product.category">
+                        {{ product.category.name }}
+                    </span>
+                </div>
+
                 <Link
                     :href="productShow.url(product.slug)"
                     prefetch
@@ -98,62 +139,199 @@ const formattedComparePrice = computed(() => {
                 >
                     {{ product.name }}
                 </Link>
+
                 <p
                     v-if="product.short_description"
-                    class="text-charcoal-500 line-clamp-2 text-xs leading-relaxed"
+                    class="text-charcoal-500 line-clamp-2 text-xs leading-relaxed font-light"
                 >
                     {{ product.short_description }}
                 </p>
             </div>
 
-            <div
-                class="flex items-center justify-between border-t border-cream-100 pt-2"
-            >
-                <div class="flex items-baseline gap-2">
-                    <span
-                        class="text-sm font-medium text-charcoal-900 sm:text-base"
-                    >
-                        {{ formattedPrice }}
-                    </span>
-                    <span
-                        v-if="formattedComparePrice"
-                        class="text-charcoal-400 text-xs line-through"
-                    >
-                        {{ formattedComparePrice }}
-                    </span>
-                </div>
+            <div class="space-y-1.5 border-t border-cream-100 pt-2.5">
+                <!-- Pricing & Unit Price -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <span
+                                class="text-sm font-semibold text-charcoal-900 sm:text-base"
+                            >
+                                {{ formattedPrice }}
+                            </span>
+                            <span
+                                v-if="formattedComparePrice"
+                                class="text-charcoal-400 text-xs line-through"
+                            >
+                                {{ formattedComparePrice }}
+                            </span>
+                        </div>
+                        <!-- EU Directive 98/6/EC Unit Price & Volume -->
+                        <div class="text-charcoal-400 text-[11px]">
+                            <span v-if="product.volume"
+                                >{{ product.volume }}
+                                {{ product.unit || 'ml' }}</span
+                            >
+                        </div>
 
-                <!-- Add to Bag Action -->
-                <button
-                    v-if="product.is_in_stock"
-                    type="button"
-                    @click="addToBag"
-                    :disabled="isAdding"
-                    class="rounded-full bg-sage-50 p-2 text-sage-700 shadow-xs transition-all hover:bg-sage-700 hover:text-white focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                    :aria-label="`Add ${product.name} to bag`"
-                >
-                    <svg
-                        v-if="!isAdding"
-                        class="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.75"
-                            d="M12 4.5v15m7.5-7.5h-15"
-                        />
-                    </svg>
-                    <LoadingSpinner v-else size="sm" />
-                </button>
-                <span
-                    v-else
-                    class="text-charcoal-400 rounded-md bg-cream-100 px-2 py-1 text-[10px] font-semibold uppercase select-none"
-                >
-                    Out of stock
-                </span>
+                        <div
+                            v-if="
+                                product.formatted_unit_price || product.volume
+                            "
+                            class="text-charcoal-400 text-[11px]"
+                        >
+                            <span
+                                v-if="
+                                    product.volume &&
+                                    product.formatted_unit_price
+                                "
+                            >
+                            </span>
+                            <span v-if="product.formatted_unit_price">{{
+                                product.formatted_unit_price
+                            }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Add / Remove Cart Actions -->
+                    <div v-if="product.is_in_stock" class="shrink-0">
+                        <!-- When not in bag: Add button -->
+                        <button
+                            v-if="quantityInCart === 0"
+                            type="button"
+                            @click="addToBag"
+                            class="flex h-8 w-8 items-center justify-center rounded-full shadow-xs transition-all focus:ring-2 focus:ring-sage-500 focus:outline-none"
+                            :class="
+                                justAdded
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-sage-50 text-sage-700 hover:bg-sage-700 hover:text-white'
+                            "
+                            :aria-label="`Add ${product.name} to bag`"
+                            title="Add to bag"
+                        >
+                            <svg
+                                v-if="!justAdded"
+                                class="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4.5v15m7.5-7.5h-15"
+                                />
+                            </svg>
+                            <svg
+                                v-else
+                                class="h-4 w-4 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2.5"
+                                    d="M4.5 12.75l6 6 9-13.5"
+                                />
+                            </svg>
+                        </button>
+
+                        <!-- When already in bag: Add / Remove Stepper -->
+                        <div
+                            v-else
+                            class="flex items-center rounded-full border border-sage-200 bg-sage-50/90 p-0.5 shadow-xs transition-all"
+                        >
+                            <!-- Decrement / Remove -->
+                            <button
+                                type="button"
+                                @click="decrementFromBag"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-sage-800 transition-colors focus:outline-none"
+                                :class="
+                                    quantityInCart === 1
+                                        ? 'hover:bg-rose-100 hover:text-rose-700'
+                                        : 'hover:bg-sage-200'
+                                "
+                                :aria-label="
+                                    quantityInCart === 1
+                                        ? `Remove ${product.name} from bag`
+                                        : `Decrease ${product.name} quantity`
+                                "
+                                :title="
+                                    quantityInCart === 1
+                                        ? 'Remove from bag'
+                                        : 'Decrease quantity'
+                                "
+                            >
+                                <!-- Trash icon if 1, minus icon if > 1 -->
+                                <svg
+                                    v-if="quantityInCart === 1"
+                                    class="h-3.5 w-3.5 text-rose-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.75"
+                                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                    />
+                                </svg>
+                                <svg
+                                    v-else
+                                    class="h-3.5 w-3.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19.5 12h-15"
+                                    />
+                                </svg>
+                            </button>
+
+                            <!-- Quantity in Bag -->
+                            <span
+                                class="min-w-6 px-1.5 text-center font-mono text-xs font-semibold text-charcoal-900"
+                            >
+                                {{ quantityInCart }}
+                            </span>
+
+                            <!-- Increment / Add -->
+                            <button
+                                type="button"
+                                @click="incrementInBag"
+                                :disabled="isMaxStockReached"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-sage-800 transition-colors hover:bg-sage-200 hover:text-charcoal-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+                                :aria-label="`Add another ${product.name} to bag`"
+                                :title="
+                                    isMaxStockReached
+                                        ? 'Maximum available stock reached'
+                                        : 'Add one more'
+                                "
+                            >
+                                <svg
+                                    class="h-3.5 w-3.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 4.5v15m7.5-7.5h-15"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

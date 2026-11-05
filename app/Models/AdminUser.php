@@ -133,7 +133,7 @@ class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentic
     {
         return match (true) {
             str_ends_with($ability, '_order') || str_ends_with($ability, '_order_item') => 'orders',
-            str_ends_with($ability, '_product') || str_ends_with($ability, '_category') || str_ends_with($ability, '_promotion') => 'shop',
+            str_ends_with($ability, '_product') || str_ends_with($ability, '_category') || str_ends_with($ability, '_promotion') || str_ends_with($ability, '_brand') => 'shop',
             str_ends_with($ability, '_user') || str_ends_with($ability, '_customer') => 'customers',
             str_ends_with($ability, '_payment') => 'finance',
             str_ends_with($ability, '_slider_item') => 'marketing',

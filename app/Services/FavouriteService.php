@@ -145,4 +145,54 @@ class FavouriteService
 
         return [];
     }
+
+    /**
+     * Reconcile favourites from frontend local storage with database/session state.
+     * Prunes inactive or non-existent products.
+     *
+     * @param  array<int, int>  $productIds
+     * @return array{favourites: array<int, int>, count: int}
+     */
+    public function syncFavourites(Request $request, array $productIds): array
+    {
+        $sanitizedIds = collect($productIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $validIds = Product::query()
+            ->whereIn('id', $sanitizedIds)
+            ->where('is_active', true)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $user = $request->user();
+        if ($user instanceof User) {
+            // Delete favourites not in the reconciled set
+            Favourite::query()
+                ->where('user_id', $user->id)
+                ->whereNotIn('product_id', $validIds)
+                ->delete();
+
+            // Insert new favourites
+            foreach ($validIds as $id) {
+                Favourite::firstOrCreate([
+                    'user_id' => $user->id,
+                    'product_id' => $id,
+                ]);
+            }
+        } else {
+            // Guest session
+            $request->session()->put('favourites', $validIds);
+        }
+
+        return [
+            'favourites' => $validIds,
+            'count' => count($validIds),
+        ];
+    }
 }

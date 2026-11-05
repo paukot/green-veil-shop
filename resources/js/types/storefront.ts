@@ -74,7 +74,18 @@ export type ProductCardData = {
         slug: string;
         name: string;
     } | null;
+    stock_quantity?: number;
+    track_inventory?: boolean;
     is_in_stock: boolean;
+    brand?: {
+        id: number;
+        name: string;
+        slug: string;
+    } | null;
+    volume?: number | null;
+    unit?: string;
+    formatted_unit_price?: string | null;
+    variants_count?: number;
 };
 
 export type CategoryCardData = {
@@ -123,6 +134,80 @@ export type BreadcrumbItem = {
     url: string;
 };
 
+export type ProductVariantItem = {
+    id: number;
+    name: string;
+    variant_type: string;
+    color_hex?: string | null;
+    sku?: string | null;
+    barcode?: string | null;
+    price: number;
+    compare_at_price?: number | null;
+    stock_quantity: number;
+    track_inventory: boolean;
+    is_in_stock: boolean;
+    is_default: boolean;
+    image?: string | null;
+    sort_order: number;
+};
+
+export type CosmeticLookupItem = {
+    id: number;
+    name: string;
+    slug: string;
+};
+
+export type FacetOption = {
+    id?: number;
+    value?: string;
+    name?: string;
+    slug?: string;
+    products_count?: number;
+    count?: number;
+};
+
+export type FilterFacets = {
+    brands: FacetOption[];
+    skin_types: FacetOption[];
+    hair_types: FacetOption[];
+    effects: FacetOption[];
+    ingredients: FacetOption[];
+    claims: FacetOption[];
+    classifications: FacetOption[];
+    formula_types: FacetOption[];
+    genders: FacetOption[];
+    spf: FacetOption[];
+    origins: FacetOption[];
+    price_bounds: { min: number; max: number };
+};
+
+export type CatalogFilters = {
+    q?: string;
+    category?: string;
+    brands?: string;
+    skin_types?: string;
+    hair_types?: string;
+    effects?: string;
+    ingredients?: string;
+    claims?: string;
+    classifications?: string;
+    formula_types?: string;
+    genders?: string;
+    spf?: string;
+    manufactured_in?: string;
+    min_price?: number | string | null;
+    max_price?: number | string | null;
+    in_stock?: boolean;
+    sort?: string;
+};
+
+export type CategoryFilterItem = {
+    id: number;
+    slug: string;
+    name: string;
+    products_count: number;
+};
+
 export type CategoryPageProps = {
     category: {
         id: number;
@@ -144,29 +229,19 @@ export type CategoryPageProps = {
     };
     products: PaginatedData<ProductCardData>;
     breadcrumbs: BreadcrumbItem[];
-    filters?: CatalogFilters;
-};
-
-export type CatalogFilters = {
-    q?: string;
-    category?: string;
-    min_price?: number | string | null;
-    max_price?: number | string | null;
-    in_stock?: boolean;
-    sort?: string;
-};
-
-export type CategoryFilterItem = {
-    id: number;
-    slug: string;
-    name: string;
-    products_count: number;
+    filters: CatalogFilters;
+    facets?: FilterFacets;
+    priceRange?: {
+        min: number;
+        max: number;
+    };
 };
 
 export type CatalogIndexProps = {
     products: PaginatedData<ProductCardData>;
     filters: CatalogFilters;
     categories: CategoryFilterItem[];
+    facets?: FilterFacets;
     priceRange: {
         min: number;
         max: number;
@@ -183,6 +258,7 @@ export type ProductImageDetail = {
 export type ProductDetail = {
     id: number;
     sku?: string | null;
+    barcode?: string | null;
     slug: string;
     name: string;
     short_description?: string | null;
@@ -201,6 +277,47 @@ export type ProductDetail = {
         name: string;
     } | null;
     promotions: PromotionBanner[];
+
+    // Brand & Series
+    brand?: {
+        id: number;
+        name: string;
+        slug: string;
+        logo_path?: string | null;
+    } | null;
+    series?: string | null;
+
+    // Volume & EU Unit Pricing
+    volume?: number | null;
+    unit?: string;
+    unit_price_base_amount?: number;
+    formatted_unit_price?: string | null;
+
+    // Cosmetic Classification & Demographics
+    classification?: string | null;
+    gender?: string;
+    age_range?: string | null;
+    formula_type?: string | null;
+    spf?: string | null;
+
+    // Origin & Regulatory
+    manufactured_in?: string | null;
+    pao_months?: number | null;
+    responsible_person?: string | null;
+
+    // Editorial & Regulatory Content
+    inci_list?: string | null;
+    how_to_use?: string | null;
+    warnings?: string | null;
+    custom_characteristics?: Record<string, string> | null;
+
+    // Variants & Lookups
+    variants?: ProductVariantItem[];
+    skin_types?: CosmeticLookupItem[];
+    hair_types?: CosmeticLookupItem[];
+    effects?: CosmeticLookupItem[];
+    ingredients?: CosmeticLookupItem[];
+    claims?: CosmeticLookupItem[];
 };
 
 export type ProductDetailPageProps = {

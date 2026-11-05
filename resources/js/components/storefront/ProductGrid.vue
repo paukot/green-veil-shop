@@ -10,7 +10,7 @@ defineProps<{
 <template>
     <div
         v-if="products.length > 0"
-        class="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-8"
+        class="grid grid-cols-2 gap-4 sm:gap-2 md:grid-cols-3 xl:grid-cols-4"
     >
         <ProductCard
             v-for="product in products"

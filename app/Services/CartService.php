@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Http\Resources\CartItemResource;
+use App\Http\Resources\DeliveryOptionResource;
 use App\Models\CartItem;
+use App\Models\DeliveryOption;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -386,5 +389,127 @@ class CartService
         if ($requestOrCart instanceof Request && $requestOrCart->hasSession()) {
             $requestOrCart->session()->forget('cart');
         }
+    }
+
+    /**
+     * Atomically sync cart items from frontend local storage.
+     * Reconciles inventory limits, active status, and recalculates summary and delivery options.
+     *
+     * @param  array<int, array{product_id: int, quantity: int}>  $items
+     * @return array<string, mixed>
+     */
+    public function syncCart(Request $request, array $items): array
+    {
+        $warnings = [];
+        $productIds = collect($items)->pluck('product_id')->filter()->unique();
+
+        $products = Product::query()
+            ->whereIn('id', $productIds)
+            ->with(['category:id,slug,name', 'brand:id,slug,name'])
+            ->get()
+            ->keyBy('id');
+
+        $reconciledItems = [];
+
+        foreach ($items as $entry) {
+            $productId = (int) $entry['product_id'];
+            $requestedQty = (int) $entry['quantity'];
+
+            if ($productId <= 0 || $requestedQty <= 0) {
+                continue;
+            }
+
+            $product = $products->get($productId);
+
+            // Inactive or deleted product
+            if (! $product || ! $product->is_active) {
+                $name = $product ? $product->name : "Item #{$productId}";
+                $warnings[] = "{$name} is no longer available and was removed from your bag.";
+
+                continue;
+            }
+
+            // Check stock
+            $finalQty = $requestedQty;
+            if ($product->track_inventory) {
+                if ($product->stock_quantity <= 0) {
+                    $warnings[] = "{$product->name} is currently out of stock and was removed from your bag.";
+
+                    continue;
+                }
+
+                if ($requestedQty > $product->stock_quantity) {
+                    $finalQty = $product->stock_quantity;
+                    $warnings[] = "Limited stock: {$product->name} quantity was adjusted to {$finalQty} available.";
+                }
+            }
+
+            $reconciledItems[$productId] = $finalQty;
+        }
+
+        // Persist reconciled state
+        $user = $request->user();
+        if ($user instanceof User) {
+            // Delete items not in reconciled set
+            CartItem::query()
+                ->where('user_id', $user->id)
+                ->whereNotIn('product_id', array_keys($reconciledItems))
+                ->delete();
+
+            // Upsert remaining
+            foreach ($reconciledItems as $pId => $qty) {
+                CartItem::updateOrCreate(
+                    ['user_id' => $user->id, 'product_id' => $pId],
+                    ['quantity' => $qty]
+                );
+            }
+
+            $currentCartItems = $this->getItemsFromUser($user);
+        } else {
+            // Guest session
+            $sessionCart = [];
+            foreach ($reconciledItems as $pId => $qty) {
+                $sessionCart[$pId] = [
+                    'id' => $pId,
+                    'product_id' => $pId,
+                    'quantity' => $qty,
+                ];
+            }
+            $request->session()->put('cart', $sessionCart);
+
+            $currentCartItems = $this->getItemsFromSession($request);
+        }
+
+        $summary = $this->getSummaryFromCartItems($currentCartItems);
+
+        // Fetch delivery options and calculate thresholds
+        $standardDelivery = DeliveryOption::query()
+            ->active()
+            ->whereNotNull('free_threshold')
+            ->orderBy('free_threshold')
+            ->first();
+
+        $freeShippingThreshold = $standardDelivery?->free_threshold ? (float) $standardDelivery->free_threshold : 50.00;
+        $amountUntilFreeShipping = max(0, round($freeShippingThreshold - $summary['subtotal'], 2));
+
+        $deliveryOptions = DeliveryOption::query()
+            ->active()
+            ->get()
+            ->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
+                ->withSubtotal($summary['subtotal'])
+            );
+
+        return [
+            'items' => CartItemResource::collection($currentCartItems)->resolve(),
+            'summary' => [
+                'count' => $summary['count'],
+                'subtotal' => $summary['subtotal'],
+                'free_shipping_threshold' => $freeShippingThreshold,
+                'amount_until_free_shipping' => (float) $amountUntilFreeShipping,
+                'qualifies_for_free_shipping' => $summary['subtotal'] >= $freeShippingThreshold,
+            ],
+            'delivery_options' => $deliveryOptions,
+            'warnings' => $warnings,
+        ];
     }
 }

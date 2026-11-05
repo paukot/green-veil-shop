@@ -1,19 +1,37 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import StorefrontHeader from '@/components/storefront/layout/StorefrontHeader.vue';
 import StorefrontFooter from '@/components/storefront/layout/StorefrontFooter.vue';
 import ToastNotification from '@/components/storefront/layout/ToastNotification.vue';
 import MobileNavigationDrawer from '@/components/storefront/MobileNavigationDrawer.vue';
 import type { SharedProps } from '@/types/storefront';
+import { useCart } from '@/composables/useCart';
+import { useFavourites } from '@/composables/useFavourites';
 
 const page = usePage<SharedProps>();
 const mobileMenuOpen = ref(false);
+const cart = useCart();
+const favourites = useFavourites();
+
+onMounted(() => {
+    if (page.props.favourites) {
+        favourites.initFromServer(page.props.favourites);
+    }
+});
 
 const user = computed(() => page.props.auth?.user);
 const navigation = computed(() => page.props.navigation || []);
-const cartCount = computed(() => page.props.cart?.count ?? 0);
-const favouritesCount = computed(() => page.props.favourites?.length ?? 0);
+const cartCount = computed(() => {
+    return cart.count.value > 0
+        ? cart.count.value
+        : (page.props.cart?.count ?? 0);
+});
+const favouritesCount = computed(() => {
+    return favourites.productIds.value.length > 0
+        ? favourites.count.value
+        : (page.props.favourites?.length ?? 0);
+});
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 import type { Directive } from 'vue';
-import type { Auth } from '@/types/auth';
+import type { SharedProps } from '@/types/storefront';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -14,8 +14,6 @@ declare module 'vite/client' {
     }
 }
 
-import type { SharedProps } from '@/types/storefront';
-
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: SharedProps;
@@ -25,11 +23,5 @@ declare module '@inertiajs/core' {
 declare module 'vue' {
     interface GlobalDirectives {
         vFocus: Directive<HTMLElement, boolean | undefined>;
-    }
-
-    interface ComponentCustomProperties {
-        $inertia: typeof Router;
-        $page: Page;
-        $headManager: ReturnType<typeof createHeadManager>;
     }
 }

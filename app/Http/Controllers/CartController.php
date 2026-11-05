@@ -6,6 +6,7 @@ use App\Http\Resources\CartItemResource;
 use App\Http\Resources\DeliveryOptionResource;
 use App\Models\DeliveryOption;
 use App\Services\CartService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -48,5 +49,21 @@ class CartController extends Controller
             ],
             'deliveryOptions' => $deliveryOptions,
         ]);
+    }
+
+    public function sync(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'items' => ['present', 'array'],
+            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:999'],
+        ]);
+
+        /** @var array<int, array{product_id: int, quantity: int}> $items */
+        $items = $validated['items'];
+
+        $reconciliation = $this->cartService->syncCart($request, $items);
+
+        return response()->json($reconciliation);
     }
 }
