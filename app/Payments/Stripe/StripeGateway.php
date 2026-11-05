@@ -89,6 +89,14 @@ class StripeGateway implements PaymentGateway
                     'public_id' => $order->public_id,
                     'order_number' => $order->number,
                 ],
+                'payment_intent_data' => [
+                    'metadata' => [
+                        'order_id' => (string) $order->id,
+                        'public_id' => $order->public_id,
+                        'order_number' => $order->number,
+                    ],
+                    'description' => "Order {$order->number}",
+                ],
                 'line_items' => $lineItems,
                 'success_url' => url('/checkout/success?order='.$order->public_id),
                 'cancel_url' => url('/checkout/cancel?order='.$order->public_id),

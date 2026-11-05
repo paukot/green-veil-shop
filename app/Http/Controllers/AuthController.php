@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Checkout\ClaimGuestOrders;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
@@ -30,7 +31,8 @@ class AuthController extends Controller
     public function storeLogin(
         LoginRequest $request,
         CartService $cartService,
-        FavouriteService $favouriteService
+        FavouriteService $favouriteService,
+        ClaimGuestOrders $claimGuestOrders
     ): RedirectResponse {
         // Capture guest session data before session regeneration if any
         $guestCart = $request->session()->get('cart', []);
@@ -45,6 +47,7 @@ class AuthController extends Controller
         // Merge guest items into customer records
         $cartService->mergeGuestCart($guestCart, $user);
         $favouriteService->mergeGuestFavourites($guestFavourites, $user);
+        $claimGuestOrders->execute($user);
         $request->session()->forget(['cart', 'favourites']);
 
         return redirect()->intended(route('home'))->with('success', 'Welcome back to Green Veil!');
@@ -64,7 +67,8 @@ class AuthController extends Controller
     public function storeRegister(
         RegisterRequest $request,
         CartService $cartService,
-        FavouriteService $favouriteService
+        FavouriteService $favouriteService,
+        ClaimGuestOrders $claimGuestOrders
     ): RedirectResponse {
         $guestCart = $request->session()->get('cart', []);
         $guestFavourites = $request->session()->get('favourites', []);
@@ -82,6 +86,7 @@ class AuthController extends Controller
         // Merge guest items into newly registered customer
         $cartService->mergeGuestCart($guestCart, $user);
         $favouriteService->mergeGuestFavourites($guestFavourites, $user);
+        $claimGuestOrders->execute($user);
         $request->session()->forget(['cart', 'favourites']);
 
         return redirect()->intended(route('home'))->with('success', 'Account created successfully! Welcome to Green Veil.');
