@@ -26,7 +26,31 @@ class ProductController extends Controller
 
     public function index(Request $request): Response
     {
-        $filters = $request->only(['q', 'category', 'min_price', 'max_price', 'in_stock', 'sort']);
+        $filters = $request->only([
+            'q',
+            'category',
+            'brand',
+            'brands',
+            'min_price',
+            'max_price',
+            'in_stock',
+            'sort',
+            'skin_type',
+            'skin_types',
+            'hair_type',
+            'hair_types',
+            'effect',
+            'effects',
+            'ingredient',
+            'ingredients',
+            'claim',
+            'claims',
+            'classification',
+            'formula_type',
+            'gender',
+            'spf',
+            'manufactured_in',
+        ]);
 
         $products = $this->catalogService
             ->getFilteredProductsQuery($filters)

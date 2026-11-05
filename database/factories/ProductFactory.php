@@ -2,9 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
 use App\Models\Promotion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -29,10 +31,32 @@ class ProductFactory extends Factory
 
         return [
             'category_id' => Category::factory(),
+            'brand_id' => null,
+            'series' => fake()->boolean(60) ? fake()->words(2, true) : null,
             'sku' => fake()->unique()->bothify('GV-####-??'),
+            'barcode' => fake()->ean13(),
             'name' => ucfirst($name),
             'slug' => Str::slug($name),
             'price' => fake()->randomFloat(2, 10, 80),
+            'compare_at_price' => fake()->boolean(40) ? fake()->randomFloat(2, 85, 120) : null,
+            'volume' => fake()->randomElement([7.2, 10.0, 30.0, 50.0, 100.0, 200.0, 250.0]),
+            'unit' => 'ml',
+            'unit_price_base_amount' => 100,
+            'classification' => fake()->randomElement(['drugstore', 'dermocosmetic', 'natural_organic', 'luxury', 'professional']),
+            'gender' => fake()->randomElement(['unisex', 'women', 'men']),
+            'age_range' => fake()->randomElement(['all', '20+', '30+', '40+']),
+            'formula_type' => fake()->randomElement(['cream', 'serum', 'gel', 'liquid', 'oil', 'balm']),
+            'spf' => fake()->randomElement(['none', 'SPF 15', 'SPF 30', 'SPF 50']),
+            'custom_characteristics' => [
+                'Texture' => 'Lightweight',
+                'Finish' => 'Natural Glow',
+            ],
+            'inci_list' => 'Aqua/Water, Glycerin, Dimethicone, Niacinamide, Cetearyl Alcohol, Sodium Hyaluronate, Tocopherol, Phenoxyethanol.',
+            'how_to_use' => 'Apply gently onto cleansed face and neck morning and evening. Avoid direct eye contact.',
+            'warnings' => 'For external use only. Discontinue use if irritation occurs. Store in a cool, dry place below 25°C.',
+            'manufactured_in' => fake()->randomElement(['PL', 'FR', 'IT', 'DE', 'US', 'KR']),
+            'pao_months' => fake()->randomElement([6, 12, 24]),
+            'responsible_person' => 'Green Veil Cosmetics Sp. z o.o., Warsaw, Poland',
             'stock_quantity' => fake()->numberBetween(5, 50),
             'track_inventory' => true,
             'is_active' => true,
@@ -42,6 +66,13 @@ class ProductFactory extends Factory
             'short_description' => fake()->sentence(),
             'description' => fake()->paragraph(),
         ];
+    }
+
+    public function withBrand(?Brand $brand = null): static
+    {
+        return $this->state(fn () => [
+            'brand_id' => $brand ? $brand->id : Brand::factory(),
+        ]);
     }
 
     public function featured(): static
@@ -110,6 +141,19 @@ class ProductFactory extends Factory
                     'product_id' => $product->id,
                     'sort_order' => $i,
                     'is_primary' => $i === 0,
+                ]);
+            }
+        });
+    }
+
+    public function withVariants(int $count = 3): static
+    {
+        return $this->afterCreating(function (Product $product) use ($count) {
+            for ($i = 0; $i < $count; $i++) {
+                ProductVariant::factory()->create([
+                    'product_id' => $product->id,
+                    'is_default' => $i === 0,
+                    'sort_order' => $i,
                 ]);
             }
         });
