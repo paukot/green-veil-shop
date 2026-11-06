@@ -83,6 +83,8 @@ class CheckoutController extends Controller
             ]);
         }
 
+        $this->cartService->clearCart($request);
+
         if ($driver === 'stripe' && $result->redirectUrl) {
             if ($result->sessionId) {
                 $order->update(['stripe_session_id' => $result->sessionId]);
@@ -102,8 +104,6 @@ class CheckoutController extends Controller
         }
 
         // Non-stripe payment options (direct bank transfer, COD)
-        $this->cartService->clearCart($request);
-
         Mail::to($order->customer_email)->queue(
             new OrderConfirmationMail($order)
         );

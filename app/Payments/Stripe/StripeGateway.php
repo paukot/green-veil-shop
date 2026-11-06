@@ -21,7 +21,7 @@ class StripeGateway implements PaymentGateway
     public function createCheckout(Order $order): CheckoutResult
     {
         try {
-            $order->loadMissing(['items', 'deliveryOption']);
+            $order->loadMissing(['items', 'deliveryOption', 'promotion']);
 
             if ($order->items->isEmpty()) {
                 return CheckoutResult::failed('Cannot create Stripe checkout session for an order without items.');
@@ -30,14 +30,8 @@ class StripeGateway implements PaymentGateway
             $currency = strtolower($order->currency ?: 'eur');
             $lineItems = [];
 
-            $discountRatio = ($order->subtotal > 0 && $order->discount_amount > 0)
-                ? max(0, ($order->subtotal - $order->discount_amount) / $order->subtotal)
-                : 1.0;
-
-            $itemsTotalCents = 0;
-
             foreach ($order->items as $item) {
-                $unitCents = (int) round($item->unit_price * $discountRatio * 100);
+                $unitCents = (int) round($item->unit_price * 100);
                 $productData = ['name' => $item->product_name];
 
                 if (! empty($item->product_sku)) {
@@ -52,8 +46,6 @@ class StripeGateway implements PaymentGateway
                     ],
                     'quantity' => (int) $item->quantity,
                 ];
-
-                $itemsTotalCents += ($unitCents * (int) $item->quantity);
             }
 
             $deliveryCents = (int) round($order->delivery_amount * 100);
@@ -71,17 +63,11 @@ class StripeGateway implements PaymentGateway
                 ];
             }
 
-            // Adjust any 1-cent discrepancy caused by percentage discount rounding
-            $targetTotalCents = (int) round($order->total * 100);
-            $currentTotalCents = $itemsTotalCents + $deliveryCents;
-            $diff = $targetTotalCents - $currentTotalCents;
-
-            if ($diff !== 0 && count($lineItems) > 0) {
-                $lineItems[0]['price_data']['unit_amount'] += $diff;
-            }
-
             $params = [
                 'mode' => 'payment',
+                'adaptive_pricing' => [
+                    'enabled' => false,
+                ],
                 'customer_email' => $order->customer_email,
                 'client_reference_id' => (string) $order->id,
                 'metadata' => [
@@ -102,6 +88,26 @@ class StripeGateway implements PaymentGateway
                 'cancel_url' => url('/checkout/cancel?order='.$order->public_id),
                 'expires_at' => time() + (31 * 60),
             ];
+
+            $discountCents = (int) round($order->discount_amount * 100);
+            if ($discountCents > 0) {
+                $discountName = ! empty($order->promotion->code)
+                    ? "Discount ({$order->promotion->code})"
+                    : 'Order Discount';
+
+                $coupon = $this->client->coupons->create([
+                    'amount_off' => $discountCents,
+                    'currency' => $currency,
+                    'duration' => 'once',
+                    'name' => $discountName,
+                ], [
+                    'idempotency_key' => "order_coupon_{$order->public_id}_{$discountCents}",
+                ]);
+
+                $params['discounts'] = [
+                    ['coupon' => $coupon->id],
+                ];
+            }
 
             $session = $this->client->checkout->sessions->create($params, [
                 'idempotency_key' => "order_{$order->public_id}",

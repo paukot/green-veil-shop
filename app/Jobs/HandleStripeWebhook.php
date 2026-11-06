@@ -60,6 +60,8 @@ class HandleStripeWebhook implements ShouldQueue
 
     /**
      * @param  array<string, mixed>  $sessionData
+     *
+     * @throws \Throwable
      */
     protected function handleSessionCompleted(array $sessionData, MarkOrderPaid $markOrderPaid): void
     {
@@ -73,7 +75,7 @@ class HandleStripeWebhook implements ShouldQueue
 
         $paymentStatus = $sessionData['payment_status'] ?? 'unpaid';
 
-        if ($paymentStatus === 'paid') {
+        if ($paymentStatus === PaymentStatus::Paid->value) {
             $markOrderPaid->execute($order, $sessionData);
         } else {
             Log::info("Order {$order->number} checkout session completed with payment_status: {$paymentStatus} (awaiting async confirmation).");

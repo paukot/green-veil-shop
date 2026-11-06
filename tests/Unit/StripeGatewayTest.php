@@ -52,6 +52,7 @@ test('creates checkout session with correct line items, amounts, metadata, expir
         ->withArgs(function (array $params, array $opts) use ($order) {
             // Check session mode and customer info
             expect($params['mode'])->toBe('payment');
+            expect($params['adaptive_pricing']['enabled'])->toBeFalse();
             expect($params['customer_email'])->toBe('lady.botanical@greenveil.test');
             expect($params['client_reference_id'])->toBe((string) $order->id);
 
@@ -107,13 +108,13 @@ test('creates checkout session with correct line items, amounts, metadata, expir
     expect($result->redirectUrl)->toBe('https://checkout.stripe.com/c/pay/cs_test_mocked12345');
 });
 
-test('adjusts line items accurately when discount is present on order', function () {
+test('creates one-time coupon and attaches discount when discount is present on order', function () {
     $delivery = DeliveryOption::factory()->create([
         'name' => 'Eco Standard',
         'price' => 4.00,
     ]);
 
-    // Order with 20% discount on €50 subtotal = €10 discount, total = €44.00
+    // Order with €10 discount on €50 subtotal + €4 delivery = €44.00
     $order = Order::factory()->create([
         'delivery_option_id' => $delivery->id,
         'subtotal' => 50.00,
@@ -134,20 +135,35 @@ test('adjusts line items accurately when discount is present on order', function
     $mockClient = Mockery::mock(StripeClient::class);
     $mockCheckout = Mockery::mock();
     $mockSessions = Mockery::mock();
+    $mockCoupons = Mockery::mock();
 
     $mockClient->checkout = $mockCheckout;
     $mockCheckout->sessions = $mockSessions;
+    $mockClient->coupons = $mockCoupons;
+
+    $mockCoupons->shouldReceive('create')
+        ->once()
+        ->withArgs(function (array $params, array $opts) use ($order) {
+            expect($params['amount_off'])->toBe(1000); // €10.00 in cents
+            expect($params['currency'])->toBe('eur');
+            expect($params['duration'])->toBe('once');
+            expect($opts['idempotency_key'])->toBe("order_coupon_{$order->public_id}_1000");
+
+            return true;
+        })
+        ->andReturn((object) ['id' => 'coupon_test_abc123']);
 
     $mockSessions->shouldReceive('create')
         ->once()
         ->withArgs(function (array $params) {
-            $sum = 0;
-            foreach ($params['line_items'] as $item) {
-                $sum += ($item['price_data']['unit_amount'] * $item['quantity']);
-            }
+            // Line items retain their full price
+            expect($params['line_items'][0]['price_data']['unit_amount'])->toBe(5000);
+            expect($params['line_items'][1]['price_data']['unit_amount'])->toBe(400);
 
-            // Total minor units must match order->total in cents exactly (44.00 -> 4400 cents)
-            expect($sum)->toBe(4400);
+            // Discount attached via coupon
+            expect($params['discounts'])->toBe([
+                ['coupon' => 'coupon_test_abc123'],
+            ]);
 
             return true;
         })

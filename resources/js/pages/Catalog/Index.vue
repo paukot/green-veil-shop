@@ -135,7 +135,7 @@ const pageTitle = computed(() => {
         <div class="flex items-start gap-8 lg:gap-12">
             <!-- Desktop Sidebar -->
             <div
-                class="sticky top-28 hidden w-64 shrink-0 rounded-xl border border-cream-200 bg-white p-6 shadow-xs lg:block"
+                class="hidden w-64 shrink-0 rounded-xl border border-cream-200 bg-white p-6 shadow-xs lg:block"
             >
                 <FilterSidebar
                     :categories="categories"

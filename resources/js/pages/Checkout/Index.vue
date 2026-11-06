@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, onUnmounted } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     CheckboxField,
     RadioCard,
@@ -18,6 +18,7 @@ import type { CheckoutPageProps } from '@/types/storefront';
 import { store as checkoutStore } from '@/actions/App/Http/Controllers/CheckoutController';
 import { index as cartIndex } from '@/routes/cart';
 import { login } from '@/routes';
+import { useCart } from '@/composables/useCart';
 
 defineOptions({ layout: StorefrontLayout });
 
@@ -88,9 +89,22 @@ const generalErrors = computed(
     () => form.errors as Record<string, string | undefined>,
 );
 
+const cart = useCart();
+
+const removeLocationListener = router.on('location', () => {
+    cart.clearCart();
+});
+
+onUnmounted(() => {
+    removeLocationListener();
+});
+
 function submit() {
     form.post(checkoutStore.url(), {
         preserveScroll: true,
+        onSuccess: () => {
+            cart.clearCart();
+        },
     });
 }
 </script>

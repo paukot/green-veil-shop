@@ -18,6 +18,8 @@ class MarkOrderPaid
      * Mark an order and its payment as paid idempotently after verifying amount and currency.
      *
      * @param  array<string, mixed>  $sessionData
+     *
+     * @throws \Throwable
      */
     public function execute(Order $order, array $sessionData): bool
     {
@@ -36,11 +38,11 @@ class MarkOrderPaid
 
             $amountTotal = $sessionData['amount_total'] ?? $sessionData['amount'] ?? null;
             $currency = strtolower($sessionData['currency'] ?? '');
-            $expectedCurrency = strtolower($lockedOrder->currency ?: 'eur');
+            $expectedCurrency = strtolower($lockedOrder->currency ?: config('services.stripe.currency'));
             $expectedAmount = (int) round($lockedOrder->total * 100);
 
             // Assert currency matches
-            if ($currency !== '' && $currency !== $expectedCurrency) {
+            if (! empty($currency) && $currency !== $expectedCurrency) {
                 Log::alert("Stripe payment currency mismatch for order {$lockedOrder->id}", [
                     'expected' => $expectedCurrency,
                     'received' => $currency,
@@ -51,7 +53,7 @@ class MarkOrderPaid
             }
 
             // Assert amount matches
-            if ($amountTotal !== null && (int) $amountTotal !== $expectedAmount) {
+            if (! empty($amountTotal) && (int) $amountTotal !== $expectedAmount) {
                 Log::alert("Stripe payment amount mismatch for order {$lockedOrder->id}", [
                     'expected_cents' => $expectedAmount,
                     'received_cents' => $amountTotal,
