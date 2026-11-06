@@ -38,6 +38,12 @@ class CartController extends Controller
                 ->withSubtotal($summary['subtotal'])
             );
 
+        $appliedPromo = $this->cartService->getAppliedPromotionData($request, $cartItems, $summary['subtotal']);
+        $discountAmount = $appliedPromo ? $appliedPromo['discount_amount'] : 0.0;
+        $orderTotal = max(0.0, round($summary['subtotal'] - $discountAmount, 2));
+
+        $availablePromotions = $this->cartService->getAvailablePromotionsData($request, $cartItems, $summary['subtotal'], $appliedPromo['id'] ?? null);
+
         return Inertia::render('Cart/Index', [
             'items' => CartItemResource::collection($cartItems)->resolve(),
             'summary' => [
@@ -46,7 +52,11 @@ class CartController extends Controller
                 'free_shipping_threshold' => $freeShippingThreshold,
                 'amount_until_free_shipping' => (float) $amountUntilFreeShipping,
                 'qualifies_for_free_shipping' => $summary['subtotal'] >= $freeShippingThreshold,
+                'discount_amount' => $discountAmount,
+                'total' => $orderTotal,
             ],
+            'appliedPromotion' => $appliedPromo,
+            'availablePromotions' => $availablePromotions,
             'deliveryOptions' => $deliveryOptions,
         ]);
     }
@@ -65,5 +75,48 @@ class CartController extends Controller
         $reconciliation = $this->cartService->syncCart($request, $items);
 
         return response()->json($reconciliation);
+    }
+
+    public function applyPromotion(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'code' => ['nullable', 'string', 'max:50'],
+            'promotion_id' => ['nullable', 'integer', 'exists:promotions,id'],
+        ]);
+
+        $code = ! empty($validated['code']) ? trim((string) $validated['code']) : null;
+        $promotionId = ! empty($validated['promotion_id']) ? (int) $validated['promotion_id'] : null;
+
+        $result = $this->cartService->applyPromotion($request, $code, $promotionId);
+
+        $cartItems = $this->cartService->getItems($request);
+        $summary = $this->cartService->getSummaryFromCartItems($cartItems);
+        $availablePromotions = $this->cartService->getAvailablePromotionsData(
+            $request,
+            $cartItems,
+            $summary['subtotal'],
+            $result['applied_promotion']['id'] ?? null
+        );
+
+        return response()->json([
+            'applied_promotion' => $result['applied_promotion'],
+            'available_promotions' => $availablePromotions,
+            'message' => $result['message'],
+        ]);
+    }
+
+    public function removePromotion(Request $request): JsonResponse
+    {
+        $this->cartService->removePromotion($request);
+
+        $cartItems = $this->cartService->getItems($request);
+        $summary = $this->cartService->getSummaryFromCartItems($cartItems);
+        $availablePromotions = $this->cartService->getAvailablePromotionsData($request, $cartItems, $summary['subtotal'], null);
+
+        return response()->json([
+            'applied_promotion' => null,
+            'available_promotions' => $availablePromotions,
+            'message' => 'Promotion removed from shopping bag.',
+        ]);
     }
 }
