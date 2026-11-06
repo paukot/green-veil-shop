@@ -23,6 +23,8 @@ Route::middleware(['web'])->group(function () {
     // Cart routes
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/sync', [CartController::class, 'sync'])->name('cart.sync');
+    Route::post('/cart/promotion', [CartController::class, 'applyPromotion'])->name('cart.promotion.apply');
+    Route::delete('/cart/promotion', [CartController::class, 'removePromotion'])->name('cart.promotion.remove');
     Route::post('/cart/items', [CartItemController::class, 'store'])->name('cart.items.store');
     Route::patch('/cart/items/{item}', [CartItemController::class, 'update'])->name('cart.items.update');
     Route::delete('/cart/items/{item}', [CartItemController::class, 'destroy'])->name('cart.items.destroy');

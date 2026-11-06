@@ -139,15 +139,27 @@ class PlaceOrder
             $discountAmount = 0.00;
             $promotionId = null;
 
-            $promotion = Promotion::query()
-                ->active()
-                ->where('applies_to_all_products', true)
-                ->first();
+            $selectedPromoId = $data->promotionId ?? ($request->hasSession() ? $request->session()->get('applied_promotion_id') : null);
 
-            if ($promotion && $promotion->isCurrentlyActive()) {
-                if ($promotion->minimum_order_amount === null || $subtotal >= (float) $promotion->minimum_order_amount) {
-                    $discountAmount = round($promotion->applyDiscount($subtotal), 2);
+            if ($selectedPromoId) {
+                $promotion = Promotion::query()
+                    ->active()
+                    ->with('products:id')
+                    ->whereKey($selectedPromoId)
+                    ->first();
+            } else {
+                $promotion = Promotion::query()
+                    ->active()
+                    ->where('applies_to_all_products', true)
+                    ->first();
+            }
+
+            if ($promotion && $promotion->isCurrentlyActive() && $promotion->canBeUsedByUser($data->user)) {
+                $discount = $promotion->calculateDiscountForCart(collect($orderItemsData), $subtotal);
+                if ($discount > 0) {
+                    $discountAmount = round($discount, 2);
                     $promotionId = $promotion->id;
+                    $promotion->increment('times_used');
                 }
             }
 
@@ -186,6 +198,10 @@ class PlaceOrder
             foreach ($orderItemsData as $itemData) {
                 $itemData['order_id'] = $order->id;
                 OrderItem::create($itemData);
+            }
+
+            if ($request->hasSession()) {
+                $request->session()->forget('applied_promotion_id');
             }
 
             return $order;

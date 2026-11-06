@@ -47,10 +47,17 @@ class CheckoutController extends Controller
             ->get();
 
         $user = $request->user();
+        $appliedPromo = $this->cartService->getAppliedPromotionData($request, $cartItems, $summary['subtotal']);
+        $discountAmount = $appliedPromo ? $appliedPromo['discount_amount'] : 0.0;
 
         return Inertia::render('Checkout/Index', [
             'items' => CartItemResource::collection($cartItems),
-            'summary' => $summary,
+            'summary' => [
+                ...$summary,
+                'discount_amount' => $discountAmount,
+                'total' => max(0.0, round($summary['subtotal'] - $discountAmount, 2)),
+            ],
+            'appliedPromotion' => $appliedPromo,
             'deliveryOptions' => $deliveryOptions->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
                 ->withSubtotal($summary['subtotal'])
             ),

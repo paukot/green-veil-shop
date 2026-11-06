@@ -38,6 +38,7 @@ class CheckoutRequest extends FormRequest
             'billing_address.postal_code' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:20'],
             'billing_address.country' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:2'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'promotion_id' => ['nullable', 'integer', 'exists:promotions,id'],
         ];
     }
 
@@ -49,6 +50,11 @@ class CheckoutRequest extends FormRequest
             ? $shipping
             : ($this->validated('billing_address') ?? $shipping);
 
+        $sessionPromoId = $this->hasSession() ? $this->session()->get('applied_promotion_id') : null;
+        $promotionId = $this->filled('promotion_id')
+            ? (int) $this->validated('promotion_id')
+            : ($sessionPromoId ? (int) $sessionPromoId : null);
+
         return new CheckoutData(
             customerName: (string) $this->validated('customer_name'),
             customerEmail: (string) $this->validated('customer_email'),
@@ -59,6 +65,7 @@ class CheckoutRequest extends FormRequest
             billingAddress: $billing,
             notes: $this->validated('notes'),
             user: ($user = $this->user()) instanceof User ? $user : null,
+            promotionId: $promotionId,
         );
     }
 }

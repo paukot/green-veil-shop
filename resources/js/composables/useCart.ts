@@ -1,5 +1,9 @@
 import { computed, ref } from 'vue';
-import type { CartItemData } from '@/types/storefront';
+import type {
+    CartItemData,
+    AppliedPromotionData,
+    AvailablePromotionData,
+} from '@/types/storefront';
 
 export type LocalCartItem = {
     id: number | string;
@@ -31,7 +35,11 @@ export type CartSyncResponse = {
         free_shipping_threshold: number;
         amount_until_free_shipping: number;
         qualifies_for_free_shipping: boolean;
+        discount_amount?: number;
+        total?: number;
     };
+    applied_promotion?: AppliedPromotionData | null;
+    available_promotions?: AvailablePromotionData[];
     delivery_options: Array<{
         id: number;
         code: string;
@@ -50,6 +58,8 @@ const DEBOUNCE_DELAY_MS = 600;
 
 // Module-level reactive singleton
 const items = ref<LocalCartItem[]>(loadFromStorage());
+const appliedPromotion = ref<AppliedPromotionData | null>(null);
+const availablePromotions = ref<AvailablePromotionData[]>([]);
 const isSyncing = ref(false);
 const syncError = ref<string | null>(null);
 const syncWarnings = ref<string[]>([]);
@@ -133,6 +143,13 @@ async function executeSync(): Promise<CartSyncResponse | null> {
         // Update server warnings if any
         if (data.warnings && data.warnings.length > 0) {
             syncWarnings.value = data.warnings;
+        }
+
+        if (data.applied_promotion !== undefined) {
+            appliedPromotion.value = data.applied_promotion;
+        }
+        if (data.available_promotions !== undefined) {
+            availablePromotions.value = data.available_promotions;
         }
 
         // Reconcile local items with verified server state
@@ -317,6 +334,7 @@ export function useCart() {
      */
     function clearCart() {
         items.value = [];
+        appliedPromotion.value = null;
         saveToStorage([]);
         scheduleSync();
     }
@@ -336,9 +354,114 @@ export function useCart() {
     }
 
     /**
+     * Calculated discount amount from applied promotion
+     */
+    const discountAmount = computed(() => {
+        return appliedPromotion.value ? appliedPromotion.value.discount_amount : 0;
+    });
+
+    /**
+     * Total amount after discount
+     */
+    const totalAfterDiscount = computed(() => {
+        return Math.max(
+            0,
+            Math.round((subtotal.value - discountAmount.value) * 100) / 100,
+        );
+    });
+
+    /**
+     * Apply a promotion by code or ID
+     */
+    async function applyPromotion(params: {
+        code?: string;
+        promotion_id?: number;
+    }): Promise<{ success: boolean; message?: string; error?: string }> {
+        isSyncing.value = true;
+        syncError.value = null;
+        try {
+            const response = await fetch('/cart/promotion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': getXsrfToken(),
+                },
+                body: JSON.stringify(params),
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                const errorMsg =
+                    data.errors?.code?.[0] ||
+                    data.message ||
+                    'Failed to apply promotion';
+                return { success: false, error: errorMsg };
+            }
+
+            appliedPromotion.value = data.applied_promotion ?? null;
+            if (data.available_promotions) {
+                availablePromotions.value = data.available_promotions;
+            }
+            return { success: true, message: data.message };
+        } catch (err: unknown) {
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : 'Network error while applying promotion';
+            return { success: false, error: message };
+        } finally {
+            isSyncing.value = false;
+        }
+    }
+
+    /**
+     * Remove the active promotion
+     */
+    async function removePromotion(): Promise<{
+        success: boolean;
+        message?: string;
+    }> {
+        isSyncing.value = true;
+        try {
+            const response = await fetch('/cart/promotion', {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': getXsrfToken(),
+                },
+            });
+
+            const data = await response.json();
+            appliedPromotion.value = null;
+            if (data.available_promotions) {
+                availablePromotions.value = data.available_promotions;
+            }
+            return { success: true, message: data.message };
+        } catch {
+            return { success: false };
+        } finally {
+            isSyncing.value = false;
+        }
+    }
+
+    /**
      * Initialize/hydrate from server payload on page load or cart page visit
      */
-    function initFromServer(serverItems: CartItemData[]) {
+    function initFromServer(
+        serverItems: CartItemData[],
+        serverAppliedPromotion?: AppliedPromotionData | null,
+        serverAvailablePromotions?: AvailablePromotionData[],
+    ) {
+        if (serverAppliedPromotion !== undefined) {
+            appliedPromotion.value = serverAppliedPromotion;
+        }
+        if (serverAvailablePromotions !== undefined) {
+            availablePromotions.value = serverAvailablePromotions;
+        }
+
         // If local storage is empty but server has items, load from server
         if (items.value.length === 0 && serverItems && serverItems.length > 0) {
             const mapped: LocalCartItem[] = serverItems.map((si) => ({
@@ -375,6 +498,10 @@ export function useCart() {
         items,
         count,
         subtotal,
+        discountAmount,
+        totalAfterDiscount,
+        appliedPromotion,
+        availablePromotions,
         isEmpty,
         isSyncing,
         syncError,
@@ -385,6 +512,8 @@ export function useCart() {
         clearCart,
         flushSync,
         initFromServer,
+        applyPromotion,
+        removePromotion,
         qualifiesForFreeShipping,
         amountUntilFreeShipping,
         freeShippingProgress,

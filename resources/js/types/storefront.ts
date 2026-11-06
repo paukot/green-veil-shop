@@ -8,6 +8,8 @@ export type CategoryNavigationItem = {
 export type CartSummary = {
     count: number;
     subtotal: number;
+    discount_amount?: number;
+    total?: number;
 };
 
 export type FlashMessages = {
@@ -368,12 +370,42 @@ export type CartSummaryData = {
     free_shipping_threshold: number;
     amount_until_free_shipping: number;
     qualifies_for_free_shipping: boolean;
+    discount_amount?: number;
+    total?: number;
+};
+
+export type AppliedPromotionData = {
+    id: number;
+    name: string;
+    description?: string | null;
+    code?: string | null;
+    discount_type: 'percentage' | 'fixed_amount';
+    discount_value: number;
+    minimum_order_amount?: number | null;
+    discount_amount: number;
+    formatted_discount: string;
+};
+
+export type AvailablePromotionData = {
+    id: number;
+    name: string;
+    description?: string | null;
+    code?: string | null;
+    discount_type: 'percentage' | 'fixed_amount';
+    discount_value: number;
+    minimum_order_amount?: number | null;
+    applies_to_all_products: boolean;
+    is_eligible: boolean;
+    is_applied: boolean;
+    amount_needed: number;
 };
 
 export type CartPageProps = {
     items: CartItemData[];
     summary: CartSummaryData;
     deliveryOptions: DeliveryOptionItem[];
+    appliedPromotion?: AppliedPromotionData | null;
+    availablePromotions?: AvailablePromotionData[];
 };
 
 export type PaymentOptionItem = {
@@ -418,6 +450,7 @@ export type CheckoutPageProps = {
     }>;
     paymentOptions: PaymentOptionItem[];
     customer: CheckoutCustomer;
+    appliedPromotion?: AppliedPromotionData | null;
 };
 
 export type OrderDetailData = {
