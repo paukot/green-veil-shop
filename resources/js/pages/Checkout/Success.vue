@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Head, Link, usePoll } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import type { OrderDetailData } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
 import { formatCurrency } from '@/lib/utils';
+import { useCart } from '@/composables/useCart';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -14,6 +15,12 @@ defineOptions({
 const props = defineProps<{
     order: OrderDetailData;
 }>();
+
+const cart = useCart();
+
+onMounted(() => {
+    cart.clearCart();
+});
 
 const pollCount = ref(0);
 const maxPolls = 10;

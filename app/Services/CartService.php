@@ -328,8 +328,6 @@ class CartService
     {
         if ($user = $request->user()) {
             CartItem::query()->where('user_id', $user->id)->delete();
-
-            return;
         }
 
         $request->session()->forget('cart');
