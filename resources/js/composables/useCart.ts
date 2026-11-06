@@ -357,7 +357,9 @@ export function useCart() {
      * Calculated discount amount from applied promotion
      */
     const discountAmount = computed(() => {
-        return appliedPromotion.value ? appliedPromotion.value.discount_amount : 0;
+        return appliedPromotion.value
+            ? appliedPromotion.value.discount_amount
+            : 0;
     });
 
     /**

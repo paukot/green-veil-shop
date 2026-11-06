@@ -439,7 +439,7 @@ function submit() {
                             >
                                 Order Summary
                             </h2>
-                            <p class="text-[11px] text-charcoal-500">
+                            <p class="text-charcoal-500 text-[11px]">
                                 Botanical formulations snapshot
                             </p>
                         </div>
@@ -483,7 +483,7 @@ function submit() {
                                     />
                                     <div
                                         v-else
-                                        class="flex h-full w-full items-center justify-center rounded-[10px] text-charcoal-300"
+                                        class="text-charcoal-300 flex h-full w-full items-center justify-center rounded-[10px]"
                                     >
                                         🍃
                                     </div>
@@ -499,7 +499,7 @@ function submit() {
                                     >
                                         {{ item.product.name }}
                                     </p>
-                                    <p class="text-[11px] text-charcoal-400">
+                                    <p class="text-charcoal-400 text-[11px]">
                                         {{ formatCurrency(item.product.price) }}
                                         each
                                     </p>
@@ -555,7 +555,7 @@ function submit() {
                             class="space-y-3 border-t border-cream-100 pt-4 text-xs sm:text-sm"
                         >
                             <div
-                                class="flex items-center justify-between text-charcoal-600"
+                                class="text-charcoal-600 flex items-center justify-between"
                             >
                                 <span>Subtotal</span>
                                 <span class="font-medium text-charcoal-900">{{
@@ -571,20 +571,18 @@ function submit() {
                                     <span>Promotion Savings</span>
                                 </span>
                                 <span class="font-semibold"
-                                    >-{{
-                                        formatCurrency(discountAmount)
-                                    }}</span
+                                    >-{{ formatCurrency(discountAmount) }}</span
                                 >
                             </div>
 
                             <div
-                                class="flex items-center justify-between text-charcoal-600"
+                                class="text-charcoal-600 flex items-center justify-between"
                             >
                                 <span class="flex items-center gap-1.5">
                                     <span>Shipping</span>
                                     <span
                                         v-if="selectedDelivery"
-                                        class="text-[11px] text-charcoal-400"
+                                        class="text-charcoal-400 text-[11px]"
                                         >({{ selectedDelivery.name }})</span
                                     >
                                 </span>
@@ -604,21 +602,23 @@ function submit() {
 
                             <!-- Total -->
                             <div class="border-t border-cream-200 pt-4">
-                                <div class="flex items-baseline justify-between">
+                                <div
+                                    class="flex items-baseline justify-between"
+                                >
                                     <div>
                                         <span
                                             class="font-serif text-lg font-medium text-charcoal-900"
                                             >Grand Total</span
                                         >
                                         <span
-                                            class="block text-[11px] text-charcoal-400"
+                                            class="text-charcoal-400 block text-[11px]"
                                             >Taxes & duties included</span
                                         >
                                     </div>
                                     <div class="text-right">
                                         <span
                                             v-if="discountAmount > 0"
-                                            class="mr-2 text-xs text-charcoal-400 line-through"
+                                            class="text-charcoal-400 mr-2 text-xs line-through"
                                         >
                                             {{
                                                 formatCurrency(
@@ -628,7 +628,7 @@ function submit() {
                                             }}
                                         </span>
                                         <span
-                                            class="font-sans text-2xl font-bold tracking-tight text-charcoal-950 sm:text-3xl"
+                                            class="text-charcoal-950 font-sans text-2xl font-bold tracking-tight sm:text-3xl"
                                         >
                                             {{
                                                 formatCurrency(calculatedTotal)
@@ -662,7 +662,7 @@ function submit() {
 
                         <!-- Trust signals -->
                         <div
-                            class="space-y-2 rounded-2xl bg-cream-50/70 p-3.5 text-[11px] text-charcoal-500"
+                            class="text-charcoal-500 space-y-2 rounded-2xl bg-cream-50/70 p-3.5 text-[11px]"
                         >
                             <div class="flex items-center gap-2.5">
                                 <svg
@@ -694,7 +694,9 @@ function submit() {
                                         d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25-2.25M12 13.875V3.75"
                                     />
                                 </svg>
-                                <span>Pure botanical artisanal formulations</span>
+                                <span
+                                    >Pure botanical artisanal formulations</span
+                                >
                             </div>
                         </div>
                     </div>

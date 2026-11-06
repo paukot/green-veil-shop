@@ -385,7 +385,7 @@ async function proceedToCheckout() {
                     <div class="space-y-3 text-xs sm:text-sm">
                         <!-- Subtotal -->
                         <div
-                            class="flex items-center justify-between text-charcoal-600"
+                            class="text-charcoal-600 flex items-center justify-between"
                         >
                             <span>Subtotal</span>
                             <span class="font-medium text-charcoal-900">
@@ -414,7 +414,7 @@ async function proceedToCheckout() {
 
                         <!-- Shipping Estimate -->
                         <div
-                            class="flex items-center justify-between text-charcoal-600"
+                            class="text-charcoal-600 flex items-center justify-between"
                         >
                             <span class="flex items-center gap-1">
                                 <span>Estimated Shipping</span>
@@ -449,21 +449,21 @@ async function proceedToCheckout() {
                                         >Estimated Total</span
                                     >
                                     <span
-                                        class="block text-[11px] text-charcoal-400"
+                                        class="text-charcoal-400 block text-[11px]"
                                         >Shipping finalized at checkout</span
                                     >
                                 </div>
                                 <div class="text-right">
                                     <span
                                         v-if="cart.discountAmount.value > 0"
-                                        class="mr-2 text-xs text-charcoal-400 line-through"
+                                        class="text-charcoal-400 mr-2 text-xs line-through"
                                     >
                                         {{
                                             formatCurrency(cart.subtotal.value)
                                         }}
                                     </span>
                                     <span
-                                        class="font-sans text-2xl font-bold tracking-tight text-charcoal-950 sm:text-3xl"
+                                        class="text-charcoal-950 font-sans text-2xl font-bold tracking-tight sm:text-3xl"
                                     >
                                         {{
                                             formatCurrency(
@@ -479,7 +479,7 @@ async function proceedToCheckout() {
                     <!-- Sync status indicator -->
                     <div
                         v-if="cart.isSyncing.value"
-                        class="flex items-center justify-center gap-1.5 text-[11px] text-charcoal-400"
+                        class="text-charcoal-400 flex items-center justify-center gap-1.5 text-[11px]"
                     >
                         <svg
                             class="h-3.5 w-3.5 animate-spin text-sage-600"
@@ -608,7 +608,7 @@ async function proceedToCheckout() {
                                     </svg>
                                 </span>
                                 <div>
-                                    <div class="font-semibold text-sage-950">
+                                    <div class="text-sage-950 font-semibold">
                                         {{ cart.appliedPromotion.value.name }}
                                         <span
                                             v-if="
@@ -664,12 +664,14 @@ async function proceedToCheckout() {
                                 v-model="promoInput"
                                 type="text"
                                 placeholder="ENTER PROMO CODE"
-                                class="flex-1 rounded-xl border border-cream-300 bg-cream-50/50 px-3.5 py-2 font-mono text-xs text-charcoal-900 uppercase placeholder:text-charcoal-400 focus:border-sage-500 focus:ring-1 focus:ring-sage-500 focus:outline-none"
+                                class="placeholder:text-charcoal-400 flex-1 rounded-xl border border-cream-300 bg-cream-50/50 px-3.5 py-2 font-mono text-xs text-charcoal-900 uppercase focus:border-sage-500 focus:ring-1 focus:ring-sage-500 focus:outline-none"
                                 :disabled="isApplyingPromo"
                             />
                             <button
                                 type="submit"
-                                :disabled="isApplyingPromo || !promoInput.trim()"
+                                :disabled="
+                                    isApplyingPromo || !promoInput.trim()
+                                "
                                 class="shrink-0 rounded-xl bg-sage-800 px-4 py-2 text-xs font-semibold text-cream-50 transition-colors hover:bg-sage-900 disabled:opacity-50"
                             >
                                 {{ isApplyingPromo ? '...' : 'Apply' }}
@@ -726,7 +728,7 @@ async function proceedToCheckout() {
                                             >{{ offer.code }}</span
                                         >
                                     </div>
-                                    <div class="text-[11px] text-charcoal-500">
+                                    <div class="text-charcoal-500 text-[11px]">
                                         <template
                                             v-if="
                                                 offer.discount_type ===
@@ -752,7 +754,9 @@ async function proceedToCheckout() {
                                         class="mt-0.5 text-[10px] font-medium text-amber-700"
                                     >
                                         Add
-                                        {{ formatCurrency(offer.amount_needed) }}
+                                        {{
+                                            formatCurrency(offer.amount_needed)
+                                        }}
                                         more to unlock
                                     </div>
                                 </div>
@@ -792,7 +796,7 @@ async function proceedToCheckout() {
                                     </button>
                                     <span
                                         v-else
-                                        class="rounded-full bg-cream-200/70 px-2.5 py-1 text-[10px] font-medium text-charcoal-500"
+                                        class="text-charcoal-500 rounded-full bg-cream-200/70 px-2.5 py-1 text-[10px] font-medium"
                                     >
                                         Locked
                                     </span>
