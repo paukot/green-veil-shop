@@ -3,11 +3,8 @@
 use App\Models\AdminRole;
 use App\Models\AdminUser;
 use Filament\Auth\Pages\Login;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('Admin Two-Factor Authentication', function () {
     beforeEach(function () {

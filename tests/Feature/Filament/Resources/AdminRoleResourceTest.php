@@ -5,10 +5,7 @@ use App\Filament\Resources\AdminRoles\Pages\EditAdminRole;
 use App\Filament\Resources\AdminRoles\Pages\ListAdminRoles;
 use App\Models\AdminRole;
 use App\Models\AdminUser;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('AdminRoleResource in Filament', function () {
     beforeEach(function () {

@@ -6,10 +6,7 @@ use App\Models\AdminUser;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('PaymentResource in Filament', function () {
     beforeEach(function () {

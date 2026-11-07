@@ -3,11 +3,8 @@
 use App\Filament\Pages\Auth\EditProfile;
 use App\Models\AdminRole;
 use App\Models\AdminUser;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('Admin Profile Management', function () {
     beforeEach(function () {

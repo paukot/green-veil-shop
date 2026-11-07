@@ -4,11 +4,8 @@ use App\Models\AdminRole;
 use App\Models\AdminUser;
 use App\Models\User;
 use Filament\Auth\Pages\Login;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('Admin Authentication', function () {
     beforeEach(function () {

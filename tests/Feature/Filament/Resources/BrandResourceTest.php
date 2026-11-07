@@ -6,10 +6,7 @@ use App\Filament\Resources\Brands\Pages\ListBrands;
 use App\Models\AdminUser;
 use App\Models\Brand;
 use App\Models\Product;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('Filament Brand Management', function () {
     beforeEach(function () {

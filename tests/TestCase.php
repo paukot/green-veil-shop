@@ -14,11 +14,5 @@ abstract class TestCase extends BaseTestCase
         }
 
         parent::tearDown();
-
-        foreach (get_object_vars($this) as $key => $value) {
-            unset($this->{$key});
-        }
-
-        gc_collect_cycles();
     }
 }

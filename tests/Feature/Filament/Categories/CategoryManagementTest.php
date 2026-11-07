@@ -7,10 +7,7 @@ use App\Filament\Resources\Categories\RelationManagers\ChildrenRelationManager;
 use App\Models\AdminUser;
 use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('Filament Category Management', function () {
     beforeEach(function () {
