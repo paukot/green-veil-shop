@@ -23,7 +23,7 @@ const {
 <template>
     <section
         v-if="slides.length > 0"
-        class="relative min-h-[440px] w-full overflow-hidden bg-cream-200 sm:min-h-0 sm:aspect-[16/9] lg:aspect-[21/9] lg:max-h-[580px]"
+        class="relative min-h-[440px] w-full overflow-hidden bg-cream-200 sm:aspect-[16/9] sm:min-h-0 lg:aspect-[21/9] lg:max-h-[580px]"
     >
         <!-- Slides -->
         <div class="relative h-full w-full">
@@ -61,7 +61,7 @@ const {
                 <div
                     class="relative z-20 mx-auto flex h-full max-w-7xl items-center px-5 py-12 sm:px-12 sm:py-0 lg:px-16"
                 >
-                    <div class="max-w-xl space-y-3 sm:space-y-4 text-white">
+                    <div class="max-w-xl space-y-3 text-white sm:space-y-4">
                         <span
                             class="inline-block rounded-full bg-sage-700/80 px-3 py-1 text-xs font-medium tracking-widest text-cream-100 uppercase backdrop-blur-xs"
                         >
@@ -74,7 +74,7 @@ const {
                         </h1>
                         <p
                             v-if="slide.subtitle"
-                            class="text-xs sm:text-base leading-relaxed font-light text-cream-200/90 line-clamp-3 sm:line-clamp-none"
+                            class="line-clamp-3 text-xs leading-relaxed font-light text-cream-200/90 sm:line-clamp-none sm:text-base"
                         >
                             {{ slide.subtitle }}
                         </p>

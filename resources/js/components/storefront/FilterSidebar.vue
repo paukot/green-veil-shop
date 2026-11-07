@@ -647,13 +647,13 @@ const totalActiveFilters = computed(() => {
 
         <!-- Action Buttons -->
         <div
-            class="sticky bottom-0 z-20 -mx-6 -mb-6 flex flex-col gap-2 border-t border-cream-200 bg-white/95 p-4 shadow-lg backdrop-blur-md lg:static lg:mx-0 lg:mb-0 lg:border-t-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:pt-2"
+            class="sticky bottom-0 z-20 -mx-6 -mb-6 flex flex-col gap-2 border-t border-cream-200 bg-white/95 p-4 shadow-lg backdrop-blur-md lg:static lg:mx-0 lg:mb-0 lg:border-t-0 lg:bg-transparent lg:p-0 lg:pt-2 lg:shadow-none"
         >
             <button
                 type="button"
                 :disabled="isLoading"
                 @click="applyFilters()"
-                class="active:bg-sage-950 flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-3 sm:py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 disabled:cursor-not-allowed disabled:opacity-75"
+                class="active:bg-sage-950 flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 disabled:cursor-not-allowed disabled:opacity-75 sm:py-2.5"
             >
                 <LoadingSpinner v-if="isLoading" size="sm" class="text-white" />
                 <svg
@@ -701,7 +701,7 @@ const totalActiveFilters = computed(() => {
             <button
                 type="button"
                 @click="clearAllFilters"
-                class="text-charcoal-600 flex min-h-[44px] w-full items-center justify-center rounded-xl sm:rounded-md border border-cream-300 px-3 py-2.5 sm:py-2 text-xs font-medium transition-colors hover:border-sage-500 hover:text-sage-800"
+                class="text-charcoal-600 flex min-h-[44px] w-full items-center justify-center rounded-xl border border-cream-300 px-3 py-2.5 text-xs font-medium transition-colors hover:border-sage-500 hover:text-sage-800 sm:rounded-md sm:py-2"
             >
                 Reset All Filters
             </button>

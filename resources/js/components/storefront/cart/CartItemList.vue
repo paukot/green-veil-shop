@@ -203,7 +203,7 @@ const emit = defineEmits<{
                     <button
                         type="button"
                         @click="emit('remove-item', item.product_id)"
-                        class="text-charcoal-400 hover:text-rose-600 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 transition-colors hover:bg-rose-50"
+                        class="text-charcoal-400 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 transition-colors hover:bg-rose-50 hover:text-rose-600"
                         aria-label="Remove item from bag"
                     >
                         <svg

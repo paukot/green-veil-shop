@@ -27,7 +27,7 @@ const model = defineModel<string | null>();
         :rows="rows"
         :class="
             cn(
-                'placeholder-charcoal-400 block w-full border bg-cream-50/50 px-4 py-2.5 text-base sm:text-sm text-charcoal-900 transition-colors focus:bg-white focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+                'placeholder-charcoal-400 block w-full border bg-cream-50/50 px-4 py-2.5 text-base text-charcoal-900 transition-colors focus:bg-white focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm',
                 rounded === 'md' && 'rounded-md',
                 rounded === 'lg' && 'rounded-lg',
                 rounded === 'xl' && 'rounded-xl',

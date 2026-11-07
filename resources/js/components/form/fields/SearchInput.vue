@@ -38,8 +38,8 @@ function onClear() {
                 cn(
                     'block w-full rounded-full border border-cream-300 bg-white text-charcoal-900 transition-colors focus:border-sage-500 focus:outline-hidden',
                     size === 'sm'
-                        ? 'min-h-[44px] py-2 pr-9 pl-3.5 text-base sm:min-h-0 sm:text-xs focus:ring-1 focus:ring-sage-500'
-                        : 'min-h-[44px] py-2.5 pr-10 pl-4 text-base sm:min-h-0 sm:py-2 sm:text-sm focus:ring-2 focus:ring-sage-500',
+                        ? 'min-h-[44px] py-2 pr-9 pl-3.5 text-base focus:ring-1 focus:ring-sage-500 sm:min-h-0 sm:text-xs'
+                        : 'min-h-[44px] py-2.5 pr-10 pl-4 text-base focus:ring-2 focus:ring-sage-500 sm:min-h-0 sm:py-2 sm:text-sm',
                     props.class,
                 )
             "

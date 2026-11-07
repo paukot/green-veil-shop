@@ -275,7 +275,7 @@ onUnmounted(() => {
                             <button
                                 type="button"
                                 @click="mobileFilterOpen = false"
-                                class="text-charcoal-500 hover:text-charcoal-900 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-2xl leading-none transition-colors hover:bg-cream-100"
+                                class="text-charcoal-500 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-2xl leading-none transition-colors hover:bg-cream-100 hover:text-charcoal-900"
                                 aria-label="Close filters"
                             >
                                 &times;

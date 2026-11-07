@@ -22,7 +22,7 @@ function formatLabel(label: string): string {
             <span
                 v-if="!link.url"
                 :class="[
-                    'text-charcoal-400 cursor-not-allowed rounded-xl sm:rounded-md border border-cream-200 bg-cream-100 px-3.5 py-2 text-xs font-medium select-none min-h-[44px] inline-flex items-center justify-center',
+                    'text-charcoal-400 inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-xl border border-cream-200 bg-cream-100 px-3.5 py-2 text-xs font-medium select-none sm:rounded-md',
                     index !== 0 && index !== links.length - 1 && !link.active
                         ? 'hidden sm:inline-flex'
                         : 'inline-flex',
@@ -37,7 +37,7 @@ function formatLabel(label: string): string {
                 :href="link.url"
                 preserve-scroll
                 :class="[
-                    'rounded-xl sm:rounded-md border px-3.5 py-2 text-xs font-medium transition-colors min-h-[44px] inline-flex items-center justify-center',
+                    'inline-flex min-h-[44px] items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors sm:rounded-md',
                     index !== 0 && index !== links.length - 1 && !link.active
                         ? 'hidden sm:inline-flex'
                         : 'inline-flex',

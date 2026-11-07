@@ -154,9 +154,11 @@ function submit() {
                     <button
                         type="button"
                         @click="mobileSummaryOpen = !mobileSummaryOpen"
-                        class="flex w-full min-h-[44px] items-center justify-between bg-cream-50/80 px-4 py-3.5 text-xs transition-colors hover:bg-cream-100/80"
+                        class="flex min-h-[44px] w-full items-center justify-between bg-cream-50/80 px-4 py-3.5 text-xs transition-colors hover:bg-cream-100/80"
                     >
-                        <span class="flex items-center gap-2 font-medium text-sage-900">
+                        <span
+                            class="flex items-center gap-2 font-medium text-sage-900"
+                        >
                             <svg
                                 class="h-4 w-4 text-sage-700"
                                 fill="none"
@@ -200,7 +202,9 @@ function submit() {
                         class="border-t border-cream-100 p-4"
                     >
                         <!-- Items mini list -->
-                        <div class="max-h-60 divide-y divide-cream-100 overflow-y-auto pr-1">
+                        <div
+                            class="max-h-60 divide-y divide-cream-100 overflow-y-auto pr-1"
+                        >
                             <div
                                 v-for="item in items"
                                 :key="item.product_id"
@@ -211,7 +215,11 @@ function submit() {
                                 >
                                     <img
                                         v-if="item.product.main_image"
-                                        :src="resolveStorageUrl(item.product.main_image)"
+                                        :src="
+                                            resolveStorageUrl(
+                                                item.product.main_image,
+                                            )
+                                        "
                                         :alt="item.product.name"
                                         class="h-full w-full rounded-[10px] object-cover"
                                     />
@@ -228,32 +236,50 @@ function submit() {
                                     </span>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-xs font-medium text-charcoal-900">
+                                    <p
+                                        class="truncate text-xs font-medium text-charcoal-900"
+                                    >
                                         {{ item.product.name }}
                                     </p>
                                     <p class="text-charcoal-400 text-[11px]">
-                                        {{ formatCurrency(item.product.price) }} each
+                                        {{ formatCurrency(item.product.price) }}
+                                        each
                                     </p>
                                 </div>
-                                <span class="shrink-0 text-xs font-semibold text-charcoal-900">
+                                <span
+                                    class="shrink-0 text-xs font-semibold text-charcoal-900"
+                                >
                                     {{ formatCurrency(item.subtotal) }}
                                 </span>
                             </div>
                         </div>
 
                         <!-- Breakdown -->
-                        <div class="space-y-1.5 border-t border-cream-100 pt-3 text-xs">
-                            <div class="flex justify-between text-charcoal-600">
+                        <div
+                            class="space-y-1.5 border-t border-cream-100 pt-3 text-xs"
+                        >
+                            <div class="text-charcoal-600 flex justify-between">
                                 <span>Subtotal</span>
-                                <span class="font-medium text-charcoal-900">{{ formatCurrency(summary.subtotal) }}</span>
+                                <span class="font-medium text-charcoal-900">{{
+                                    formatCurrency(summary.subtotal)
+                                }}</span>
                             </div>
-                            <div v-if="discountAmount > 0" class="flex justify-between font-medium text-emerald-800">
+                            <div
+                                v-if="discountAmount > 0"
+                                class="flex justify-between font-medium text-emerald-800"
+                            >
                                 <span>Promotion Savings</span>
-                                <span>-{{ formatCurrency(discountAmount) }}</span>
+                                <span
+                                    >-{{ formatCurrency(discountAmount) }}</span
+                                >
                             </div>
-                            <div class="flex justify-between text-charcoal-600">
+                            <div class="text-charcoal-600 flex justify-between">
                                 <span>Shipping</span>
-                                <span>{{ deliveryCost === 0 ? 'Free' : formatCurrency(deliveryCost) }}</span>
+                                <span>{{
+                                    deliveryCost === 0
+                                        ? 'Free'
+                                        : formatCurrency(deliveryCost)
+                                }}</span>
                             </div>
                         </div>
                     </div>

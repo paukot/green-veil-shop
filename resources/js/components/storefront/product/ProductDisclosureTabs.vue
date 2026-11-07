@@ -38,12 +38,12 @@ const manufacturedCountryName = computed(() => {
     <div class="mt-16 border-t border-cream-200 pt-10">
         <!-- Tabs Navigation -->
         <div
-            class="flex flex-nowrap overflow-x-auto scrollbar-none gap-2 border-b border-cream-200 pb-px -mx-4 px-4 sm:mx-0 sm:px-0"
+            class="-mx-4 flex scrollbar-none flex-nowrap gap-2 overflow-x-auto border-b border-cream-200 px-4 pb-px sm:mx-0 sm:px-0"
         >
             <button
                 type="button"
                 @click="activeTab = 'description'"
-                class="shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-xs font-semibold tracking-wider uppercase transition-colors min-h-[44px] flex items-center"
+                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
                 :class="
                     activeTab === 'description'
                         ? 'border-sage-800 text-sage-900'
@@ -57,7 +57,7 @@ const manufacturedCountryName = computed(() => {
                 v-if="product.inci_list"
                 type="button"
                 @click="activeTab = 'inci'"
-                class="shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-xs font-semibold tracking-wider uppercase transition-colors min-h-[44px] flex items-center"
+                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
                 :class="
                     activeTab === 'inci'
                         ? 'border-sage-800 text-sage-900'
@@ -71,7 +71,7 @@ const manufacturedCountryName = computed(() => {
                 v-if="product.how_to_use"
                 type="button"
                 @click="activeTab = 'usage'"
-                class="shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-xs font-semibold tracking-wider uppercase transition-colors min-h-[44px] flex items-center"
+                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
                 :class="
                     activeTab === 'usage'
                         ? 'border-sage-800 text-sage-900'
@@ -85,7 +85,7 @@ const manufacturedCountryName = computed(() => {
                 v-if="product.warnings || product.responsible_person"
                 type="button"
                 @click="activeTab = 'warnings'"
-                class="shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-xs font-semibold tracking-wider uppercase transition-colors min-h-[44px] flex items-center"
+                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
                 :class="
                     activeTab === 'warnings'
                         ? 'border-sage-800 text-sage-900'
@@ -98,7 +98,7 @@ const manufacturedCountryName = computed(() => {
             <button
                 type="button"
                 @click="activeTab = 'specs'"
-                class="shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-xs font-semibold tracking-wider uppercase transition-colors min-h-[44px] flex items-center"
+                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
                 :class="
                     activeTab === 'specs'
                         ? 'border-sage-800 text-sage-900'

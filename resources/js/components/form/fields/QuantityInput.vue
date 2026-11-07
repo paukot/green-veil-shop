@@ -38,7 +38,7 @@ function increment() {
     <div
         :class="
             cn(
-                'inline-flex items-center rounded-full border border-cream-300 bg-white px-2 py-0.5 shadow-2xs min-h-[44px] sm:min-h-0',
+                'inline-flex min-h-[44px] items-center rounded-full border border-cream-300 bg-white px-2 py-0.5 shadow-2xs sm:min-h-0',
                 disabled || loading ? 'pointer-events-none opacity-50' : '',
                 props.class,
             )
@@ -48,7 +48,7 @@ function increment() {
             type="button"
             @click="decrement"
             :disabled="disabled || loading || model <= min"
-            class="text-charcoal-600 flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-full transition-colors hover:text-charcoal-900 disabled:cursor-not-allowed disabled:opacity-30 text-sm"
+            class="text-charcoal-600 flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors hover:text-charcoal-900 disabled:cursor-not-allowed disabled:opacity-30 sm:h-7 sm:w-7"
             aria-label="Decrease quantity"
         >
             &minus;
@@ -64,7 +64,7 @@ function increment() {
             type="button"
             @click="increment"
             :disabled="disabled || loading || model >= max"
-            class="text-charcoal-600 flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-full transition-colors hover:text-charcoal-900 disabled:cursor-not-allowed disabled:opacity-30 text-sm"
+            class="text-charcoal-600 flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors hover:text-charcoal-900 disabled:cursor-not-allowed disabled:opacity-30 sm:h-7 sm:w-7"
             aria-label="Increase quantity"
         >
             &#43;

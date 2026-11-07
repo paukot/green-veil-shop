@@ -150,7 +150,9 @@ const formattedComparePrice = computed(() => {
 
             <div class="space-y-1.5 border-t border-cream-100 pt-2.5">
                 <!-- Pricing & Unit Price -->
-                <div class="flex flex-col gap-2 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
+                <div
+                    class="flex flex-col gap-2 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between"
+                >
                     <div>
                         <div class="flex items-baseline gap-2">
                             <span

@@ -37,7 +37,7 @@ const user = computed(() => page.props.auth?.user);
                 <!-- Account Navigation Sidebar -->
                 <aside class="md:col-span-1">
                     <nav
-                        class="flex flex-row items-center gap-2 overflow-x-auto rounded-2xl border border-cream-200 bg-white p-2 shadow-xs scrollbar-none md:flex-col md:items-stretch md:space-y-1 md:gap-0 sm:p-3 md:p-4"
+                        class="flex scrollbar-none flex-row items-center gap-2 overflow-x-auto rounded-2xl border border-cream-200 bg-white p-2 shadow-xs sm:p-3 md:flex-col md:items-stretch md:gap-0 md:space-y-1 md:p-4"
                         aria-label="Account navigation"
                     >
                         <Link
@@ -116,12 +116,14 @@ const user = computed(() => page.props.auth?.user);
                             <span>Wishlist</span>
                         </Link>
 
-                        <div class="shrink-0 border-l border-cream-200 pl-2 md:mt-2 md:border-t md:border-l-0 md:pt-2 md:pl-0">
+                        <div
+                            class="shrink-0 border-l border-cream-200 pl-2 md:mt-2 md:border-t md:border-l-0 md:pt-2 md:pl-0"
+                        >
                             <Link
                                 :href="logout.url()"
                                 method="post"
                                 as="button"
-                                class="flex min-h-[44px] shrink-0 w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                                class="flex min-h-[44px] w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                             >
                                 <svg
                                     class="h-4 w-4 shrink-0 text-red-500"

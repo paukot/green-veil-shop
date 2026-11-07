@@ -79,7 +79,7 @@ function copyCode(code: string) {
                 <div class="flex items-center gap-2">
                     <button
                         type="button"
-                        class="bg-sage-950/40 flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none"
+                        class="bg-sage-950/40 flex h-9 w-9 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
                         aria-label="Previous promotion"
                         @click="prevSlide"
                     >
@@ -99,7 +99,7 @@ function copyCode(code: string) {
                     </button>
                     <button
                         type="button"
-                        class="bg-sage-950/40 flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none"
+                        class="bg-sage-950/40 flex h-9 w-9 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
                         aria-label="Next promotion"
                         @click="nextSlide"
                     >
@@ -175,7 +175,7 @@ function copyCode(code: string) {
                         </div>
                         <button
                             type="button"
-                            class="min-h-[44px] rounded-lg bg-cream-50 px-4 py-2 text-xs font-semibold text-sage-900 transition-colors hover:bg-cream-100 focus:ring-2 focus:ring-cream-300 focus:outline-none flex items-center justify-center"
+                            class="flex min-h-[44px] items-center justify-center rounded-lg bg-cream-50 px-4 py-2 text-xs font-semibold text-sage-900 transition-colors hover:bg-cream-100 focus:ring-2 focus:ring-cream-300 focus:outline-none"
                             @click="copyCode(currentPromo.code)"
                         >
                             {{
