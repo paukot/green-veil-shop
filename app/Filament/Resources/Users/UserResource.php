@@ -24,13 +24,15 @@ class UserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Customers & Access';
+    protected static string|UnitEnum|null $navigationGroup = 'Shop';
 
     protected static ?string $navigationLabel = 'Customers';
 
     protected static ?string $modelLabel = 'Customer';
 
     protected static ?string $pluralModelLabel = 'Customers';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

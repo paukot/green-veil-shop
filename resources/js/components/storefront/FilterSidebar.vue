@@ -13,6 +13,10 @@ import type {
     FilterFacets,
 } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
+import { usePageLoading } from '@/composables/usePageLoading';
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
+
+const { isLoading } = usePageLoading();
 
 const props = withDefaults(
     defineProps<{
@@ -148,7 +152,6 @@ function toggleFacetItem(list: string[], val: string) {
     } else {
         list.push(val);
     }
-    applyFilters();
 }
 
 // Build URL query params and navigate
@@ -376,6 +379,46 @@ const totalActiveFilters = computed(() => {
             </button>
         </div>
 
+        <!-- Apply Filters Button (below active filters) -->
+        <div class="border-b border-cream-200 pb-4">
+            <button
+                type="button"
+                :disabled="isLoading"
+                @click="applyFilters()"
+                class="flex w-full items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 active:bg-sage-950 disabled:cursor-not-allowed disabled:opacity-75 cursor-pointer"
+            >
+                <LoadingSpinner v-if="isLoading" size="sm" class="text-white" />
+                <svg
+                    v-else
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
+                    />
+                </svg>
+                <span class="inline-flex items-center gap-1">
+                    <span>{{ isLoading ? 'Applying' : 'Apply Filters' }}</span>
+                    <span v-if="isLoading" class="inline-flex items-center gap-0.5 ml-0.5">
+                        <span class="inline-block h-1 w-1 rounded-full bg-cream-100 animate-bounce" style="animation-delay: -0.32s;" />
+                        <span class="inline-block h-1 w-1 rounded-full bg-cream-100 animate-bounce" style="animation-delay: -0.16s;" />
+                        <span class="inline-block h-1 w-1 rounded-full bg-cream-100 animate-bounce" style="animation-delay: 0s;" />
+                    </span>
+                </span>
+                <span
+                    v-if="!isLoading && totalActiveFilters > 0"
+                    class="ml-1 rounded-full bg-sage-700 px-1.5 py-0.5 text-[10px] font-bold text-white"
+                >
+                    {{ totalActiveFilters }}
+                </span>
+            </button>
+        </div>
+
         <!-- Sort Section Accordion -->
         <div class="border-b border-cream-200 pb-4">
             <button
@@ -393,7 +436,6 @@ const totalActiveFilters = computed(() => {
                     v-model="selectedSort"
                     size="sm"
                     rounded="md"
-                    @change="applyFilters()"
                 >
                     <option value="featured">Featured Botanicals</option>
                     <option value="newest">Newest Additions</option>
@@ -404,7 +446,6 @@ const totalActiveFilters = computed(() => {
                 </SelectInput>
             </div>
         </div>
-
         <!-- Category Filter Section (shown on general catalog) -->
         <div
             v-if="showCategories && categories.length > 0"
@@ -422,7 +463,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.categories"
-                class="mt-2.5 max-h-52 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     class="flex cursor-pointer items-center justify-between py-0.5 text-xs transition-colors hover:text-sage-800"
@@ -435,10 +476,7 @@ const totalActiveFilters = computed(() => {
                             name="category_filter"
                             value=""
                             :checked="!selectedCategory"
-                            @change="
-                                selectedCategory = '';
-                                applyFilters({ category: '' });
-                            "
+                            @change="selectedCategory = ''"
                         />
                         <span>All Categories</span>
                     </span>
@@ -458,10 +496,7 @@ const totalActiveFilters = computed(() => {
                             name="category_filter"
                             :value="cat.slug"
                             :checked="selectedCategory === cat.slug"
-                            @change="
-                                selectedCategory = cat.slug;
-                                applyFilters({ category: cat.slug });
-                            "
+                            @change="selectedCategory = cat.slug"
                         />
                         <span>{{ cat.name }}</span>
                     </span>
@@ -503,7 +538,7 @@ const totalActiveFilters = computed(() => {
                     placeholder="Search brand..."
                     class="w-full rounded-md border border-cream-300 bg-cream-50 px-2.5 py-1 text-xs focus:border-sage-600 focus:bg-white focus:outline-none"
                 />
-                <div class="max-h-48 space-y-1.5 overflow-y-auto pr-1">
+                <div class="max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1">
                     <label
                         v-for="brand in filteredBrands"
                         :key="brand.id || brand.slug"
@@ -558,7 +593,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.skin_types"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="st in facets.skin_types"
@@ -613,7 +648,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.effects"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="ef in facets.effects"
@@ -673,7 +708,7 @@ const totalActiveFilters = computed(() => {
                     placeholder="Search ingredient..."
                     class="w-full rounded-md border border-cream-300 bg-cream-50 px-2.5 py-1 text-xs focus:border-sage-600 focus:bg-white focus:outline-none"
                 />
-                <div class="max-h-48 space-y-1.5 overflow-y-auto pr-1">
+                <div class="max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1">
                     <label
                         v-for="ing in filteredIngredients"
                         :key="ing.id || ing.slug"
@@ -733,7 +768,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.hair_types"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="ht in facets.hair_types"
@@ -788,7 +823,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.claims"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="cl in facets.claims"
@@ -842,7 +877,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.formula_types"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="ft in facets.formula_types"
@@ -897,7 +932,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.spf"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="s in facets.spf"
@@ -951,7 +986,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.classifications"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="cls in facets.classifications"
@@ -1011,7 +1046,7 @@ const totalActiveFilters = computed(() => {
             </button>
             <div
                 v-show="openSections.origins"
-                class="mt-2.5 max-h-48 space-y-1.5 overflow-y-auto pr-1"
+                class="mt-2.5 max-h-52 lg:max-h-50 space-y-1.5 overflow-y-auto pr-1"
             >
                 <label
                     v-for="orig in facets.origins"
@@ -1085,14 +1120,6 @@ const totalActiveFilters = computed(() => {
                         @keydown.enter="applyFilters()"
                     />
                 </div>
-                <button
-                    type="button"
-                    @click="applyFilters()"
-                    class="rounded-md bg-cream-200 px-2.5 py-1.5 text-xs font-medium text-charcoal-700 transition-colors hover:bg-sage-600 hover:text-white"
-                    aria-label="Apply price filter"
-                >
-                    Go
-                </button>
             </div>
         </div>
 
@@ -1102,12 +1129,48 @@ const totalActiveFilters = computed(() => {
                 id="filter-in-stock"
                 v-model="inStock"
                 label="In Stock Only"
-                @change="applyFilters()"
             />
         </div>
 
-        <!-- Reset Button -->
-        <div>
+        <!-- Action Buttons -->
+        <div class="space-y-2 pt-2">
+            <button
+                type="button"
+                :disabled="isLoading"
+                @click="applyFilters()"
+                class="flex w-full items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 active:bg-sage-950 disabled:cursor-not-allowed disabled:opacity-75 cursor-pointer"
+            >
+                <LoadingSpinner v-if="isLoading" size="sm" class="text-white" />
+                <svg
+                    v-else
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
+                    />
+                </svg>
+                <span class="inline-flex items-center gap-1">
+                    <span>{{ isLoading ? 'Applying' : 'Apply Filters' }}</span>
+                    <span v-if="isLoading" class="inline-flex items-center gap-0.5 ml-0.5">
+                        <span class="inline-block h-1 w-1 rounded-full bg-cream-100 animate-bounce" style="animation-delay: -0.32s;" />
+                        <span class="inline-block h-1 w-1 rounded-full bg-cream-100 animate-bounce" style="animation-delay: -0.16s;" />
+                        <span class="inline-block h-1 w-1 rounded-full bg-cream-100 animate-bounce" style="animation-delay: 0s;" />
+                    </span>
+                </span>
+                <span
+                    v-if="!isLoading && totalActiveFilters > 0"
+                    class="ml-1 rounded-full bg-sage-700 px-1.5 py-0.5 text-[10px] font-bold text-white"
+                >
+                    {{ totalActiveFilters }}
+                </span>
+            </button>
+
             <button
                 type="button"
                 @click="clearAllFilters"

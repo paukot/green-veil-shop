@@ -61,5 +61,8 @@ Route::middleware(['web'])->group(function () {
         // Customer Order History routes
         Route::get('/account/orders', [OrderController::class, 'index'])->name('account.orders.index');
         Route::get('/account/orders/{order:public_id}', [OrderController::class, 'show'])->name('account.orders.show');
+
+        // Customer Saved Rituals routes
+        Route::get('/account/saved-rituals', [FavouriteController::class, 'index'])->name('account.rituals');
     });
 });

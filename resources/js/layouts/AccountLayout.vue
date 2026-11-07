@@ -3,10 +3,8 @@ import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CustomerUser } from '@/types/storefront';
-import { profile } from '@/routes/account';
+import { profile, rituals } from '@/routes/account';
 import { index as ordersIndex } from '@/routes/account/orders';
-import { index as favouritesIndex } from '@/routes/favourites';
-import { index as cartIndex } from '@/routes/cart';
 import { logout } from '@/routes';
 
 const page = usePage<{ auth: { user: CustomerUser | null } }>();
@@ -93,8 +91,14 @@ const user = computed(() => page.props.auth?.user);
                         </Link>
 
                         <Link
-                            :href="favouritesIndex.url()"
-                            class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-800"
+                            :href="rituals.url()"
+                            class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-colors"
+                            :class="
+                                $page.url.startsWith(rituals.url()) ||
+                                $page.url.startsWith('/favourites')
+                                    ? 'bg-sage-100 font-semibold text-sage-900'
+                                    : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
+                            "
                         >
                             <svg
                                 class="h-4 w-4 text-sage-600"
@@ -109,27 +113,7 @@ const user = computed(() => page.props.auth?.user);
                                     d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
                                 />
                             </svg>
-                            <span>Saved Rituals</span>
-                        </Link>
-
-                        <Link
-                            :href="cartIndex.url()"
-                            class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-800"
-                        >
-                            <svg
-                                class="h-4 w-4 text-sage-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25c-.67 0-1.19-.578-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                                />
-                            </svg>
-                            <span>Shopping Bag</span>
+                            <span>Wishlist</span>
                         </Link>
 
                         <div class="mt-2 border-t border-cream-200 pt-2">

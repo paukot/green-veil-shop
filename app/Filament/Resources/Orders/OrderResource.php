@@ -26,6 +26,8 @@ class OrderResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Shop';
 
+    protected static ?int $navigationSort = 1;
+
     /** Orders are created by customers, not by admins. */
     public static function canCreate(): bool
     {

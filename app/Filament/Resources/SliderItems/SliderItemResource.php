@@ -23,9 +23,15 @@ class SliderItemResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Marketing & Content';
+    protected static string|UnitEnum|null $navigationGroup = 'Shop';
 
-    protected static ?string $navigationLabel = 'Hero Slider';
+    protected static ?string $navigationLabel = 'Homepage Banners';
+
+    protected static ?string $modelLabel = 'Homepage Banner';
+
+    protected static ?string $pluralModelLabel = 'Homepage Banners';
+
+    protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema
     {

@@ -5,8 +5,10 @@ import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import FilterSidebar from '@/components/storefront/FilterSidebar.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
+import BotanicalLoader from '@/components/ui/BotanicalLoader.vue';
 import type { CatalogIndexProps } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
+import { usePageLoading } from '@/composables/usePageLoading';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -15,6 +17,7 @@ defineOptions({
 const props = defineProps<CatalogIndexProps>();
 
 const mobileFilterOpen = ref(false);
+const { isLoading } = usePageLoading();
 
 const activeFilterCount = computed(() => {
     let count = 0;
@@ -147,7 +150,33 @@ const pageTitle = computed(() => {
             </div>
 
             <!-- Product Listing Area -->
-            <div class="min-w-0 flex-1">
+            <div class="relative min-w-0 flex-1">
+                <!-- Loading State Overlay (rotating thingy and funny dots) -->
+                <Transition
+                    enter-active-class="transition-opacity duration-200"
+                    enter-from-class="opacity-0"
+                    enter-to-class="opacity-100"
+                    leave-active-class="transition-opacity duration-150"
+                    leave-from-class="opacity-100"
+                    leave-to-class="opacity-0"
+                >
+                    <div
+                        v-if="isLoading"
+                        class="absolute inset-0 z-30 flex flex-col items-center pt-6 rounded-2xl bg-cream-50/75 backdrop-blur-[2px]"
+                        aria-live="polite"
+                        aria-busy="true"
+                    >
+                        <div
+                            class="sticky top-28 z-40 flex flex-col items-center gap-3 rounded-2xl border border-cream-200/90 bg-white/95 px-8 py-6 shadow-xl backdrop-blur-md"
+                        >
+                            <BotanicalLoader
+                                text="Curating botanical formulas..."
+                                size="md"
+                            />
+                        </div>
+                    </div>
+                </Transition>
+
                 <!-- Top Count (Desktop) -->
                 <div
                     class="text-charcoal-600 mb-6 hidden items-center justify-between border-b border-cream-200 pb-4 text-xs lg:flex"

@@ -1,39 +1,83 @@
 # Green Veil Cosmetic Shop
 
-Laravel 13 application running on PHP 8.5, FrankenPHP (serversideup), Vue 3 (Inertia v3), Tailwind CSS v4, MySQL 8.4, and Redis.
+A full-stack e-commerce platform for cosmetics and skincare, built with **Laravel 13**, **Vue 3**, **Inertia.js**, and **Filament 5**.
+
+---
+
+## System Architecture & Infrastructure
+
+Green Veil is built around a practical, production-ready architecture designed for high performance, low maintenance, and cost efficiency on a single server.
+
+```
+[ Visitor ] ──HTTPS──> [ Host Proxy (Nginx/Caddy) ] ──Port 8080──> [ FrankenPHP App Container ]
+                                                                       ├── MySQL 8.4 (Database)
+                                                                       └── Redis (Cache & Sessions)
+```
+
+### Key Infrastructure Decisions
+
+* **FrankenPHP over Nginx + PHP-FPM:** Instead of coordinating two separate containers (a web server and a PHP worker), FrankenPHP embeds PHP directly into the Go-based Caddy web server. This runs as a single lightweight container, halves memory overhead, enables OPcache pre-compilation, and delivers faster response times.
+* **Lean Multi-Stage Docker Builds:** The Dockerfile builds dependencies, compiles frontend assets with Node/Vite, and copies only the finished build into a minimal Alpine production image. Build tools and heavy `node_modules` are completely excluded from production.
+* **Host Reverse Proxy (Port 8080):** The app container runs on port `8080` rather than taking over ports `80` and `443`. A host-level reverse proxy (Nginx or Caddy) manages SSL certificates and forwards traffic, making it easy to run multiple independent web apps on a single VPS without port conflicts.
+* **MySQL 8.4 & Redis Separation:** MySQL manages relational e-commerce data (orders, variants, stock, transactions) with container healthchecks, while Redis handles in-memory sessions and hot caching to protect database performance.
+* **Automated CI/CD Pipeline:** GitHub Actions automatically runs code style checks (Pint), static analysis (PHPStan), TypeScript validation (`vue-tsc`), and automated tests (Pest) on every push. When tests pass on `master`, it executes a zero-downtime deployment script over SSH.
+* **Monolith with Inertia.js:** Instead of maintaining disconnected frontend and API repositories, Inertia pairs Vue 3 directly with Laravel. This gives users a smooth Single Page Application experience without the added burden of API versioning, CORS configuration, or token syncing.
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Backend** | Laravel 13 & PHP 8.5 | Application logic, database ORM, and background workers |
+| **Frontend** | Vue 3, Inertia.js v3, Tailwind CSS v4 | Reactive client interface with fast page transitions |
+| **Admin Panel** | Filament 5 | Back-office management for catalog, orders, and content |
+| **Payments** | Stripe API & Webhooks | Secure checkout and event-driven payment handling |
+| **Database & Cache** | MySQL 8.4 & Redis | Relational data persistence and fast in-memory caching |
+| **Runtime & Infra** | Docker, FrankenPHP, GitHub Actions | Multi-stage container builds, web server, and automated CI/CD |
+
+---
+
+## Core Features
+
+### Storefront & Customer Experience (Vue 3 & Inertia.js)
+* **Product Discovery & Filtering:** Browse the cosmetics catalog with multi-attribute filtering by category, skin type, hair type, active ingredients, and specific claims (e.g., vegan, cruelty-free, organic).
+* **Dynamic Product Variants:** Seamless variant switching (sizes, scents, formulations) with instant price, imagery, and stock status updates.
+* **Cart & Wishlist Management:** Real-time cart synchronization and customer favorites for both guest visitors and authenticated users.
+* **Frictionless Stripe Checkout:** End-to-end checkout flow supporting delivery options and address handling, with automated order creation powered by Stripe webhooks.
+* **Promotions & Discounts:** Flexible discount code engine with cart minimums, usage caps, and expiration windows.
+* **Customer Account Portal:** Self-service profile to inspect past orders, fulfillment statuses, and personal details.
+
+### Back-Office Administration (Filament 5)
+* **Catalog & Inventory Control:** Full CRUD management for products, brands, categories, variants, and gallery media with real-time stock tracking.
+* **Order Processing & Fulfillment:** Inspect incoming orders, customer details, payment states, and update fulfillment progress.
+* **Marketing & Promotions:** Create and schedule coupon codes, homepage slider banners, and promotional campaigns.
+* **Role-Based Access Control (RBAC):** Granular administrative role and user management separating store staff from regular customers.
+* **Dashboard Analytics:** Overview widgets tracking key business metrics, recent order volumes, and inventory alerts.
 
 ---
 
 ## Local Development
 
-> **Note:** The included `compose.yaml` and `Dockerfile` are designed strictly for **production deployment** (immutable production image, baked assets, OPcache, FrankenPHP production runner) and are **not** intended for local development.
+> **Note:** The included `compose.yaml` and `Dockerfile` are strictly for **production**. For local development, use either Lerd or native host tools.
 
 ### Option 1: Lerd (Recommended)
 
-This project includes `.lerd.yaml` providing PHP 8.5, MySQL, Redis, Mailpit, and Meilisearch, along with automated workers (Vite HMR, queue, scheduler):
+Spins up PHP 8.5, MySQL, Redis, Mailpit, and background workers automatically:
 
 ```bash
-# Start background services & workers
 lerd start
-
-# Install dependencies, set up .env, run migrations, and build assets
 composer setup
 ```
+App is live at: `https://green-veil-cosmetic-shop.test`
 
-App is accessible at `https://green-veil-cosmetic-shop.test`.
-
-### Option 2: Local Host Tooling (PHP 8.5 & Node.js)
-
-If developing directly on your host system:
+### Option 2: Host Environment (PHP 8.5 & Node.js)
 
 ```bash
 cp .env.example .env
-composer install
-npm install
+composer install && npm install
 php artisan key:generate
 php artisan migrate --seed
-
-# Starts the PHP dev server, Vite HMR watcher, and queue worker concurrently
 composer run dev
 ```
 
@@ -41,36 +85,20 @@ composer run dev
 
 ## Production Deployment
 
-### 1. Server Requirements
-
-- Linux instance (Ubuntu 22.04/24.04 recommended)
-- Docker & Docker Compose v2 plugin
-- Deploy user added to `docker` group (`sudo usermod -aG docker $USER`)
-
-### 2. Initial Server Bootstrap
+The project deploys with a simple script that pulls changes, rebuilds containers, runs pending migrations, and restarts services:
 
 ```bash
-sudo mkdir -p /var/www/green-veil-cosmetic-shop
-sudo chown -R $USER:$USER /var/www/green-veil-cosmetic-shop
-
+# Initial clone and environment
 git clone <REPO_URL> /var/www/green-veil-cosmetic-shop
 cd /var/www/green-veil-cosmetic-shop
-
 cp .env.docker.example .env
-# Edit .env with your domain, APP_KEY, APP_PORT, and secure DB credentials
 
+# Deploy containers
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-Subsequent container updates and migrations run automatically via `./deploy.sh`.
-
-### 3. Host Reverse Proxy (Nginx / Caddy)
-
-The application container listens on `127.0.0.1:8080` by default (configurable via `APP_PORT` in `.env`), allowing multiple websites to coexist without port 80/443 conflicts.
-
-**Nginx server block example (`/etc/nginx/sites-available/green-veil.conf`):**
-
+### Host Nginx Proxy Example
 ```nginx
 server {
     server_name shop.yourdomain.com;
@@ -86,26 +114,37 @@ server {
 }
 ```
 
-Run `sudo certbot --nginx -d shop.yourdomain.com` for automatic SSL.
+---
+
+## Testing & Code Quality
+
+Run all quality checks and automated tests with a single command:
+
+```bash
+composer test         # Runs Pint, PHPStan, and Pest test suite in parallel
+composer lint         # Automatically format code with Laravel Pint
+composer types:check  # PHP static analysis (PHPStan / Larastan)
+npm run types:check   # Vue/TypeScript type verification
+```
 
 ---
 
-## GitHub Actions CI/CD
+## Project Structure
 
-On every push to `master` (and pull requests), GitHub Actions executes:
+```
+├── app/
+│   ├── Filament/        # Admin resources, relations, and dashboard widgets
+│   ├── Http/Controllers# Storefront and checkout controllers (Cart, Stripe, etc.)
+│   └── Models/          # Database models (Products, Variants, Orders, Promotions)
+├── resources/js/        # Vue 3 pages, components, and layouts
+├── docker/              # Container boot scripts and configurations
+├── tests/               # Pest feature and unit tests
+├── compose.yaml         # Production Docker services (App, MySQL, Redis)
+└── deploy.sh            # Automated server deployment script
+```
 
-1. **CI**: `composer ci:check` (Pint, PHPStan, Vue/TypeScript, Pest) and `docker compose build`.
-2. **CD**: Deploys via SSH to your KVM server running `./deploy.sh` on successful CI.
+---
 
-### Required Repository Secrets
+## License
 
-Add these under **Settings** → **Secrets and variables** → **Actions**:
-
-| Secret           | Description                                         | Example                                  |
-| ---------------- | --------------------------------------------------- | ---------------------------------------- |
-| `SSH_HOST`       | Server IP or hostname                               | `203.0.113.10`                           |
-| `SSH_USER`       | Deploy user                                         | `deploy`                                 |
-| `SSH_KEY`        | Private SSH key (authorized on server)              | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `DEPLOY_PATH`    | Path on server                                      | `/var/www/green-veil-cosmetic-shop`      |
-| `SSH_PORT`       | _(Optional)_ SSH port (default: `22`)               | `22`                                     |
-| `SSH_PASSPHRASE` | _(Optional)_ Passphrase if private key is encrypted |                                          |
+This project is open-source and licensed under the [MIT License](LICENSE).

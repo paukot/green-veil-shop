@@ -53,6 +53,31 @@ describe('FavouriteController', function () {
             );
         });
 
+        it('redirects guests attempting to access account rituals to login', function () {
+            $response = $this->get(route('account.rituals'));
+
+            $response->assertRedirect(route('login'));
+        });
+
+        it('renders account rituals page for authenticated customer', function () {
+            $user = User::factory()->create();
+            $product = Product::factory()->create(['name' => 'Rosehip Facial Oil']);
+            Favourite::create([
+                'user_id' => $user->id,
+                'product_id' => $product->id,
+            ]);
+
+            $response = $this->actingAs($user)->get(route('account.rituals'));
+
+            $response->assertOk();
+            $response->assertInertia(fn (Assert $page) => $page
+                ->component('Favourites/Index')
+                ->has('products', 1)
+                ->where('products.0.id', $product->id)
+                ->where('products.0.name', 'Rosehip Facial Oil')
+            );
+        });
+
         it('excludes inactive products from favourites list', function () {
             $user = User::factory()->create();
             $activeProduct = Product::factory()->create(['name' => 'Active Cream']);

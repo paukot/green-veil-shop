@@ -25,6 +25,8 @@ class PromotionResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Shop';
 
+    protected static ?int $navigationSort = 6;
+
     public static function form(Schema $schema): Schema
     {
         return PromotionForm::configure($schema);

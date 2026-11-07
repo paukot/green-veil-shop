@@ -18,9 +18,15 @@ class PaymentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Finance';
+    protected static string|UnitEnum|null $navigationGroup = 'Shop';
 
     protected static ?string $navigationLabel = 'Transactions';
+
+    protected static ?string $modelLabel = 'Transaction';
+
+    protected static ?string $pluralModelLabel = 'Transactions';
+
+    protected static ?int $navigationSort = 8;
 
     /** Payments are recorded automatically by the payment gateway, not manually. */
     public static function canCreate(): bool
