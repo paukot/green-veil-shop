@@ -16,44 +16,46 @@ Green Veil is built around a practical, production-ready architecture designed f
 
 ### Key Infrastructure Decisions
 
-* **FrankenPHP over Nginx + PHP-FPM:** Instead of coordinating two separate containers (a web server and a PHP worker), FrankenPHP embeds PHP directly into the Go-based Caddy web server. This runs as a single lightweight container, halves memory overhead, enables OPcache pre-compilation, and delivers faster response times.
-* **Lean Multi-Stage Docker Builds:** The Dockerfile builds dependencies, compiles frontend assets with Node/Vite, and copies only the finished build into a minimal Alpine production image. Build tools and heavy `node_modules` are completely excluded from production.
-* **Host Reverse Proxy (Port 8080):** The app container runs on port `8080` rather than taking over ports `80` and `443`. A host-level reverse proxy (Nginx or Caddy) manages SSL certificates and forwards traffic, making it easy to run multiple independent web apps on a single VPS without port conflicts.
-* **MySQL 8.4 & Redis Separation:** MySQL manages relational e-commerce data (orders, variants, stock, transactions) with container healthchecks, while Redis handles in-memory sessions and hot caching to protect database performance.
-* **Automated CI/CD Pipeline:** GitHub Actions automatically runs code style checks (Pint), static analysis (PHPStan), TypeScript validation (`vue-tsc`), and automated tests (Pest) on every push. When tests pass on `master`, it executes a zero-downtime deployment script over SSH.
-* **Monolith with Inertia.js:** Instead of maintaining disconnected frontend and API repositories, Inertia pairs Vue 3 directly with Laravel. This gives users a smooth Single Page Application experience without the added burden of API versioning, CORS configuration, or token syncing.
+- **FrankenPHP over Nginx + PHP-FPM:** Instead of coordinating two separate containers (a web server and a PHP worker), FrankenPHP embeds PHP directly into the Go-based Caddy web server. This runs as a single lightweight container, halves memory overhead, enables OPcache pre-compilation, and delivers faster response times.
+- **Lean Multi-Stage Docker Builds:** The Dockerfile builds dependencies, compiles frontend assets with Node/Vite, and copies only the finished build into a minimal Alpine production image. Build tools and heavy `node_modules` are completely excluded from production.
+- **Host Reverse Proxy (Port 8080):** The app container runs on port `8080` rather than taking over ports `80` and `443`. A host-level reverse proxy (Nginx or Caddy) manages SSL certificates and forwards traffic, making it easy to run multiple independent web apps on a single VPS without port conflicts.
+- **MySQL 8.4 & Redis Separation:** MySQL manages relational e-commerce data (orders, variants, stock, transactions) with container healthchecks, while Redis handles in-memory sessions and hot caching to protect database performance.
+- **Automated CI/CD Pipeline:** GitHub Actions automatically runs code style checks (Pint), static analysis (PHPStan), TypeScript validation (`vue-tsc`), and automated tests (Pest) on every push. When tests pass on `master`, it executes a zero-downtime deployment script over SSH.
+- **Monolith with Inertia.js:** Instead of maintaining disconnected frontend and API repositories, Inertia pairs Vue 3 directly with Laravel. This gives users a smooth Single Page Application experience without the added burden of API versioning, CORS configuration, or token syncing.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Backend** | Laravel 13 & PHP 8.5 | Application logic, database ORM, and background workers |
-| **Frontend** | Vue 3, Inertia.js v3, Tailwind CSS v4 | Reactive client interface with fast page transitions |
-| **Admin Panel** | Filament 5 | Back-office management for catalog, orders, and content |
-| **Payments** | Stripe API & Webhooks | Secure checkout and event-driven payment handling |
-| **Database & Cache** | MySQL 8.4 & Redis | Relational data persistence and fast in-memory caching |
-| **Runtime & Infra** | Docker, FrankenPHP, GitHub Actions | Multi-stage container builds, web server, and automated CI/CD |
+| Layer                | Technology                            | Purpose                                                       |
+| :------------------- | :------------------------------------ | :------------------------------------------------------------ |
+| **Backend**          | Laravel 13 & PHP 8.5                  | Application logic, database ORM, and background workers       |
+| **Frontend**         | Vue 3, Inertia.js v3, Tailwind CSS v4 | Reactive client interface with fast page transitions          |
+| **Admin Panel**      | Filament 5                            | Back-office management for catalog, orders, and content       |
+| **Payments**         | Stripe API & Webhooks                 | Secure checkout and event-driven payment handling             |
+| **Database & Cache** | MySQL 8.4 & Redis                     | Relational data persistence and fast in-memory caching        |
+| **Runtime & Infra**  | Docker, FrankenPHP, GitHub Actions    | Multi-stage container builds, web server, and automated CI/CD |
 
 ---
 
 ## Core Features
 
 ### Storefront & Customer Experience (Vue 3 & Inertia.js)
-* **Product Discovery & Filtering:** Browse the cosmetics catalog with multi-attribute filtering by category, skin type, hair type, active ingredients, and specific claims (e.g., vegan, cruelty-free, organic).
-* **Dynamic Product Variants:** Seamless variant switching (sizes, scents, formulations) with instant price, imagery, and stock status updates.
-* **Cart & Wishlist Management:** Real-time cart synchronization and customer favorites for both guest visitors and authenticated users.
-* **Frictionless Stripe Checkout:** End-to-end checkout flow supporting delivery options and address handling, with automated order creation powered by Stripe webhooks.
-* **Promotions & Discounts:** Flexible discount code engine with cart minimums, usage caps, and expiration windows.
-* **Customer Account Portal:** Self-service profile to inspect past orders, fulfillment statuses, and personal details.
+
+- **Product Discovery & Filtering:** Browse the cosmetics catalog with multi-attribute filtering by category, skin type, hair type, active ingredients, and specific claims (e.g., vegan, cruelty-free, organic).
+- **Dynamic Product Variants:** Seamless variant switching (sizes, scents, formulations) with instant price, imagery, and stock status updates.
+- **Cart & Wishlist Management:** Real-time cart synchronization and customer favorites for both guest visitors and authenticated users.
+- **Frictionless Stripe Checkout:** End-to-end checkout flow supporting delivery options and address handling, with automated order creation powered by Stripe webhooks.
+- **Promotions & Discounts:** Flexible discount code engine with cart minimums, usage caps, and expiration windows.
+- **Customer Account Portal:** Self-service profile to inspect past orders, fulfillment statuses, and personal details.
 
 ### Back-Office Administration (Filament 5)
-* **Catalog & Inventory Control:** Full CRUD management for products, brands, categories, variants, and gallery media with real-time stock tracking.
-* **Order Processing & Fulfillment:** Inspect incoming orders, customer details, payment states, and update fulfillment progress.
-* **Marketing & Promotions:** Create and schedule coupon codes, homepage slider banners, and promotional campaigns.
-* **Role-Based Access Control (RBAC):** Granular administrative role and user management separating store staff from regular customers.
-* **Dashboard Analytics:** Overview widgets tracking key business metrics, recent order volumes, and inventory alerts.
+
+- **Catalog & Inventory Control:** Full CRUD management for products, brands, categories, variants, and gallery media with real-time stock tracking.
+- **Order Processing & Fulfillment:** Inspect incoming orders, customer details, payment states, and update fulfillment progress.
+- **Marketing & Promotions:** Create and schedule coupon codes, homepage slider banners, and promotional campaigns.
+- **Role-Based Access Control (RBAC):** Granular administrative role and user management separating store staff from regular customers.
+- **Dashboard Analytics:** Overview widgets tracking key business metrics, recent order volumes, and inventory alerts.
 
 ---
 
@@ -69,6 +71,7 @@ Spins up PHP 8.5, MySQL, Redis, Mailpit, and background workers automatically:
 lerd start
 composer setup
 ```
+
 App is live at: `https://green-veil-cosmetic-shop.test`
 
 ### Option 2: Host Environment (PHP 8.5 & Node.js)
@@ -99,6 +102,7 @@ chmod +x deploy.sh
 ```
 
 ### Host Nginx Proxy Example
+
 ```nginx
 server {
     server_name shop.yourdomain.com;

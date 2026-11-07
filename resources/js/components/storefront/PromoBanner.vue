@@ -1,93 +1,39 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import type { PromotionBanner } from '@/types/storefront';
+import { useCarousel } from '@/composables/useCarousel';
 
 const props = defineProps<{
     promotions: PromotionBanner[];
 }>();
 
-const currentIndex = ref(0);
 const copiedCode = ref<string | null>(null);
-const isPaused = ref(false);
-let timer: ReturnType<typeof setInterval> | null = null;
+
+const {
+    currentIndex,
+    next: nextSlide,
+    prev: prevSlide,
+    goTo: goToSlide,
+    pause: pauseTimer,
+    resume: resumeTimer,
+} = useCarousel({
+    itemCount: computed(() => props.promotions.length),
+    intervalMs: 5000,
+});
 
 const hasMultiple = computed(() => props.promotions.length > 1);
 const currentPromo = computed(
     () => props.promotions[currentIndex.value] ?? props.promotions[0],
 );
 
-function startTimer() {
-    stopTimer();
-    if (props.promotions.length > 1) {
-        timer = setInterval(() => {
-            if (!isPaused.value) {
-                nextSlide();
-            }
-        }, 5000);
-    }
-}
-
-function stopTimer() {
-    if (timer) {
-        clearInterval(timer);
-        timer = null;
-    }
-}
-
-function nextSlide() {
-    if (props.promotions.length <= 1) return;
-    currentIndex.value = (currentIndex.value + 1) % props.promotions.length;
-}
-
-function prevSlide() {
-    if (props.promotions.length <= 1) return;
-    currentIndex.value =
-        (currentIndex.value - 1 + props.promotions.length) %
-        props.promotions.length;
-}
-
-function goToSlide(index: number) {
-    currentIndex.value = index;
-    startTimer();
-}
-
-function pauseTimer() {
-    isPaused.value = true;
-}
-
-function resumeTimer() {
-    isPaused.value = false;
-}
-
 function copyCode(code: string) {
-    navigator.clipboard?.writeText(code);
+    if (!navigator.clipboard?.writeText) return;
+    navigator.clipboard.writeText(code);
     copiedCode.value = code;
     setTimeout(() => {
         copiedCode.value = null;
     }, 2500);
 }
-
-watch(
-    () => props.promotions.length,
-    (len) => {
-        if (currentIndex.value >= len) {
-            currentIndex.value = 0;
-        }
-        if (len > 1) {
-            startTimer();
-        } else {
-            stopTimer();
-        }
-    },
-);
-
-onMounted(() => {
-    startTimer();
-});
-
-onUnmounted(() => {
-    stopTimer();
-});
 </script>
 
 <template>

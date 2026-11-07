@@ -157,6 +157,8 @@ export type CosmeticLookupItem = {
     id: number;
     name: string;
     slug: string;
+    inci_name?: string | null;
+    description?: string | null;
 };
 
 export type FacetOption = {

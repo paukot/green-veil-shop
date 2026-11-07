@@ -43,13 +43,12 @@ const favouritesCount = computed(() => {
         <!-- Top Global Loading Bar -->
         <div
             v-if="isLoading"
-            class="fixed top-0 left-0 right-0 z-50 h-1 overflow-hidden bg-cream-200"
+            class="fixed top-0 right-0 left-0 z-50 h-1 overflow-hidden bg-cream-200"
         >
             <div
-                class="h-full w-full bg-sage-700 animate-[pulse_1s_ease-in-out_infinite]"
+                class="h-full w-full animate-[pulse_1s_ease-in-out_infinite] bg-sage-700"
             />
         </div>
-
 
         <!-- Skip to Main Content Link for Screen Readers & Keyboard Navigation -->
         <a

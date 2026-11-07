@@ -89,7 +89,7 @@ const formattedComparePrice = computed(() => {
                 </span>
                 <span
                     v-if="product.variants_count && product.variants_count > 1"
-                    class="w-fit border border-cream-300 bg-cream-50/95 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs rounded-full"
+                    class="w-fit rounded-full border border-cream-300 bg-cream-50/95 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs"
                 >
                     +{{ product.variants_count }} options
                 </span>

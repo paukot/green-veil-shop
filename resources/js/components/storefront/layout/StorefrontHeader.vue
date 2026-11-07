@@ -197,9 +197,7 @@ function submitSearch() {
                     <!-- Favourites Link -->
                     <Link
                         :href="
-                            user
-                                ? accountRituals.url()
-                                : favouritesIndex.url()
+                            user ? accountRituals.url() : favouritesIndex.url()
                         "
                         class="relative rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                         aria-label="View favourites"

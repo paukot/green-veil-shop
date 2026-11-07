@@ -1,39 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import type { HeroSlide } from '@/types/storefront';
 import { resolveStorageUrl } from '@/lib/utils';
+import { useCarousel } from '@/composables/useCarousel';
 
 const props = defineProps<{
     slides: HeroSlide[];
 }>();
 
-const currentIndex = ref(0);
-let timer: ReturnType<typeof setInterval> | null = null;
-
-function nextSlide() {
-    if (props.slides.length <= 1) return;
-    currentIndex.value = (currentIndex.value + 1) % props.slides.length;
-}
-
-function prevSlide() {
-    if (props.slides.length <= 1) return;
-    currentIndex.value =
-        (currentIndex.value - 1 + props.slides.length) % props.slides.length;
-}
-
-function goToSlide(index: number) {
-    currentIndex.value = index;
-}
-
-onMounted(() => {
-    if (props.slides.length > 1) {
-        timer = setInterval(nextSlide, 6000);
-    }
-});
-
-onUnmounted(() => {
-    if (timer) clearInterval(timer);
+const {
+    currentIndex,
+    next: nextSlide,
+    prev: prevSlide,
+    goTo: goToSlide,
+} = useCarousel({
+    itemCount: computed(() => props.slides.length),
+    intervalMs: 6000,
 });
 </script>
 
