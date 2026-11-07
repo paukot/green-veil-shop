@@ -79,23 +79,23 @@ const formattedComparePrice = computed(() => {
 
             <!-- Badges -->
             <div
-                class="pointer-events-none absolute top-3 left-3 z-10 flex flex-col gap-1.5"
+                class="pointer-events-none absolute top-3 left-3 z-10 flex flex-col items-start gap-1"
             >
                 <span
                     v-if="product.discount_percentage"
-                    class="rounded-full bg-sage-700 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-xs"
+                    class="w-fit rounded-full bg-sage-700 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-xs"
                 >
                     -{{ product.discount_percentage }}%
                 </span>
                 <span
                     v-if="product.variants_count && product.variants_count > 1"
-                    class="rounded-full border border-cream-300 bg-cream-50/95 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs"
+                    class="w-fit rounded-full border border-cream-300 bg-cream-50/95 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs"
                 >
                     +{{ product.variants_count }} options
                 </span>
                 <span
                     v-if="!product.is_in_stock"
-                    class="rounded-full bg-charcoal-700 px-2 py-0.5 text-[10px] font-medium tracking-wider text-cream-100 uppercase"
+                    class="w-fit rounded-full bg-charcoal-700 px-2 py-0.5 text-[10px] font-medium tracking-wider text-cream-100 uppercase"
                 >
                     Out of Stock
                 </span>

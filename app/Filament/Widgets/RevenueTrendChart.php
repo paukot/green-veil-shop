@@ -8,11 +8,13 @@ use Filament\Widgets\ChartWidget;
 
 class RevenueTrendChart extends ChartWidget
 {
-    protected ?string $heading = 'Revenue Trend (Last 30 Days)';
+    protected ?string $heading = 'Revenue Trend';
 
-    protected ?string $description = 'Daily paid order revenue in EUR';
+    protected ?string $description = 'Paid order revenue in EUR across selected timeframe';
 
     protected static ?int $sort = 2;
+
+    public ?string $filter = '30d';
 
     public static function canView(): bool
     {
@@ -28,25 +30,75 @@ class RevenueTrendChart extends ChartWidget
         'xl' => 2,
     ];
 
+    /**
+     * @return array<string, string>|null
+     */
+    protected function getFilters(): ?array
+    {
+        return [
+            '7d' => 'Last 7 Days',
+            '30d' => 'Last 30 Days',
+            '90d' => 'Last 90 Days',
+            'year' => 'This Year',
+        ];
+    }
+
     protected function getData(): array
     {
-        $days = 30;
+        $now = now();
+        $filter = $this->filter ?? '30d';
+
         $labels = [];
         $data = [];
 
-        $now = now();
-
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = $now->copy()->subDays($i);
-            $dateKey = $date->format('Y-m-d');
-            $labels[] = $date->format('M j');
-
-            $dailyTotal = (float) Order::query()
+        if ($filter === 'year') {
+            $startOfYear = $now->copy()->startOfYear();
+            /** @var array<string, float|int|string> $dailyTotals */
+            $dailyTotals = Order::query()
                 ->where('payment_status', PaymentStatus::Paid)
-                ->whereDate('created_at', $dateKey)
-                ->sum('total');
+                ->where('created_at', '>=', $startOfYear)
+                ->selectRaw('DATE(created_at) as date_key, SUM(total) as daily_total')
+                ->groupBy('date_key')
+                ->pluck('daily_total', 'date_key')
+                ->all();
 
-            $data[] = round($dailyTotal, 2);
+            $monthlyBuckets = [];
+            foreach ($dailyTotals as $date => $sum) {
+                $month = substr((string) $date, 0, 7);
+                $monthlyBuckets[$month] = ($monthlyBuckets[$month] ?? 0.0) + (float) $sum;
+            }
+
+            $currentMonth = (int) $now->format('n');
+            for ($m = 1; $m <= $currentMonth; $m++) {
+                $monthDate = $now->copy()->month($m);
+                $monthKey = $monthDate->format('Y-m');
+                $labels[] = $monthDate->format('M');
+                $data[] = round($monthlyBuckets[$monthKey] ?? 0.0, 2);
+            }
+        } else {
+            $days = match ($filter) {
+                '7d' => 7,
+                '90d' => 90,
+                default => 30,
+            };
+
+            $startDate = $now->copy()->subDays($days - 1)->startOfDay();
+
+            /** @var array<string, float|int|string> $dailyTotals */
+            $dailyTotals = Order::query()
+                ->where('payment_status', PaymentStatus::Paid)
+                ->where('created_at', '>=', $startDate)
+                ->selectRaw('DATE(created_at) as date_key, SUM(total) as daily_total')
+                ->groupBy('date_key')
+                ->pluck('daily_total', 'date_key')
+                ->all();
+
+            for ($i = $days - 1; $i >= 0; $i--) {
+                $date = $now->copy()->subDays($i);
+                $dateKey = $date->format('Y-m-d');
+                $labels[] = $date->format('M j');
+                $data[] = round((float) ($dailyTotals[$dateKey] ?? 0.0), 2);
+            }
         }
 
         return [

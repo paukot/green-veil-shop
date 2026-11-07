@@ -21,7 +21,7 @@ class AdminUserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Staff & Security';
+    protected static string|UnitEnum|null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Admin Users';
 
@@ -29,7 +29,7 @@ class AdminUserResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Admin Users';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

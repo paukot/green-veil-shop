@@ -5,12 +5,19 @@ namespace App\Filament\Widgets;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
+use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class OrdersStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
+
+    protected int|array|null $columns = [
+        'sm' => 2,
+        'lg' => 3,
+        'xl' => 3,
+    ];
 
     public static function canView(): bool
     {
@@ -25,7 +32,7 @@ class OrdersStatsOverview extends BaseWidget
         $thirtyDaysAgo = $now->copy()->subDays(30);
         $sixtyDaysAgo = $now->copy()->subDays(60);
 
-        // Revenue calculations
+        // 1. 30-Day Paid Revenue and percentage change
         $currentRevenue = (float) Order::query()
             ->where('payment_status', PaymentStatus::Paid)
             ->where('created_at', '>=', $thirtyDaysAgo)
@@ -41,18 +48,6 @@ class OrdersStatsOverview extends BaseWidget
             ->where('created_at', '>=', $thirtyDaysAgo)
             ->count();
 
-        // 7-day sparkline
-        $sparkline = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $day = $now->copy()->subDays($i)->format('Y-m-d');
-            $dailySum = (float) Order::query()
-                ->where('payment_status', PaymentStatus::Paid)
-                ->whereDate('created_at', $day)
-                ->sum('total');
-            $sparkline[] = (float) round($dailySum);
-        }
-
-        // Percentage change
         if ($priorRevenue > 0) {
             $percentDiff = round((($currentRevenue - $priorRevenue) / $priorRevenue) * 100);
             $revDescription = ($percentDiff >= 0 ? "+{$percentDiff}%" : "{$percentDiff}%").' vs prior 30 days';
@@ -64,24 +59,89 @@ class OrdersStatsOverview extends BaseWidget
             $revIcon = 'heroicon-m-arrow-trending-up';
         }
 
-        // AOV calculation
+        // Optimized single-query 7-day sparkline
+        $sparklineMap = Order::query()
+            ->where('payment_status', PaymentStatus::Paid)
+            ->where('created_at', '>=', $now->copy()->subDays(6)->startOfDay())
+            ->selectRaw('DATE(created_at) as date_key, SUM(total) as daily_total')
+            ->groupBy('date_key')
+            ->pluck('daily_total', 'date_key')
+            ->all();
+
+        $sparkline = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $dayKey = $now->copy()->subDays($i)->format('Y-m-d');
+            $sparkline[] = (float) round((float) ($sparklineMap[$dayKey] ?? 0));
+        }
+
+        // 2. Today's live sales pulse
+        $todayStart = $now->copy()->startOfDay();
+        $todayOrders = Order::query()
+            ->where('payment_status', PaymentStatus::Paid)
+            ->where('created_at', '>=', $todayStart);
+        $todayRevenue = (float) (clone $todayOrders)->sum('total');
+        $todayCount = (clone $todayOrders)->count();
+
+        $yesterdayStart = $now->copy()->subDay()->startOfDay();
+        $yesterdayRevenue = (float) Order::query()
+            ->where('payment_status', PaymentStatus::Paid)
+            ->whereBetween('created_at', [$yesterdayStart, $todayStart])
+            ->sum('total');
+
+        $todayDescription = $todayCount > 0
+            ? "{$todayCount} ".($todayCount === 1 ? 'order' : 'orders').' today'
+            : 'No orders yet today';
+        if ($yesterdayRevenue > 0) {
+            $todayDescription .= ' (€'.number_format($yesterdayRevenue, 0).' yday)';
+        }
+
+        // 3. Average Order Value
         $aov = $paidOrdersCount > 0 ? ($currentRevenue / $paidOrdersCount) : 0;
 
-        // Pending fulfillment
+        // 4. Orders to Fulfill (Pending & Processing)
         $processingCount = Order::query()
             ->where('status', OrderStatus::Processing)
             ->count();
+        $pendingCount = Order::query()
+            ->where('status', OrderStatus::Pending)
+            ->count();
+        $fulfillTotal = $processingCount + $pendingCount;
 
-        // Checkout success rate
-        $totalCheckouts = Order::query()
+        $fulfillDesc = $fulfillTotal === 0
+            ? 'All fulfillment up to date'
+            : ($processingCount > 0 && $pendingCount > 0
+                ? "{$processingCount} processing, {$pendingCount} pending"
+                : ($processingCount > 0 ? "{$processingCount} processing orders" : "{$pendingCount} pending orders"));
+
+        // 5. Customer Growth (New customers registered in 30 days)
+        $newCustomersCount = User::query()
             ->where('created_at', '>=', $thirtyDaysAgo)
-            ->where(function ($q) {
-                $q->whereNotNull('stripe_session_id')
-                    ->orWhere('payment_status', PaymentStatus::Paid);
-            })
+            ->count();
+        $priorCustomersCount = User::query()
+            ->whereBetween('created_at', [$sixtyDaysAgo, $thirtyDaysAgo])
             ->count();
 
-        $successRate = $totalCheckouts > 0 ? round(($paidOrdersCount / $totalCheckouts) * 100) : 100;
+        if ($priorCustomersCount > 0) {
+            $custDiff = round((($newCustomersCount - $priorCustomersCount) / $priorCustomersCount) * 100);
+            $custDescription = ($custDiff >= 0 ? "+{$custDiff}%" : "{$custDiff}%").' vs prior 30 days';
+            $custIcon = $custDiff >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
+            $custColor = $custDiff >= 0 ? 'success' : 'gray';
+        } else {
+            $custDescription = 'Registered in last 30 days';
+            $custIcon = 'heroicon-m-user-group';
+            $custColor = 'info';
+        }
+
+        // 6. Promotions & Marketing Impact
+        $promoSavings = (float) Order::query()
+            ->where('payment_status', PaymentStatus::Paid)
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->sum('discount_amount');
+        $ordersWithPromo = Order::query()
+            ->where('payment_status', PaymentStatus::Paid)
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->whereNotNull('promotion_id')
+            ->count();
 
         return [
             Stat::make('Monthly Revenue', '€'.number_format($currentRevenue, 2))
@@ -90,20 +150,33 @@ class OrdersStatsOverview extends BaseWidget
                 ->chart($sparkline)
                 ->color($revColor),
 
+            Stat::make("Today's Sales", '€'.number_format($todayRevenue, 2))
+                ->description($todayDescription)
+                ->descriptionIcon('heroicon-m-calendar-days')
+                ->color($todayRevenue > 0 ? 'success' : 'gray'),
+
             Stat::make('Average Order Value', '€'.number_format($aov, 2))
                 ->description("{$paidOrdersCount} paid orders (30d)")
                 ->descriptionIcon('heroicon-m-shopping-bag')
                 ->color('info'),
 
-            Stat::make('Orders to Fulfill', (string) $processingCount)
-                ->description($processingCount === 0 ? 'Fulfillment up to date' : 'Awaiting packaging & shipping')
-                ->descriptionIcon($processingCount > 0 ? 'heroicon-m-exclamation-circle' : 'heroicon-m-check-badge')
-                ->color($processingCount > 0 ? 'warning' : 'success'),
+            Stat::make('Orders to Fulfill', (string) $fulfillTotal)
+                ->description($fulfillDesc)
+                ->descriptionIcon($fulfillTotal > 0 ? 'heroicon-m-exclamation-circle' : 'heroicon-m-check-badge')
+                ->color($fulfillTotal > 0 ? 'warning' : 'success')
+                ->url(route('filament.admin.resources.orders.index')),
 
-            Stat::make('Payment Success Rate', "{$successRate}%")
-                ->description($successRate >= 80 ? 'Stripe gateway healthy' : 'High decline or drop-off rate')
-                ->descriptionIcon($successRate >= 80 ? 'heroicon-m-check-circle' : 'heroicon-m-shield-exclamation')
-                ->color($successRate >= 80 ? 'success' : 'danger'),
+            Stat::make('New Customers', (string) $newCustomersCount)
+                ->description($custDescription)
+                ->descriptionIcon($custIcon)
+                ->color($custColor)
+                ->url(route('filament.admin.resources.users.index')),
+
+            Stat::make('Promotions Savings', '€'.number_format($promoSavings, 2))
+                ->description("{$ordersWithPromo} orders applied savings (30d)")
+                ->descriptionIcon('heroicon-m-tag')
+                ->color($promoSavings > 0 ? 'success' : 'gray')
+                ->url(route('filament.admin.resources.promotions.index')),
         ];
     }
 }

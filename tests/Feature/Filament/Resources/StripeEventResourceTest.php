@@ -5,10 +5,7 @@ use App\Models\AdminUser;
 use App\Models\Order;
 use App\Models\StripeEvent;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('StripeEventResource in Filament', function () {
     beforeEach(function () {

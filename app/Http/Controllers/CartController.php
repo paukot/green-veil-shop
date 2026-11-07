@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Cart\ApplyPromotionRequest;
+use App\Http\Requests\Cart\SyncCartRequest;
 use App\Http\Resources\CartItemResource;
-use App\Http\Resources\DeliveryOptionResource;
-use App\Models\DeliveryOption;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,75 +19,31 @@ class CartController extends Controller
 
     public function index(Request $request): Response
     {
-        $cartItems = $this->cartService->getItems($request);
-        $summary = $this->cartService->getSummaryFromCartItems($cartItems);
-
-        $standardDelivery = DeliveryOption::query()
-            ->active()
-            ->whereNotNull('free_threshold')
-            ->orderBy('free_threshold')
-            ->first();
-
-        $freeShippingThreshold = $standardDelivery?->free_threshold ? (float) $standardDelivery->free_threshold : 50.00;
-        $amountUntilFreeShipping = max(0, round($freeShippingThreshold - $summary['subtotal'], 2));
-
-        $deliveryOptions = DeliveryOption::query()
-            ->active()
-            ->get()
-            ->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
-                ->withSubtotal($summary['subtotal'])
-            );
-
-        $appliedPromo = $this->cartService->getAppliedPromotionData($request, $cartItems, $summary['subtotal']);
-        $discountAmount = $appliedPromo ? $appliedPromo['discount_amount'] : 0.0;
-        $orderTotal = max(0.0, round($summary['subtotal'] - $discountAmount, 2));
-
-        $availablePromotions = $this->cartService->getAvailablePromotionsData($request, $cartItems, $summary['subtotal'], $appliedPromo['id'] ?? null);
+        $overview = $this->cartService->getCartOverview($request);
 
         return Inertia::render('Cart/Index', [
-            'items' => CartItemResource::collection($cartItems)->resolve(),
-            'summary' => [
-                'count' => $summary['count'],
-                'subtotal' => $summary['subtotal'],
-                'free_shipping_threshold' => $freeShippingThreshold,
-                'amount_until_free_shipping' => (float) $amountUntilFreeShipping,
-                'qualifies_for_free_shipping' => $summary['subtotal'] >= $freeShippingThreshold,
-                'discount_amount' => $discountAmount,
-                'total' => $orderTotal,
-            ],
-            'appliedPromotion' => $appliedPromo,
-            'availablePromotions' => $availablePromotions,
-            'deliveryOptions' => $deliveryOptions,
+            'items' => CartItemResource::collection($overview['items'])->resolve(),
+            'summary' => $overview['summary'],
+            'appliedPromotion' => $overview['applied_promotion'],
+            'availablePromotions' => $overview['available_promotions'],
+            'deliveryOptions' => $overview['delivery_options'],
         ]);
     }
 
-    public function sync(Request $request): JsonResponse
+    public function sync(SyncCartRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'items' => ['present', 'array'],
-            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:999'],
-        ]);
-
-        /** @var array<int, array{product_id: int, quantity: int}> $items */
-        $items = $validated['items'];
-
-        $reconciliation = $this->cartService->syncCart($request, $items);
+        $reconciliation = $this->cartService->syncCart($request, $request->cartItems());
 
         return response()->json($reconciliation);
     }
 
-    public function applyPromotion(Request $request): JsonResponse
+    public function applyPromotion(ApplyPromotionRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'code' => ['nullable', 'string', 'max:50'],
-            'promotion_id' => ['nullable', 'integer', 'exists:promotions,id'],
-        ]);
-
-        $code = ! empty($validated['code']) ? trim((string) $validated['code']) : null;
-        $promotionId = ! empty($validated['promotion_id']) ? (int) $validated['promotion_id'] : null;
-
-        $result = $this->cartService->applyPromotion($request, $code, $promotionId);
+        $result = $this->cartService->applyPromotion(
+            $request,
+            $request->promotionCode(),
+            $request->promotionId()
+        );
 
         $cartItems = $this->cartService->getItems($request);
         $summary = $this->cartService->getSummaryFromCartItems($cartItems);

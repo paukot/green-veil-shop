@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CatalogFilterRequest;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\SimpleCategoryResource;
 use App\Http\Resources\SimpleProductResource;
@@ -9,7 +10,6 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Services\BreadcrumbService;
 use App\Services\ProductCatalogService;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,41 +24,10 @@ class ProductController extends Controller
         protected BreadcrumbService $breadcrumbService,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(CatalogFilterRequest $request): Response
     {
-        $filters = $request->only([
-            'q',
-            'category',
-            'brand',
-            'brands',
-            'min_price',
-            'max_price',
-            'in_stock',
-            'sort',
-            'skin_type',
-            'skin_types',
-            'hair_type',
-            'hair_types',
-            'effect',
-            'effects',
-            'ingredient',
-            'ingredients',
-            'claim',
-            'claims',
-            'classification',
-            'classifications',
-            'formula_type',
-            'formula_types',
-            'gender',
-            'genders',
-            'spf',
-            'manufactured_in',
-            'origin',
-            'origins',
-        ]);
-
         $products = $this->catalogService
-            ->getFilteredProductsQuery($filters)
+            ->getFilteredProductsQuery($request->toQueryFilters())
             ->paginate(self::DEFAULT_PAGINATION)
             ->withQueryString();
 
@@ -75,25 +44,7 @@ class ProductController extends Controller
             'categories' => SimpleCategoryResource::collection($categories)->resolve(),
             'facets' => $facets,
             'priceRange' => $facets['price_bounds'],
-            'filters' => [
-                'q' => $request->query('q', ''),
-                'category' => $request->query('category', ''),
-                'brands' => $request->query('brands', $request->query('brand', '')),
-                'skin_types' => $request->query('skin_types', $request->query('skin_type', '')),
-                'hair_types' => $request->query('hair_types', $request->query('hair_type', '')),
-                'effects' => $request->query('effects', $request->query('effect', '')),
-                'ingredients' => $request->query('ingredients', $request->query('ingredient', '')),
-                'claims' => $request->query('claims', $request->query('claim', '')),
-                'classifications' => $request->query('classifications', $request->query('classification', '')),
-                'formula_types' => $request->query('formula_types', $request->query('formula_type', '')),
-                'genders' => $request->query('genders', $request->query('gender', '')),
-                'spf' => $request->query('spf', ''),
-                'manufactured_in' => $request->query('manufactured_in', $request->query('origin', '')),
-                'min_price' => $request->query('min_price'),
-                'max_price' => $request->query('max_price'),
-                'in_stock' => $request->boolean('in_stock'),
-                'sort' => $request->query('sort', 'featured'),
-            ],
+            'filters' => $request->toInertiaFilters(includeCategory: true),
         ]);
     }
 

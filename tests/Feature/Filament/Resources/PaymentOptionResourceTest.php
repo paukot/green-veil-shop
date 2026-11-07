@@ -6,10 +6,7 @@ use App\Filament\Resources\PaymentOptions\Pages\ListPaymentOptions;
 use App\Models\AdminUser;
 use App\Models\PaymentOption;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('PaymentOptionResource in Filament', function () {
     beforeEach(function () {

@@ -1,4 +1,6 @@
 import { computed, ref } from 'vue';
+import { sync as favouriteSync } from '@/actions/App/Http/Controllers/FavouriteController';
+import { postJson } from '@/lib/api';
 
 export type FavouriteSyncResponse = {
     favourites: number[];
@@ -16,12 +18,6 @@ const isInitialized = ref(false);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let activeSyncPromise: Promise<number[] | null> | null = null;
-
-function getXsrfToken(): string {
-    if (typeof document === 'undefined') return '';
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : '';
-}
 
 function loadFromStorage(): number[] {
     if (typeof window === 'undefined' || !window.localStorage) {
@@ -58,7 +54,7 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Perform network sync to backend /favourites/sync
+ * Perform network sync to backend via Wayfinder favouriteSync endpoint
  */
 async function executeSync(): Promise<number[] | null> {
     if (typeof window === 'undefined') return null;
@@ -66,29 +62,11 @@ async function executeSync(): Promise<number[] | null> {
     isSyncing.value = true;
     syncError.value = null;
 
-    const payload = {
-        product_ids: productIds.value,
-    };
-
     try {
-        const response = await fetch('/favourites/sync', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-XSRF-TOKEN': getXsrfToken(),
-            },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            throw new Error(
-                `Favourites sync failed with status ${response.status}`,
-            );
-        }
-
-        const data: FavouriteSyncResponse = await response.json();
+        const data = await postJson<FavouriteSyncResponse>(
+            favouriteSync.url(),
+            { product_ids: productIds.value },
+        );
 
         // Reconcile with verified active product IDs from backend
         productIds.value = data.favourites;
@@ -145,20 +123,18 @@ export function useFavourites() {
     }
 
     function add(productId: number) {
-        if (!productIds.value.includes(productId)) {
-            productIds.value.push(productId);
-            saveToStorage(productIds.value);
-            scheduleSync();
-        }
+        if (productIds.value.includes(productId)) return;
+        productIds.value.push(productId);
+        saveToStorage(productIds.value);
+        scheduleSync();
     }
 
     function remove(productId: number) {
         const idx = productIds.value.indexOf(productId);
-        if (idx > -1) {
-            productIds.value.splice(idx, 1);
-            saveToStorage(productIds.value);
-            scheduleSync();
-        }
+        if (idx === -1) return;
+        productIds.value.splice(idx, 1);
+        saveToStorage(productIds.value);
+        scheduleSync();
     }
 
     function clear() {
@@ -182,17 +158,18 @@ export function useFavourites() {
      * Hydrate from server props (e.g. on layout or page load)
      */
     function initFromServer(serverIds: number[]) {
-        if (
-            productIds.value.length === 0 &&
-            serverIds &&
-            serverIds.length > 0
-        ) {
+        if (!serverIds || serverIds.length === 0) {
+            isInitialized.value = true;
+            return;
+        }
+
+        if (productIds.value.length === 0) {
             const sanitized = serverIds
                 .map((id) => Number(id))
                 .filter((id) => id > 0);
             productIds.value = sanitized;
             saveToStorage(sanitized);
-        } else if (productIds.value.length > 0 && !isInitialized.value) {
+        } else if (!isInitialized.value) {
             scheduleSync();
         }
 

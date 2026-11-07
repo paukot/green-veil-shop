@@ -8,7 +8,7 @@ import { index as productsIndex } from '@/routes/products';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import { index as cartIndex } from '@/routes/cart';
 import { index as favouritesIndex } from '@/routes/favourites';
-import { profile } from '@/routes/account';
+import { profile, rituals as accountRituals } from '@/routes/account';
 import { index as ordersIndex } from '@/routes/account/orders';
 
 const open = defineModel<boolean>('open', { default: false });
@@ -406,7 +406,11 @@ onUnmounted(() => {
                                 class="mt-6 space-y-2 border-t border-cream-200/80 pt-5"
                             >
                                 <Link
-                                    :href="favouritesIndex.url()"
+                                    :href="
+                                        props.user
+                                            ? accountRituals.url()
+                                            : favouritesIndex.url()
+                                    "
                                     class="flex items-center justify-between rounded-xl border border-cream-200 bg-white/70 px-3.5 py-2.5 text-xs font-medium text-charcoal-800 transition-colors hover:border-sage-300 hover:bg-white"
                                     @click="close"
                                 >

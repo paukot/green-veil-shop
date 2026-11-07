@@ -99,6 +99,92 @@ class CartService
     }
 
     /**
+     * Get free shipping threshold from active standard delivery option.
+     */
+    public function getFreeShippingThreshold(): float
+    {
+        $standardDelivery = DeliveryOption::query()
+            ->active()
+            ->whereNotNull('free_threshold')
+            ->orderBy('free_threshold')
+            ->first();
+
+        return $standardDelivery?->free_threshold ? (float) $standardDelivery->free_threshold : 50.00;
+    }
+
+    /**
+     * Get delivery options mapped with current subtotal for free eligibility.
+     *
+     * @return Collection<int, DeliveryOptionResource>
+     */
+    public function getDeliveryOptions(float $subtotal): Collection
+    {
+        return DeliveryOption::query()
+            ->active()
+            ->get()
+            ->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
+                ->withSubtotal($subtotal)
+            );
+    }
+
+    /**
+     * Get complete cart overview including items, summary, shipping calculations, and promotions.
+     *
+     * @return array{
+     *     items: Collection<int, CartItem>,
+     *     summary: array{
+     *         count: int,
+     *         subtotal: float,
+     *         free_shipping_threshold: float,
+     *         amount_until_free_shipping: float,
+     *         qualifies_for_free_shipping: bool,
+     *         discount_amount: float,
+     *         total: float
+     *     },
+     *     applied_promotion: array<string, mixed>|null,
+     *     available_promotions: array<int, array<string, mixed>>,
+     *     delivery_options: Collection<int, DeliveryOptionResource>
+     * }
+     */
+    public function getCartOverview(Request $request): array
+    {
+        $cartItems = $this->getItems($request);
+        $summary = $this->getSummaryFromCartItems($cartItems);
+
+        $freeShippingThreshold = $this->getFreeShippingThreshold();
+        $amountUntilFreeShipping = max(0.0, round($freeShippingThreshold - $summary['subtotal'], 2));
+
+        $deliveryOptions = $this->getDeliveryOptions($summary['subtotal']);
+
+        $appliedPromo = $this->getAppliedPromotionData($request, $cartItems, $summary['subtotal']);
+        $discountAmount = $appliedPromo ? (float) $appliedPromo['discount_amount'] : 0.0;
+        $orderTotal = max(0.0, round($summary['subtotal'] - $discountAmount, 2));
+
+        $availablePromotions = $this->getAvailablePromotionsData(
+            $request,
+            $cartItems,
+            $summary['subtotal'],
+            $appliedPromo['id'] ?? null
+        );
+
+        return [
+            'items' => $cartItems,
+            'summary' => [
+                'count' => $summary['count'],
+                'subtotal' => $summary['subtotal'],
+                'free_shipping_threshold' => $freeShippingThreshold,
+                'amount_until_free_shipping' => $amountUntilFreeShipping,
+                'qualifies_for_free_shipping' => $summary['subtotal'] >= $freeShippingThreshold,
+                'discount_amount' => $discountAmount,
+                'total' => $orderTotal,
+            ],
+            'applied_promotion' => $appliedPromo,
+            'available_promotions' => $availablePromotions,
+            'delivery_options' => $deliveryOptions,
+        ];
+    }
+
+    /**
      * Get count of items and subtotal for badges and summary.
      *
      * @return array{count: int, subtotal: float}

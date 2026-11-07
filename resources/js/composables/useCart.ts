@@ -1,8 +1,14 @@
 import { computed, ref } from 'vue';
+import {
+    applyPromotion as cartApplyPromotion,
+    removePromotion as cartRemovePromotion,
+    sync as cartSync,
+} from '@/actions/App/Http/Controllers/CartController';
+import { deleteJson, postJson } from '@/lib/api';
 import type {
-    CartItemData,
     AppliedPromotionData,
     AvailablePromotionData,
+    CartItemData,
 } from '@/types/storefront';
 
 export type LocalCartItem = {
@@ -68,12 +74,6 @@ const isInitialized = ref(false);
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let activeSyncPromise: Promise<CartSyncResponse | null> | null = null;
 
-function getXsrfToken(): string {
-    if (typeof document === 'undefined') return '';
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : '';
-}
-
 function loadFromStorage(): LocalCartItem[] {
     if (typeof window === 'undefined' || !window.localStorage) {
         return [];
@@ -107,7 +107,7 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Execute network sync to backend /cart/sync
+ * Execute network sync to backend via Wayfinder cartSync endpoint
  */
 async function executeSync(): Promise<CartSyncResponse | null> {
     if (typeof window === 'undefined') return null;
@@ -123,24 +123,8 @@ async function executeSync(): Promise<CartSyncResponse | null> {
     };
 
     try {
-        const response = await fetch('/cart/sync', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-XSRF-TOKEN': getXsrfToken(),
-            },
-            body: JSON.stringify(payload),
-        });
+        const data = await postJson<CartSyncResponse>(cartSync.url(), payload);
 
-        if (!response.ok) {
-            throw new Error(`Sync failed with status ${response.status}`);
-        }
-
-        const data: CartSyncResponse = await response.json();
-
-        // Update server warnings if any
         if (data.warnings && data.warnings.length > 0) {
             syncWarnings.value = data.warnings;
         }
@@ -152,9 +136,7 @@ async function executeSync(): Promise<CartSyncResponse | null> {
             availablePromotions.value = data.available_promotions;
         }
 
-        // Reconcile local items with verified server state
         reconcileWithServerItems(data.items);
-
         return data;
     } catch (err: unknown) {
         syncError.value =
@@ -203,12 +185,10 @@ function reconcileWithServerItems(serverItems: CartItemData[]) {
 }
 
 export function useCart() {
-    // Total count of items
     const count = computed(() => {
         return items.value.reduce((sum, item) => sum + item.quantity, 0);
     });
 
-    // Total subtotal
     const subtotal = computed(() => {
         const sum = items.value.reduce(
             (total, item) => total + item.price * item.quantity,
@@ -322,11 +302,11 @@ export function useCart() {
      */
     function removeItem(productId: number) {
         const idx = items.value.findIndex((i) => i.product_id === productId);
-        if (idx > -1) {
-            items.value.splice(idx, 1);
-            saveToStorage(items.value);
-            scheduleSync();
-        }
+        if (idx === -1) return;
+
+        items.value.splice(idx, 1);
+        saveToStorage(items.value);
+        scheduleSync();
     }
 
     /**
@@ -340,7 +320,7 @@ export function useCart() {
     }
 
     /**
-     * Immediately flush any pending debounced sync (critical before navigating to checkout)
+     * Immediately flush any pending debounced sync
      */
     async function flushSync(): Promise<CartSyncResponse | null> {
         if (debounceTimer) {
@@ -353,18 +333,12 @@ export function useCart() {
         return await executeSync();
     }
 
-    /**
-     * Calculated discount amount from applied promotion
-     */
     const discountAmount = computed(() => {
         return appliedPromotion.value
             ? appliedPromotion.value.discount_amount
             : 0;
     });
 
-    /**
-     * Total amount after discount
-     */
     const totalAfterDiscount = computed(() => {
         return Math.max(
             0,
@@ -382,25 +356,11 @@ export function useCart() {
         isSyncing.value = true;
         syncError.value = null;
         try {
-            const response = await fetch('/cart/promotion', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': getXsrfToken(),
-                },
-                body: JSON.stringify(params),
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                const errorMsg =
-                    data.errors?.code?.[0] ||
-                    data.message ||
-                    'Failed to apply promotion';
-                return { success: false, error: errorMsg };
-            }
+            const data = await postJson<{
+                applied_promotion?: AppliedPromotionData | null;
+                available_promotions?: AvailablePromotionData[];
+                message?: string;
+            }>(cartApplyPromotion.url(), params);
 
             appliedPromotion.value = data.applied_promotion ?? null;
             if (data.available_promotions) {
@@ -427,16 +387,11 @@ export function useCart() {
     }> {
         isSyncing.value = true;
         try {
-            const response = await fetch('/cart/promotion', {
-                method: 'DELETE',
-                headers: {
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': getXsrfToken(),
-                },
-            });
+            const data = await deleteJson<{
+                available_promotions?: AvailablePromotionData[];
+                message?: string;
+            }>(cartRemovePromotion.url());
 
-            const data = await response.json();
             appliedPromotion.value = null;
             if (data.available_promotions) {
                 availablePromotions.value = data.available_promotions;
@@ -464,7 +419,6 @@ export function useCart() {
             availablePromotions.value = serverAvailablePromotions;
         }
 
-        // If local storage is empty but server has items, load from server
         if (items.value.length === 0 && serverItems && serverItems.length > 0) {
             const mapped: LocalCartItem[] = serverItems.map((si) => ({
                 id: si.id,
@@ -489,7 +443,6 @@ export function useCart() {
             items.value = mapped;
             saveToStorage(mapped);
         } else if (items.value.length > 0 && !isInitialized.value) {
-            // Local storage has items: run a background sync to verify fresh prices and stock
             scheduleSync();
         }
 

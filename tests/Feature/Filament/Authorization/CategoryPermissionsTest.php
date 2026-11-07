@@ -5,9 +5,6 @@ use App\Filament\Widgets\LatestOrdersTable;
 use App\Filament\Widgets\OrdersStatsOverview;
 use App\Models\AdminRole;
 use App\Models\AdminUser;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Category-Level Role-Based Access Control', function () {
     beforeEach(function () {

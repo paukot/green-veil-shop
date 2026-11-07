@@ -9,7 +9,7 @@ import { index as productsIndex } from '@/routes/products';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import { index as cartIndex } from '@/routes/cart';
 import { index as favouritesIndex } from '@/routes/favourites';
-import { profile } from '@/routes/account';
+import { profile, rituals as accountRituals } from '@/routes/account';
 import { getNavigationLayout } from '@/lib/navigation';
 
 import { useCart } from '@/composables/useCart';
@@ -196,7 +196,9 @@ function submitSearch() {
 
                     <!-- Favourites Link -->
                     <Link
-                        :href="favouritesIndex.url()"
+                        :href="
+                            user ? accountRituals.url() : favouritesIndex.url()
+                        "
                         class="relative rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                         aria-label="View favourites"
                     >

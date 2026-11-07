@@ -12,11 +12,8 @@ use App\Models\Favourite;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('UserResource in Filament', function () {
     beforeEach(function () {

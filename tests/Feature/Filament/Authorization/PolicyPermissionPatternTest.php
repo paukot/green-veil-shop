@@ -13,9 +13,6 @@ use App\Policies\ProductPolicy;
 use App\Policies\PromotionPolicy;
 use App\Policies\StripeEventPolicy;
 use App\Policies\UserPolicy;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Policy Permission Pattern (user->can && user->hasCategoryAccess)', function () {
     beforeEach(function () {

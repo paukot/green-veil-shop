@@ -5,11 +5,8 @@ use App\Filament\Resources\AdminUsers\Pages\EditAdminUser;
 use App\Filament\Resources\AdminUsers\Pages\ListAdminUsers;
 use App\Models\AdminRole;
 use App\Models\AdminUser;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('AdminUserResource in Filament', function () {
     beforeEach(function () {

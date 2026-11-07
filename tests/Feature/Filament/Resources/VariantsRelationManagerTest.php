@@ -5,10 +5,7 @@ use App\Filament\Resources\Products\RelationManagers\VariantsRelationManager;
 use App\Models\AdminUser;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('Filament Product Variants Relation Manager', function () {
     beforeEach(function () {

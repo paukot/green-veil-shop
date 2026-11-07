@@ -10,10 +10,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentOption;
 use App\Models\StripeEvent;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('OrderPaymentLogs in Filament', function () {
     beforeEach(function () {

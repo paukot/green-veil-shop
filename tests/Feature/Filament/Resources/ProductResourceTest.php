@@ -11,10 +11,7 @@ use App\Models\Effect;
 use App\Models\Ingredient;
 use App\Models\Product;
 use App\Models\SkinType;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 describe('Filament Product Cosmetic Management', function () {
     beforeEach(function () {
