@@ -258,7 +258,7 @@ onUnmounted(() => {
                                         query: { brands: product.brand.slug },
                                     })
                                 "
-                                class="hover:text-sage-950 font-bold tracking-widest text-sage-800 uppercase hover:underline"
+                                class="font-bold tracking-widest text-sage-800 uppercase hover:text-sage-950 hover:underline"
                             >
                                 {{ product.brand.name }}
                             </Link>

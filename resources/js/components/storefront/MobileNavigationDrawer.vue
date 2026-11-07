@@ -256,7 +256,7 @@ onUnmounted(() => {
                                             class="flex w-full items-center justify-between rounded-xl px-3.5 py-3 text-left transition-colors focus:outline-none"
                                             :class="
                                                 expandedCategories[cat.id]
-                                                    ? 'text-sage-950 bg-sage-100/70 font-semibold'
+                                                    ? 'bg-sage-100/70 font-semibold text-sage-950'
                                                     : 'font-medium text-charcoal-800 hover:bg-cream-100/80'
                                             "
                                             :aria-expanded="

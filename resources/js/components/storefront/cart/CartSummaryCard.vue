@@ -112,7 +112,7 @@ const emit = defineEmits<{
                             {{ formatCurrency(subtotal) }}
                         </span>
                         <span
-                            class="text-charcoal-950 font-sans text-2xl font-bold tracking-tight sm:text-3xl"
+                            class="font-sans text-2xl font-bold tracking-tight text-charcoal-950 sm:text-3xl"
                         >
                             {{ formatCurrency(totalAfterDiscount) }}
                         </span>

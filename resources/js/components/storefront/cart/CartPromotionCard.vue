@@ -73,7 +73,7 @@ function handleSubmit() {
                         </svg>
                     </span>
                     <div>
-                        <div class="text-sage-950 font-semibold">
+                        <div class="font-semibold text-sage-950">
                             {{ appliedPromotion.name }}
                             <span
                                 v-if="appliedPromotion.code"
