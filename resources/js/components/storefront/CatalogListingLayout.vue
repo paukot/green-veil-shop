@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import FilterSidebar from '@/components/storefront/FilterSidebar.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
@@ -46,6 +47,32 @@ const { isLoading } = usePageLoading();
 const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
     () => props.filters,
 );
+
+const isMounted = ref(false);
+
+watch(mobileFilterOpen, (isOpen) => {
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+});
+
+function handleKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && mobileFilterOpen.value) {
+        mobileFilterOpen.value = false;
+    }
+}
+
+onMounted(() => {
+    isMounted.value = true;
+    window.addEventListener('keydown', handleKeyDown);
+});
+
+onUnmounted(() => {
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+    }
+    window.removeEventListener('keydown', handleKeyDown);
+});
 </script>
 
 <template>
@@ -198,41 +225,78 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
     </div>
 
     <!-- Mobile Filter Drawer -->
-    <div
-        v-if="mobileFilterOpen"
-        class="fixed inset-0 z-50 flex justify-end bg-charcoal-900/50 backdrop-blur-xs lg:hidden"
-        @click.self="mobileFilterOpen = false"
-    >
-        <div
-            class="flex h-full w-full max-w-sm flex-col justify-between overflow-y-auto bg-white p-6"
-        >
-            <div>
+    <Teleport v-if="isMounted" to="body">
+        <div class="relative z-50 lg:hidden">
+            <!-- Backdrop -->
+            <Transition
+                enter-active-class="transition-opacity ease-out duration-300"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition-opacity ease-in duration-200"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
                 <div
-                    class="mb-6 flex items-center justify-between border-b border-cream-200 pb-4"
-                >
-                    <div class="font-serif text-lg text-charcoal-900">
-                        Filter & Sort
-                    </div>
-                    <button
-                        type="button"
-                        @click="mobileFilterOpen = false"
-                        class="text-charcoal-400 p-1 text-xl leading-none hover:text-charcoal-800"
-                        aria-label="Close filters"
-                    >
-                        &times;
-                    </button>
-                </div>
-
-                <FilterSidebar
-                    :categories="categories"
-                    :filters="filters"
-                    :facets="facets"
-                    :price-range="priceRange"
-                    :base-url="baseUrl"
-                    :show-categories="showCategoriesInSidebar"
-                    @close="mobileFilterOpen = false"
+                    v-if="mobileFilterOpen"
+                    class="fixed inset-0 cursor-pointer bg-charcoal-900/60 backdrop-blur-xs transition-opacity"
+                    aria-hidden="true"
+                    @click="mobileFilterOpen = false"
                 />
+            </Transition>
+
+            <!-- Slide-out Drawer Panel -->
+            <div
+                v-show="mobileFilterOpen"
+                class="pointer-events-none fixed inset-0 flex justify-end"
+                @click.self="mobileFilterOpen = false"
+            >
+                <Transition
+                    enter-active-class="transform transition ease-out duration-300"
+                    enter-from-class="translate-x-full"
+                    enter-to-class="translate-x-0"
+                    leave-active-class="transform transition ease-in duration-200"
+                    leave-from-class="translate-x-0"
+                    leave-to-class="translate-x-full"
+                >
+                    <div
+                        v-if="mobileFilterOpen"
+                        class="pointer-events-auto relative flex h-full w-full max-w-sm flex-col bg-white shadow-2xl"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Filter & Sort Products"
+                    >
+                        <!-- Header with Title & Close Button -->
+                        <div
+                            class="flex shrink-0 items-center justify-between border-b border-cream-200 px-6 py-4"
+                        >
+                            <div class="font-serif text-lg text-charcoal-900">
+                                Filter & Sort
+                            </div>
+                            <button
+                                type="button"
+                                @click="mobileFilterOpen = false"
+                                class="text-charcoal-500 hover:text-charcoal-900 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-2xl leading-none transition-colors hover:bg-cream-100"
+                                aria-label="Close filters"
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        <!-- Scrollable Body with Sidebar Filters -->
+                        <div class="flex-1 overflow-y-auto p-6">
+                            <FilterSidebar
+                                :categories="categories"
+                                :filters="filters"
+                                :facets="facets"
+                                :price-range="priceRange"
+                                :base-url="baseUrl"
+                                :show-categories="showCategoriesInSidebar"
+                                @close="mobileFilterOpen = false"
+                            />
+                        </div>
+                    </div>
+                </Transition>
             </div>
         </div>
-    </div>
+    </Teleport>
 </template>

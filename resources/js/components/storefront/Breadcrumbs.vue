@@ -23,7 +23,7 @@ withDefaults(
             :class="inline ? '' : 'mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8'"
         >
             <ol
-                class="text-charcoal-600 flex flex-wrap items-center space-x-2 text-xs"
+                class="text-charcoal-600 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs"
             >
                 <li
                     v-for="(crumb, idx) in items"
@@ -33,20 +33,20 @@ withDefaults(
                     <Link
                         v-if="idx < items.length - 1"
                         :href="crumb.url"
-                        class="transition-colors hover:text-sage-800"
+                        class="max-w-[140px] truncate transition-colors hover:text-sage-800 sm:max-w-none"
                     >
                         {{ crumb.name }}
                     </Link>
                     <span
                         v-else
-                        class="font-semibold text-charcoal-900"
+                        class="max-w-[160px] truncate font-semibold text-charcoal-900 sm:max-w-none"
                         aria-current="page"
                     >
                         {{ crumb.name }}
                     </span>
                     <svg
                         v-if="idx < items.length - 1"
-                        class="text-charcoal-400 mx-2 h-3 w-3 shrink-0"
+                        class="text-charcoal-400 mx-1 h-3 w-3 shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"

@@ -42,12 +42,12 @@ const variantClasses = computed(() => {
 const sizeClasses = computed(() => {
     switch (props.size) {
         case 'sm':
-            return 'px-3.5 py-2 text-xs font-medium tracking-wider uppercase rounded-lg gap-1.5';
+            return 'min-h-[44px] sm:min-h-0 px-3.5 py-2 text-xs font-medium tracking-wider uppercase rounded-lg gap-1.5';
         case 'lg':
-            return 'px-6 py-3.5 text-xs font-semibold tracking-wider uppercase rounded-full gap-2.5';
+            return 'min-h-[44px] px-6 py-3.5 text-xs font-semibold tracking-wider uppercase rounded-full gap-2.5';
         case 'md':
         default:
-            return 'px-5 py-2.5 text-xs font-medium tracking-wider uppercase rounded-xl gap-2';
+            return 'min-h-[44px] px-5 py-2.5 text-xs font-medium tracking-wider uppercase rounded-xl gap-2';
     }
 });
 </script>

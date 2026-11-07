@@ -51,9 +51,9 @@ const hasSuffix = () => Boolean(props.suffixText || slots.suffix);
                     rounded === 'xl' && 'rounded-xl',
                     rounded === 'full' && 'rounded-full',
                     // Sizing
-                    size === 'sm' && 'px-3 py-1.5 text-xs',
-                    size === 'md' && 'px-4 py-2.5 text-sm',
-                    size === 'lg' && 'px-4.5 py-3 text-base',
+                    size === 'sm' && 'px-3 py-2 text-base sm:py-1.5 sm:text-xs min-h-[44px] sm:min-h-0',
+                    size === 'md' && 'px-4 py-2.5 text-base sm:text-sm min-h-[44px] sm:min-h-0',
+                    size === 'lg' && 'px-4.5 py-3 text-base min-h-[44px]',
                     // Padding offsets for prefix/suffix
                     hasPrefix() && size === 'sm' && 'pl-6',
                     hasPrefix() && size === 'md' && 'pl-8',

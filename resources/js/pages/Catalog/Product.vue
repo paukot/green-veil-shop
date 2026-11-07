@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import { QuantityInput } from '@/components/form';
@@ -157,6 +157,30 @@ function addToCart() {
         addedToCartNotice.value = false;
     }, 2000);
 }
+
+const showStickyBar = ref(false);
+const mainCtaRef = ref<HTMLElement | null>(null);
+
+let observer: IntersectionObserver | null = null;
+
+onMounted(() => {
+    if (typeof IntersectionObserver !== 'undefined' && mainCtaRef.value) {
+        observer = new IntersectionObserver(
+            ([entry]) => {
+                showStickyBar.value =
+                    !entry.isIntersecting && entry.boundingClientRect.top < 0;
+            },
+            { threshold: 0 },
+        );
+        observer.observe(mainCtaRef.value);
+    }
+});
+
+onUnmounted(() => {
+    if (observer) {
+        observer.disconnect();
+    }
+});
 </script>
 
 <template>
@@ -380,7 +404,7 @@ function addToCart() {
                 />
 
                 <!-- Quantity & Add to Cart Action -->
-                <div class="space-y-4 border-t border-cream-200 pt-4">
+                <div ref="mainCtaRef" class="space-y-4 border-t border-cream-200 pt-4">
                     <div class="flex items-center gap-4">
                         <QuantityInput
                             v-model="quantity"
@@ -501,4 +525,45 @@ function addToCart() {
             <ProductGrid :products="relatedProducts" />
         </div>
     </section>
+
+    <!-- Mobile Sticky Add to Bag Bar -->
+    <Transition
+        enter-active-class="transform transition ease-out duration-300"
+        enter-from-class="translate-y-full"
+        enter-to-class="translate-y-0"
+        leave-active-class="transform transition ease-in duration-200"
+        leave-from-class="translate-y-0"
+        leave-to-class="translate-y-full"
+    >
+        <div
+            v-if="showStickyBar"
+            class="fixed right-0 bottom-0 left-0 z-30 border-t border-cream-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
+        >
+            <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="truncate font-serif text-sm font-medium text-charcoal-900">
+                        {{ product.name }}
+                    </p>
+                    <p class="text-xs font-semibold text-charcoal-900">
+                        {{ formatCurrency(currentPrice) }}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    @click="addToCart"
+                    :disabled="!isInStock"
+                    class="flex shrink-0 min-h-[44px] items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors"
+                    :class="
+                        addedToCartNotice
+                            ? 'bg-emerald-700'
+                            : isInStock
+                              ? 'bg-sage-800 hover:bg-sage-900 active:scale-95'
+                              : 'bg-cream-300 text-charcoal-400 cursor-not-allowed'
+                    "
+                >
+                    {{ addedToCartNotice ? 'Added ✓' : isInStock ? 'Add to Bag' : 'Out of Stock' }}
+                </button>
+            </div>
+        </div>
+    </Transition>
 </template>

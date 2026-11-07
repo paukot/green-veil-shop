@@ -181,7 +181,7 @@ defineProps<AccountOrdersPageProps>();
                         <div class="flex items-center gap-3">
                             <Link
                                 :href="ordersShow.url(order.public_id)"
-                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-xs font-semibold tracking-wider text-charcoal-800 uppercase transition-colors hover:bg-cream-100 hover:text-sage-900 sm:w-auto"
+                                class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-xs font-semibold tracking-wider text-charcoal-800 uppercase transition-colors hover:bg-cream-100 hover:text-sage-900 sm:w-auto"
                             >
                                 <span>View Details</span>
                                 <svg

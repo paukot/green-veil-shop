@@ -103,7 +103,7 @@ function submitSearch() {
                     <div class="flex items-center lg:hidden">
                         <button
                             type="button"
-                            class="-ml-2 rounded-md p-2 text-charcoal-700 hover:text-sage-700 focus:ring-2 focus:ring-sage-500 focus:outline-none"
+                            class="-ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md p-2 text-charcoal-700 hover:text-sage-700 focus:ring-2 focus:ring-sage-500 focus:outline-none"
                             aria-label="Toggle navigation menu"
                             :aria-expanded="mobileMenuOpen"
                             @click="mobileMenuOpen = !mobileMenuOpen"
@@ -175,7 +175,7 @@ function submitSearch() {
                     <!-- Search Toggle Button (Mobile & Tablet only) -->
                     <button
                         type="button"
-                        class="rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700 lg:hidden"
+                        class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700 lg:hidden"
                         aria-label="Search products"
                         @click="searchOpen = !searchOpen"
                     >
@@ -199,7 +199,7 @@ function submitSearch() {
                         :href="
                             user ? accountRituals.url() : favouritesIndex.url()
                         "
-                        class="relative rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
+                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                         aria-label="View favourites"
                     >
                         <svg
@@ -217,7 +217,7 @@ function submitSearch() {
                         </svg>
                         <span
                             v-if="favouritesCount > 0"
-                            class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-sage-600 text-[10px] font-medium text-white"
+                            class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-sage-600 text-[10px] font-medium text-white"
                         >
                             {{ favouritesCount }}
                         </span>
@@ -226,7 +226,7 @@ function submitSearch() {
                     <!-- Cart Link -->
                     <Link
                         :href="cartIndex.url()"
-                        class="relative rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
+                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                         aria-label="View shopping cart"
                     >
                         <svg
@@ -244,7 +244,7 @@ function submitSearch() {
                         </svg>
                         <span
                             v-if="cartCount > 0"
-                            class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-sage-700 text-[10px] font-medium text-white"
+                            class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-sage-700 text-[10px] font-medium text-white"
                         >
                             {{ cartCount }}
                         </span>
@@ -254,7 +254,7 @@ function submitSearch() {
                     <div class="group relative">
                         <Link
                             :href="user ? profile.url() : login.url()"
-                            class="flex items-center gap-1.5 rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
+                            class="flex min-h-[44px] items-center gap-1.5 rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
                             :aria-label="user ? 'Account profile' : 'Sign in'"
                         >
                             <svg

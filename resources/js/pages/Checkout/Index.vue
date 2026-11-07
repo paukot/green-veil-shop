@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     CheckboxField,
@@ -13,7 +13,7 @@ import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import Breadcrumbs from '@/components/storefront/Breadcrumbs.vue';
 import AddressFormFields from '@/components/storefront/checkout/AddressFormFields.vue';
 import CheckoutOrderSummary from '@/components/storefront/checkout/CheckoutOrderSummary.vue';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
 import type { CheckoutPageProps } from '@/types/storefront';
 import { store as checkoutStore } from '@/actions/App/Http/Controllers/CheckoutController';
 import { index as cartIndex } from '@/routes/cart';
@@ -21,6 +21,8 @@ import { login } from '@/routes';
 import { useCart } from '@/composables/useCart';
 
 defineOptions({ layout: StorefrontLayout });
+
+const mobileSummaryOpen = ref(false);
 
 const COUNTRY_OPTIONS: SelectOption[] = [
     { value: 'IE', label: 'Ireland' },
@@ -145,6 +147,118 @@ function submit() {
         >
             <!-- Left Details Form (7 cols) -->
             <div class="space-y-8 lg:col-span-7">
+                <!-- Mobile Collapsible Order Summary Bar (Top on mobile) -->
+                <div
+                    class="overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-xs lg:hidden"
+                >
+                    <button
+                        type="button"
+                        @click="mobileSummaryOpen = !mobileSummaryOpen"
+                        class="flex w-full min-h-[44px] items-center justify-between bg-cream-50/80 px-4 py-3.5 text-xs transition-colors hover:bg-cream-100/80"
+                    >
+                        <span class="flex items-center gap-2 font-medium text-sage-900">
+                            <svg
+                                class="h-4 w-4 text-sage-700"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
+                                />
+                            </svg>
+                            <span>{{
+                                mobileSummaryOpen
+                                    ? 'Hide order summary'
+                                    : 'Show order summary'
+                            }}</span>
+                            <svg
+                                class="h-3.5 w-3.5 transition-transform"
+                                :class="mobileSummaryOpen ? 'rotate-180' : ''"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
+                        </span>
+                        <span class="text-sm font-bold text-charcoal-900">
+                            {{ formatCurrency(calculatedTotal) }}
+                        </span>
+                    </button>
+
+                    <div
+                        v-show="mobileSummaryOpen"
+                        class="border-t border-cream-100 p-4"
+                    >
+                        <!-- Items mini list -->
+                        <div class="max-h-60 divide-y divide-cream-100 overflow-y-auto pr-1">
+                            <div
+                                v-for="item in items"
+                                :key="item.product_id"
+                                class="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                            >
+                                <div
+                                    class="relative h-12 w-12 shrink-0 rounded-xl border border-cream-200 bg-cream-100"
+                                >
+                                    <img
+                                        v-if="item.product.main_image"
+                                        :src="resolveStorageUrl(item.product.main_image)"
+                                        :alt="item.product.name"
+                                        class="h-full w-full rounded-[10px] object-cover"
+                                    />
+                                    <div
+                                        v-else
+                                        class="text-charcoal-300 flex h-full w-full items-center justify-center rounded-[10px]"
+                                    >
+                                        🍃
+                                    </div>
+                                    <span
+                                        class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-charcoal-800 text-[9px] font-bold text-cream-50 shadow-xs"
+                                    >
+                                        {{ item.quantity }}
+                                    </span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-xs font-medium text-charcoal-900">
+                                        {{ item.product.name }}
+                                    </p>
+                                    <p class="text-charcoal-400 text-[11px]">
+                                        {{ formatCurrency(item.product.price) }} each
+                                    </p>
+                                </div>
+                                <span class="shrink-0 text-xs font-semibold text-charcoal-900">
+                                    {{ formatCurrency(item.subtotal) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Breakdown -->
+                        <div class="space-y-1.5 border-t border-cream-100 pt-3 text-xs">
+                            <div class="flex justify-between text-charcoal-600">
+                                <span>Subtotal</span>
+                                <span class="font-medium text-charcoal-900">{{ formatCurrency(summary.subtotal) }}</span>
+                            </div>
+                            <div v-if="discountAmount > 0" class="flex justify-between font-medium text-emerald-800">
+                                <span>Promotion Savings</span>
+                                <span>-{{ formatCurrency(discountAmount) }}</span>
+                            </div>
+                            <div class="flex justify-between text-charcoal-600">
+                                <span>Shipping</span>
+                                <span>{{ deliveryCost === 0 ? 'Free' : formatCurrency(deliveryCost) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- General / Payment Errors -->
                 <div
                     v-if="generalErrors.payment || generalErrors.cart"

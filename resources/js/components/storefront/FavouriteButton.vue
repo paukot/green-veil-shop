@@ -71,6 +71,7 @@ const wrapperClasses = computed(() => {
         @click.stop="toggle"
         :class="[
             wrapperClasses,
+            'flex items-center justify-center min-h-[44px] min-w-[44px]',
             isFavourited
                 ? 'text-rose-500 hover:text-rose-600'
                 : 'text-charcoal-600 hover:text-rose-500',
