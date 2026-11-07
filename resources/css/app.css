@@ -23,10 +23,12 @@
     --color-sage-700: #3d553c;
     --color-sage-800: #334433;
     --color-sage-900: #2b392b;
+    --color-sage-950: #182218;
 
     --color-charcoal-700: #3d3b37;
     --color-charcoal-800: #292724;
     --color-charcoal-900: #1b1a18;
+    --color-charcoal-950: #121110;
 }
 
 body {

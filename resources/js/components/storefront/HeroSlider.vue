@@ -51,9 +51,12 @@ const {
                                     'none')
                         "
                     />
-                    <!-- Overlay gradient for crisp typography readability -->
+                    <!-- Base dimming scrim: guarantees bright or white images don't glare -->
+                    <div class="absolute inset-0 bg-sage-950/40"></div>
+
+                    <!-- Directional gradient scrim: deep dark contrast behind the text area -->
                     <div
-                        class="from-sage-950/80 via-sage-950/40 absolute inset-0 bg-gradient-to-r to-transparent"
+                        class="absolute inset-0 bg-linear-to-t from-sage-950/95 via-sage-950/70 to-sage-950/30 sm:bg-linear-to-r sm:from-sage-950/95 sm:via-sage-950/75 sm:to-transparent"
                     ></div>
                 </div>
 
@@ -63,18 +66,18 @@ const {
                 >
                     <div class="max-w-xl space-y-3 text-white sm:space-y-4">
                         <span
-                            class="inline-block rounded-full bg-sage-700/80 px-3 py-1 text-xs font-medium tracking-widest text-cream-100 uppercase backdrop-blur-xs"
+                            class="inline-block rounded-full border border-cream-200/20 bg-sage-950/80 px-3.5 py-1 text-xs font-medium tracking-widest text-cream-100 uppercase shadow-xs backdrop-blur-md"
                         >
                             Botanical Formula
                         </span>
                         <h1
-                            class="font-serif text-2xl leading-tight font-normal text-cream-50 sm:text-4xl md:text-5xl lg:text-6xl"
+                            class="font-serif text-2xl leading-tight font-normal text-cream-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-4xl md:text-5xl lg:text-6xl"
                         >
                             {{ slide.title }}
                         </h1>
                         <p
                             v-if="slide.subtitle"
-                            class="line-clamp-3 text-xs leading-relaxed font-light text-cream-200/90 sm:line-clamp-none sm:text-base"
+                            class="line-clamp-3 text-xs leading-relaxed font-light text-cream-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] sm:line-clamp-none sm:text-base sm:leading-relaxed"
                         >
                             {{ slide.subtitle }}
                         </p>
@@ -87,7 +90,7 @@ const {
                                 :href="slide.url"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="inline-flex items-center gap-2 rounded-full bg-cream-50 px-6 py-3 text-xs font-semibold tracking-wider text-sage-900 uppercase shadow-md transition-all duration-200 hover:bg-cream-100 hover:shadow-lg"
+                                class="inline-flex items-center gap-2 rounded-full border border-white/40 bg-cream-50 px-6 py-3 text-xs font-semibold tracking-wider text-sage-900 uppercase shadow-lg transition-all duration-200 hover:scale-105 hover:bg-white hover:shadow-xl active:scale-95"
                             >
                                 <span>{{
                                     slide.button_label || 'Discover'
@@ -109,7 +112,7 @@ const {
                             <Link
                                 v-else
                                 :href="slide.url"
-                                class="inline-flex items-center gap-2 rounded-full bg-cream-50 px-6 py-3 text-xs font-semibold tracking-wider text-sage-900 uppercase shadow-md transition-all duration-200 hover:bg-cream-100 hover:shadow-lg"
+                                class="inline-flex items-center gap-2 rounded-full border border-white/40 bg-cream-50 px-6 py-3 text-xs font-semibold tracking-wider text-sage-900 uppercase shadow-lg transition-all duration-200 hover:scale-105 hover:bg-white hover:shadow-xl active:scale-95"
                             >
                                 <span>{{
                                     slide.button_label || 'Discover'
@@ -142,7 +145,7 @@ const {
             <button
                 type="button"
                 @click="prevSlide"
-                class="pointer-events-auto rounded-full bg-cream-50/80 p-2 text-sage-900 shadow transition-all hover:bg-cream-50 focus:ring-2 focus:ring-sage-500 focus:outline-none"
+                class="pointer-events-auto rounded-full border border-cream-200/80 bg-white/95 p-2.5 text-sage-900 shadow-md backdrop-blur-xs transition-all hover:scale-105 hover:bg-white focus:ring-2 focus:ring-sage-500 focus:outline-none"
                 aria-label="Previous slide"
             >
                 <svg
@@ -162,7 +165,7 @@ const {
             <button
                 type="button"
                 @click="nextSlide"
-                class="pointer-events-auto rounded-full bg-cream-50/80 p-2 text-sage-900 shadow transition-all hover:bg-cream-50 focus:ring-2 focus:ring-sage-500 focus:outline-none"
+                class="pointer-events-auto rounded-full border border-cream-200/80 bg-white/95 p-2.5 text-sage-900 shadow-md backdrop-blur-xs transition-all hover:scale-105 hover:bg-white focus:ring-2 focus:ring-sage-500 focus:outline-none"
                 aria-label="Next slide"
             >
                 <svg
@@ -184,20 +187,24 @@ const {
         <!-- Dots indicators -->
         <div
             v-if="slides.length > 1"
-            class="absolute right-0 bottom-4 left-0 z-20 flex justify-center space-x-2"
+            class="absolute right-0 bottom-4 left-0 z-20 flex justify-center"
         >
-            <button
-                v-for="(_, index) in slides"
-                :key="index"
-                @click="goToSlide(index)"
-                class="h-2.5 w-2.5 rounded-full transition-all duration-300 focus:outline-none"
-                :class="
-                    index === currentIndex
-                        ? 'w-7 bg-cream-50'
-                        : 'bg-cream-100/60 hover:bg-cream-100'
-                "
-                :aria-label="`Go to slide ${index + 1}`"
-            />
+            <div
+                class="flex items-center space-x-2 rounded-full border border-white/15 bg-sage-950/60 px-3 py-1.5 shadow-md backdrop-blur-xs"
+            >
+                <button
+                    v-for="(_, index) in slides"
+                    :key="index"
+                    @click="goToSlide(index)"
+                    class="h-2 rounded-full transition-all duration-300 focus:outline-none"
+                    :class="
+                        index === currentIndex
+                            ? 'w-6 bg-cream-50 shadow-xs'
+                            : 'w-2 bg-cream-200/40 hover:bg-cream-100/70'
+                    "
+                    :aria-label="`Go to slide ${index + 1}`"
+                />
+            </div>
         </div>
     </section>
 </template>
