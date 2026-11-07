@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Favourite\SyncFavouritesRequest;
 use App\Http\Resources\SimpleProductResource;
 use App\Models\Product;
 use App\Services\FavouriteService;
@@ -41,17 +42,11 @@ class FavouriteController extends Controller
         return back()->with('success', $message);
     }
 
-    public function sync(Request $request): JsonResponse
+    public function sync(SyncFavouritesRequest $request): JsonResponse
     {
-        /** @var array{product_ids: array<int, int>} $validated */
-        $validated = $request->validate([
-            'product_ids' => ['present', 'array'],
-            'product_ids.*' => ['integer'],
-        ]);
-
         $result = $this->favouriteService->syncFavourites(
             $request,
-            $validated['product_ids']
+            $request->productIds()
         );
 
         return response()->json($result);

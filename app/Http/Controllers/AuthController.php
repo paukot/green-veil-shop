@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Checkout\ClaimGuestOrders;
+use App\Actions\Auth\MigrateGuestSessionData;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
-use App\Services\CartService;
-use App\Services\FavouriteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,11 +28,8 @@ class AuthController extends Controller
      */
     public function storeLogin(
         LoginRequest $request,
-        CartService $cartService,
-        FavouriteService $favouriteService,
-        ClaimGuestOrders $claimGuestOrders
+        MigrateGuestSessionData $migrateGuestData
     ): RedirectResponse {
-        // Capture guest session data before session regeneration if any
         $guestCart = $request->session()->get('cart', []);
         $guestFavourites = $request->session()->get('favourites', []);
 
@@ -44,11 +39,7 @@ class AuthController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Merge guest items into customer records
-        $cartService->mergeGuestCart($guestCart, $user);
-        $favouriteService->mergeGuestFavourites($guestFavourites, $user);
-        $claimGuestOrders->execute($user);
-        $request->session()->forget(['cart', 'favourites']);
+        $migrateGuestData->execute($user, $guestCart, $guestFavourites, $request);
 
         return redirect()->intended(route('home'))->with('success', 'Welcome back to Green Veil!');
     }
@@ -66,14 +57,11 @@ class AuthController extends Controller
      */
     public function storeRegister(
         RegisterRequest $request,
-        CartService $cartService,
-        FavouriteService $favouriteService,
-        ClaimGuestOrders $claimGuestOrders
+        MigrateGuestSessionData $migrateGuestData
     ): RedirectResponse {
         $guestCart = $request->session()->get('cart', []);
         $guestFavourites = $request->session()->get('favourites', []);
 
-        // Register customer on storefront (User model, web guard)
         $user = User::create([
             'name' => $request->string('name')->trim()->value(),
             'email' => $request->string('email')->trim()->lower()->value(),
@@ -83,11 +71,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Merge guest items into newly registered customer
-        $cartService->mergeGuestCart($guestCart, $user);
-        $favouriteService->mergeGuestFavourites($guestFavourites, $user);
-        $claimGuestOrders->execute($user);
-        $request->session()->forget(['cart', 'favourites']);
+        $migrateGuestData->execute($user, $guestCart, $guestFavourites, $request);
 
         return redirect()->intended(route('home'))->with('success', 'Account created successfully! Welcome to Green Veil.');
     }

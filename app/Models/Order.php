@@ -139,4 +139,16 @@ class Order extends Model
     {
         return 'GV-'.strtoupper(substr(uniqid('', true), -6));
     }
+
+    /**
+     * Determine if this order belongs to an authenticated user other than the given user.
+     */
+    public function isOwnedByAnotherUser(User|AdminUser|null $user): bool
+    {
+        if ($this->user_id === null || ! ($user instanceof User)) {
+            return false;
+        }
+
+        return (int) $this->user_id !== $user->id;
+    }
 }

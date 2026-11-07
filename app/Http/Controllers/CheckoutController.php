@@ -3,15 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Checkout\PlaceOrder;
+use App\Actions\Checkout\RecordPaymentSession;
 use App\Actions\Checkout\ReleaseOrderStock;
-use App\Enums\PaymentStatus;
 use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CartItemResource;
-use App\Http\Resources\DeliveryOptionResource;
 use App\Http\Resources\PaymentOptionResource;
 use App\Mail\OrderConfirmationMail;
-use App\Models\DeliveryOption;
-use App\Models\Payment;
 use App\Models\PaymentOption;
 use App\Payments\PaymentManager;
 use App\Services\CartService;
@@ -30,16 +27,11 @@ class CheckoutController extends Controller
 
     public function show(Request $request): Response|RedirectResponse
     {
-        $cartItems = $this->cartService->getItems($request);
-        $summary = $this->cartService->getSummaryFromCartItems($cartItems);
+        $overview = $this->cartService->getCartOverview($request);
 
-        if ($cartItems->isEmpty()) {
+        if ($overview['items']->isEmpty()) {
             return redirect()->route('cart.index')->with('info', 'Your shopping bag is empty.');
         }
-
-        $deliveryOptions = DeliveryOption::query()
-            ->active()
-            ->get();
 
         $paymentOptions = PaymentOption::query()
             ->active()
@@ -47,20 +39,12 @@ class CheckoutController extends Controller
             ->get();
 
         $user = $request->user();
-        $appliedPromo = $this->cartService->getAppliedPromotionData($request, $cartItems, $summary['subtotal']);
-        $discountAmount = $appliedPromo ? $appliedPromo['discount_amount'] : 0.0;
 
         return Inertia::render('Checkout/Index', [
-            'items' => CartItemResource::collection($cartItems),
-            'summary' => [
-                ...$summary,
-                'discount_amount' => $discountAmount,
-                'total' => max(0.0, round($summary['subtotal'] - $discountAmount, 2)),
-            ],
-            'appliedPromotion' => $appliedPromo,
-            'deliveryOptions' => $deliveryOptions->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
-                ->withSubtotal($summary['subtotal'])
-            ),
+            'items' => CartItemResource::collection($overview['items']),
+            'summary' => $overview['summary'],
+            'appliedPromotion' => $overview['applied_promotion'],
+            'deliveryOptions' => $overview['delivery_options'],
             'paymentOptions' => PaymentOptionResource::collection($paymentOptions),
             'customer' => $user ? [
                 'name' => $user->name,
@@ -74,6 +58,7 @@ class CheckoutController extends Controller
         PlaceOrder $placeOrder,
         PaymentManager $paymentManager,
         ReleaseOrderStock $releaseOrderStock,
+        RecordPaymentSession $recordPaymentSession,
     ): SymfonyResponse {
         $checkoutData = $request->toCheckoutData();
         $order = $placeOrder->execute($request, $checkoutData);
@@ -93,19 +78,7 @@ class CheckoutController extends Controller
         $this->cartService->clearCart($request);
 
         if ($driver === 'stripe' && $result->redirectUrl) {
-            if ($result->sessionId) {
-                $order->update(['stripe_session_id' => $result->sessionId]);
-
-                Payment::updateOrCreate(
-                    ['order_id' => $order->id, 'driver' => 'stripe'],
-                    [
-                        'stripe_session_id' => $result->sessionId,
-                        'status' => PaymentStatus::Unpaid,
-                        'amount' => $order->total,
-                        'currency' => $order->currency,
-                    ]
-                );
-            }
+            $recordPaymentSession->execute($order, 'stripe', $result->sessionId);
 
             return Inertia::location($result->redirectUrl);
         }
