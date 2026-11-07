@@ -182,7 +182,7 @@ const emit = defineEmits<{
 
                 <!-- Quantity Adjuster & Subtotal -->
                 <div
-                    class="flex w-full items-center justify-between gap-6 border-t border-cream-100 pt-2 sm:w-auto sm:justify-end sm:border-t-0 sm:pt-0"
+                    class="flex w-full items-center justify-between gap-3 border-t border-cream-100 pt-3 sm:w-auto sm:justify-end sm:gap-6 sm:border-t-0 sm:pt-0"
                 >
                     <QuantityInput
                         :model-value="item.quantity"
@@ -195,7 +195,7 @@ const emit = defineEmits<{
                     />
 
                     <div
-                        class="w-20 text-right text-sm font-medium text-charcoal-900"
+                        class="w-20 text-right text-sm font-semibold text-charcoal-900"
                     >
                         {{ formatCurrency(item.price * item.quantity) }}
                     </div>
@@ -203,11 +203,11 @@ const emit = defineEmits<{
                     <button
                         type="button"
                         @click="emit('remove-item', item.product_id)"
-                        class="text-charcoal-400 rounded-full p-1.5 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                        class="text-charcoal-400 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 transition-colors hover:bg-rose-50 hover:text-rose-600"
                         aria-label="Remove item from bag"
                     >
                         <svg
-                            class="h-4 w-4"
+                            class="h-4.5 w-4.5"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"

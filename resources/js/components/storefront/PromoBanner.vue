@@ -76,10 +76,10 @@ function copyCode(code: string) {
                 </div>
 
                 <!-- Navigation Arrows -->
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-2">
                     <button
                         type="button"
-                        class="bg-sage-950/40 flex h-7 w-7 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none"
+                        class="bg-sage-950/40 flex h-9 w-9 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
                         aria-label="Previous promotion"
                         @click="prevSlide"
                     >
@@ -99,7 +99,7 @@ function copyCode(code: string) {
                     </button>
                     <button
                         type="button"
-                        class="bg-sage-950/40 flex h-7 w-7 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none"
+                        class="bg-sage-950/40 flex h-9 w-9 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
                         aria-label="Next promotion"
                         @click="nextSlide"
                     >
@@ -161,9 +161,9 @@ function copyCode(code: string) {
 
                     <div
                         v-if="currentPromo.code"
-                        class="bg-sage-950/40 flex shrink-0 items-center gap-2 rounded-xl border border-sage-600/40 p-2 shadow-xs sm:p-2.5"
+                        class="bg-sage-950/40 flex w-full shrink-0 items-center justify-between gap-2 rounded-xl border border-sage-600/40 p-2 shadow-xs sm:w-auto sm:justify-start sm:p-2.5"
                     >
-                        <div class="px-3 text-center">
+                        <div class="px-2 text-left sm:px-3 sm:text-center">
                             <span
                                 class="block text-[10px] tracking-wider text-cream-300 uppercase"
                                 >Promo Code</span
@@ -175,7 +175,7 @@ function copyCode(code: string) {
                         </div>
                         <button
                             type="button"
-                            class="rounded-lg bg-cream-50 px-4 py-2 text-xs font-semibold text-sage-900 transition-colors hover:bg-cream-100 focus:ring-2 focus:ring-cream-300 focus:outline-none"
+                            class="flex min-h-[44px] items-center justify-center rounded-lg bg-cream-50 px-4 py-2 text-xs font-semibold text-sage-900 transition-colors hover:bg-cream-100 focus:ring-2 focus:ring-cream-300 focus:outline-none"
                             @click="copyCode(currentPromo.code)"
                         >
                             {{

@@ -49,7 +49,7 @@ watch(
     >
         <div
             v-if="showToast"
-            class="pointer-events-auto fixed right-6 bottom-6 z-50 flex w-full max-w-sm items-start gap-3 rounded-xl border p-4 shadow-lg"
+            class="pointer-events-auto fixed inset-x-4 bottom-4 z-50 flex w-auto items-start gap-3 rounded-xl border p-4 shadow-lg sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-full sm:max-w-sm"
             :class="
                 toastType === 'success'
                     ? 'border-sage-700 bg-sage-900 text-cream-50'

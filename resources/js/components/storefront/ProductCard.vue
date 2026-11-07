@@ -79,7 +79,7 @@ const formattedComparePrice = computed(() => {
 
             <!-- Badges -->
             <div
-                class="pointer-events-none absolute top-3 left-3 z-10 flex flex-col items-start gap-1"
+                class="pointer-events-none absolute top-3 left-3 z-10 flex max-w-[calc(100%-3rem)] flex-col items-start gap-1"
             >
                 <span
                     v-if="product.discount_percentage"
@@ -110,7 +110,7 @@ const formattedComparePrice = computed(() => {
         </div>
 
         <!-- Product Info -->
-        <div class="flex grow flex-col justify-between space-y-3 p-5">
+        <div class="flex grow flex-col justify-between space-y-3 p-3.5 sm:p-5">
             <div class="space-y-1">
                 <!-- Brand & Category Label -->
                 <div
@@ -150,7 +150,9 @@ const formattedComparePrice = computed(() => {
 
             <div class="space-y-1.5 border-t border-cream-100 pt-2.5">
                 <!-- Pricing & Unit Price -->
-                <div class="flex items-center justify-between">
+                <div
+                    class="flex flex-col gap-2 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between"
+                >
                     <div>
                         <div class="flex items-baseline gap-2">
                             <span

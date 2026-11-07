@@ -41,7 +41,7 @@ defineProps<HomePageProps>();
         class="border-b border-cream-200 bg-cream-100/50 py-8"
     >
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-4">
                 <div class="flex items-center gap-3">
                     <div
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"

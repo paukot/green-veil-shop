@@ -30,7 +30,7 @@ const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
         <div>
             <Link
                 :href="ordersIndex.url()"
-                class="inline-flex items-center gap-2 text-xs font-medium text-sage-700 transition-colors hover:text-sage-900"
+                class="inline-flex min-h-[44px] items-center gap-2 text-xs font-medium text-sage-700 transition-colors hover:text-sage-900"
             >
                 <svg
                     class="h-4 w-4"
@@ -89,7 +89,7 @@ const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
                         :href="checkoutRetry.url(order.public_id)"
                         method="post"
                         as="button"
-                        class="inline-flex w-full items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 sm:w-auto"
+                        class="inline-flex min-h-[44px] w-full items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 sm:w-auto"
                     >
                         Complete Payment
                     </Link>

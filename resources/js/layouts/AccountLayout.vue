@@ -37,12 +37,12 @@ const user = computed(() => page.props.auth?.user);
                 <!-- Account Navigation Sidebar -->
                 <aside class="md:col-span-1">
                     <nav
-                        class="space-y-1 rounded-2xl border border-cream-200 bg-white p-3 shadow-xs sm:p-4"
+                        class="flex scrollbar-none flex-row items-center gap-2 overflow-x-auto rounded-2xl border border-cream-200 bg-white p-2 shadow-xs sm:p-3 md:flex-col md:items-stretch md:gap-0 md:space-y-1 md:p-4"
                         aria-label="Account navigation"
                     >
                         <Link
                             :href="profile.url()"
-                            class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-colors"
+                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
                             :class="
                                 $page.url.startsWith(profile.url())
                                     ? 'bg-sage-100 font-semibold text-sage-900'
@@ -50,7 +50,7 @@ const user = computed(() => page.props.auth?.user);
                             "
                         >
                             <svg
-                                class="h-4 w-4 text-sage-600"
+                                class="h-4 w-4 shrink-0 text-sage-600"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -67,7 +67,7 @@ const user = computed(() => page.props.auth?.user);
 
                         <Link
                             :href="ordersIndex.url()"
-                            class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-colors"
+                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
                             :class="
                                 $page.url.startsWith(ordersIndex.url())
                                     ? 'bg-sage-100 font-semibold text-sage-900'
@@ -75,7 +75,7 @@ const user = computed(() => page.props.auth?.user);
                             "
                         >
                             <svg
-                                class="h-4 w-4 text-sage-600"
+                                class="h-4 w-4 shrink-0 text-sage-600"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -92,7 +92,7 @@ const user = computed(() => page.props.auth?.user);
 
                         <Link
                             :href="rituals.url()"
-                            class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-colors"
+                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
                             :class="
                                 $page.url.startsWith(rituals.url()) ||
                                 $page.url.startsWith('/favourites')
@@ -101,7 +101,7 @@ const user = computed(() => page.props.auth?.user);
                             "
                         >
                             <svg
-                                class="h-4 w-4 text-sage-600"
+                                class="h-4 w-4 shrink-0 text-sage-600"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -116,15 +116,17 @@ const user = computed(() => page.props.auth?.user);
                             <span>Wishlist</span>
                         </Link>
 
-                        <div class="mt-2 border-t border-cream-200 pt-2">
+                        <div
+                            class="shrink-0 border-l border-cream-200 pl-2 md:mt-2 md:border-t md:border-l-0 md:pt-2 md:pl-0"
+                        >
                             <Link
                                 :href="logout.url()"
                                 method="post"
                                 as="button"
-                                class="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                                class="flex min-h-[44px] w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                             >
                                 <svg
-                                    class="h-4 w-4 text-red-500"
+                                    class="h-4 w-4 shrink-0 text-red-500"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"

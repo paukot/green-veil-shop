@@ -64,13 +64,16 @@ const activeImage = computed(() => {
         </div>
 
         <!-- Gallery Thumbnails -->
-        <div v-if="images.length > 1" class="flex gap-3 overflow-x-auto pb-2">
+        <div
+            v-if="images.length > 1"
+            class="-mx-4 flex scrollbar-none gap-2.5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
+        >
             <button
                 v-for="(img, idx) in images"
                 :key="img.id"
                 type="button"
                 @click="activeIndex = idx"
-                class="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 bg-white transition-all"
+                class="relative h-16 min-h-[44px] w-16 min-w-[44px] shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-all sm:h-20 sm:w-20"
                 :class="
                     activeIndex === idx
                         ? 'border-sage-700 ring-2 ring-sage-200'

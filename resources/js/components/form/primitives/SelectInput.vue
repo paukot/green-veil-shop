@@ -39,8 +39,10 @@ const model = defineModel<string | number | null>();
                     rounded === 'md' && 'rounded-md',
                     rounded === 'lg' && 'rounded-lg',
                     rounded === 'xl' && 'rounded-xl',
-                    size === 'sm' && 'py-1.5 pr-8 pl-3 text-xs',
-                    size === 'md' && 'py-2.5 pr-10 pl-4 text-sm',
+                    size === 'sm' &&
+                        'min-h-[44px] py-2 pr-8 pl-3 text-base sm:min-h-0 sm:py-1.5 sm:text-xs',
+                    size === 'md' &&
+                        'min-h-[44px] py-2.5 pr-10 pl-4 text-base sm:min-h-0 sm:text-sm',
                     hasError
                         ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
                         : 'border-cream-300 focus:border-sage-600 focus:ring-1 focus:ring-sage-600',
