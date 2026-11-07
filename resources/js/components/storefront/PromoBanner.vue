@@ -65,7 +65,7 @@ function copyCode(code: string) {
             >
                 <div class="flex items-center gap-2">
                     <span
-                        class="bg-sage-950/40 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-cream-200"
+                        class="inline-flex items-center gap-1.5 rounded-full bg-sage-950/40 px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-cream-200"
                     >
                         <span
                             class="h-1.5 w-1.5 animate-pulse rounded-full bg-cream-300"
@@ -79,7 +79,7 @@ function copyCode(code: string) {
                 <div class="flex items-center gap-2">
                     <button
                         type="button"
-                        class="bg-sage-950/40 flex h-9 w-9 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-sage-950/40 text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
                         aria-label="Previous promotion"
                         @click="prevSlide"
                     >
@@ -99,7 +99,7 @@ function copyCode(code: string) {
                     </button>
                     <button
                         type="button"
-                        class="bg-sage-950/40 flex h-9 w-9 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-sage-950/40 text-cream-200 transition-colors hover:bg-cream-50 hover:text-sage-900 focus:ring-2 focus:ring-cream-300 focus:outline-none sm:h-7 sm:w-7"
                         aria-label="Next promotion"
                         @click="nextSlide"
                     >
@@ -161,7 +161,7 @@ function copyCode(code: string) {
 
                     <div
                         v-if="currentPromo.code"
-                        class="bg-sage-950/40 flex w-full shrink-0 items-center justify-between gap-2 rounded-xl border border-sage-600/40 p-2 shadow-xs sm:w-auto sm:justify-start sm:p-2.5"
+                        class="flex w-full shrink-0 items-center justify-between gap-2 rounded-xl border border-sage-600/40 bg-sage-950/40 p-2 shadow-xs sm:w-auto sm:justify-start sm:p-2.5"
                     >
                         <div class="px-2 text-left sm:px-3 sm:text-center">
                             <span
