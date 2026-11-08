@@ -38,6 +38,27 @@ const displayedProducts = computed(() => {
         <Head title="Wishlist | Green Veil" />
 
         <div class="space-y-6">
+            <!-- Section Header -->
+            <div
+                class="rounded-2xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
+            >
+                <div
+                    class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                >
+                    <div>
+                        <h2
+                            class="font-serif text-2xl text-sage-900 sm:text-3xl"
+                        >
+                            Saved Botanicals
+                        </h2>
+                        <p class="text-charcoal-600 mt-1 text-xs sm:text-sm">
+                            A conscious curation of your favourite botanical
+                            formulations, gentle mists, and daily rituals.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <WishlistContent
                 :products="displayedProducts"
                 empty-title="Your ritual list is empty"

@@ -2,6 +2,7 @@
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Resources\Orders\Pages\EditOrder;
 use App\Models\AdminUser;
 use App\Models\Order;
@@ -169,4 +170,9 @@ test('refund action is not visible on unpaid orders', function () {
     Livewire::actingAs($admin, 'admin')
         ->test(EditOrder::class, ['record' => $order->id])
         ->assertActionHidden('refund');
+});
+
+test('order resource defines globally searchable attributes', function () {
+    $attributes = OrderResource::getGloballySearchableAttributes();
+    expect($attributes)->toContain('number', 'customer_name', 'customer_email');
 });

@@ -4,21 +4,36 @@ namespace App\Providers;
 
 use App\Models\AdminRole;
 use App\Models\AdminUser;
+use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Claim;
+use App\Models\Country;
 use App\Models\DeliveryOption;
+use App\Models\Effect;
+use App\Models\HairType;
+use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentOption;
 use App\Models\Product;
 use App\Models\Promotion;
+use App\Models\SkinType;
 use App\Models\SliderItem;
 use App\Models\StripeEvent;
 use App\Models\User;
+use App\Observers\CategoryObserver;
+use App\Observers\DeliveryOptionObserver;
+use App\Observers\PaymentOptionObserver;
+use App\Observers\ProductObserver;
+use App\Observers\PromotionObserver;
+use App\Observers\SliderItemObserver;
+use App\Observers\TaxonomyObserver;
 use App\Payments\Contracts\PaymentGateway;
 use App\Payments\Stripe\StripeGateway;
 use App\Policies\AdminRolePolicy;
 use App\Policies\AdminUserPolicy;
 use App\Policies\CategoryPolicy;
+use App\Policies\CountryPolicy;
 use App\Policies\DeliveryOptionPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\PaymentOptionPolicy;
@@ -61,6 +76,27 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureAuthorization();
+        $this->configureModelObservers();
+    }
+
+    /**
+     * Register model observers for reactive cache invalidation.
+     */
+    protected function configureModelObservers(): void
+    {
+        Product::observe(ProductObserver::class);
+        Category::observe(CategoryObserver::class);
+        DeliveryOption::observe(DeliveryOptionObserver::class);
+        PaymentOption::observe(PaymentOptionObserver::class);
+        Promotion::observe(PromotionObserver::class);
+        SliderItem::observe(SliderItemObserver::class);
+
+        Brand::observe(TaxonomyObserver::class);
+        SkinType::observe(TaxonomyObserver::class);
+        HairType::observe(TaxonomyObserver::class);
+        Effect::observe(TaxonomyObserver::class);
+        Ingredient::observe(TaxonomyObserver::class);
+        Claim::observe(TaxonomyObserver::class);
     }
 
     /**
@@ -85,6 +121,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SliderItem::class, SliderItemPolicy::class);
         Gate::policy(DeliveryOption::class, DeliveryOptionPolicy::class);
         Gate::policy(PaymentOption::class, PaymentOptionPolicy::class);
+        Gate::policy(Country::class, CountryPolicy::class);
         Gate::policy(AdminUser::class, AdminUserPolicy::class);
         Gate::policy(AdminRole::class, AdminRolePolicy::class);
         Gate::policy(StripeEvent::class, StripeEventPolicy::class);

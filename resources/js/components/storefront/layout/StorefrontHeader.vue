@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Link, router, usePage } from '@inertiajs/vue3';
-import { SearchInput } from '@/components/form';
+import { Link, usePage } from '@inertiajs/vue3';
 import MegaMenuDropdown from '@/components/storefront/layout/MegaMenuDropdown.vue';
+import LiveSearchAutocomplete from '@/components/storefront/layout/LiveSearchAutocomplete.vue';
 import type { SharedProps } from '@/types/storefront';
 import { home, login, logout } from '@/routes';
 import { index as productsIndex } from '@/routes/products';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
-import { index as cartIndex } from '@/routes/cart';
 import { index as favouritesIndex } from '@/routes/favourites';
 import { profile, rituals as accountRituals } from '@/routes/account';
 import { getNavigationLayout } from '@/lib/navigation';
@@ -21,7 +20,6 @@ const mobileMenuOpen = defineModel<boolean>('mobileMenuOpen', {
 
 const page = usePage<SharedProps>();
 const searchOpen = ref(false);
-const searchQuery = ref('');
 const cart = useCart();
 const favourites = useFavourites();
 
@@ -48,17 +46,6 @@ const userFirstName = computed(() => {
     if (!user.value?.name) return '';
     return user.value.name.trim().split(' ')[0] ?? '';
 });
-
-function submitSearch() {
-    if (!searchQuery.value.trim()) return;
-    router.get(
-        productsIndex.url(),
-        { q: searchQuery.value.trim() },
-        { preserveState: true },
-    );
-    searchOpen.value = false;
-    mobileMenuOpen.value = false;
-}
 </script>
 
 <template>
@@ -158,17 +145,15 @@ function submitSearch() {
                     </Link>
                 </div>
 
-                <!-- Center: Search Input Bar (Visible on desktop lg+) -->
-                <form
-                    @submit.prevent="submitSearch"
+                <!-- Center: Live Search Autocomplete (Visible on desktop lg+) -->
+                <div
                     class="hidden max-w-md flex-1 items-center lg:flex xl:max-w-lg"
                 >
-                    <SearchInput
-                        v-model="searchQuery"
-                        placeholder="Search botanicals, perfumes, skincare..."
+                    <LiveSearchAutocomplete
                         size="sm"
+                        placeholder="Search botanicals, perfumes, skincare..."
                     />
-                </form>
+                </div>
 
                 <!-- Right: Utility Actions (Search Toggle, Favourites, Cart, Account) -->
                 <div class="flex shrink-0 items-center space-x-1 sm:space-x-3">
@@ -199,7 +184,13 @@ function submitSearch() {
                         :href="
                             user ? accountRituals.url() : favouritesIndex.url()
                         "
-                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
+                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 transition-colors hover:bg-cream-100 hover:text-sage-700"
+                        :class="
+                            $page.url.startsWith(favouritesIndex.url()) ||
+                            $page.url.startsWith(accountRituals.url())
+                                ? 'bg-cream-100 text-sage-800'
+                                : 'text-charcoal-700'
+                        "
                         aria-label="View favourites"
                     >
                         <svg
@@ -223,11 +214,12 @@ function submitSearch() {
                         </span>
                     </Link>
 
-                    <!-- Cart Link -->
-                    <Link
-                        :href="cartIndex.url()"
-                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
-                        aria-label="View shopping cart"
+                    <!-- Cart Trigger Button -->
+                    <button
+                        type="button"
+                        @click="cart.openDrawer()"
+                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700 focus:outline-none"
+                        aria-label="View shopping bag"
                     >
                         <svg
                             class="h-5 w-5"
@@ -248,7 +240,7 @@ function submitSearch() {
                         >
                             {{ cartCount }}
                         </span>
-                    </Link>
+                    </button>
 
                     <!-- Customer Account -->
                     <div class="group relative">
@@ -325,23 +317,14 @@ function submitSearch() {
                 v-if="searchOpen"
                 class="border-t border-cream-200 py-3 lg:hidden"
             >
-                <form
-                    @submit.prevent="submitSearch"
-                    class="mx-auto flex max-w-xl items-center gap-2"
-                >
-                    <SearchInput
-                        v-model="searchQuery"
-                        placeholder="Search by botanical name, concern, or product..."
-                        autofocus
-                        @clear="searchOpen = false"
+                <div class="mx-auto max-w-xl">
+                    <LiveSearchAutocomplete
+                        size="sm"
+                        placeholder="Search botanicals, formulations..."
+                        :autofocus="true"
+                        @close="searchOpen = false"
                     />
-                    <button
-                        type="submit"
-                        class="shrink-0 rounded-full bg-sage-700 px-5 py-2 text-xs font-medium tracking-wider text-white uppercase transition-colors hover:bg-sage-800"
-                    >
-                        Search
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
 

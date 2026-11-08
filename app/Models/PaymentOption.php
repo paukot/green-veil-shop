@@ -2,9 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\CacheKey;
+use App\Enums\CacheTag;
+use App\Services\Cache\AppCache;
 use Database\Factories\PaymentOptionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -43,5 +47,18 @@ class PaymentOption extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)->orderBy('sort_order');
+    }
+
+    /**
+     * @return Collection<int, self>
+     */
+    public static function getActiveOptions(): Collection
+    {
+        /** @var list<array<string, mixed>> $raw */
+        $raw = AppCache::remember(CacheKey::PaymentOptionsActive, function (): array {
+            return self::query()->active()->get()->toArray();
+        }, [CacheTag::Settings]);
+
+        return self::hydrate($raw);
     }
 }

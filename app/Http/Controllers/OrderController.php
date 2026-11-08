@@ -36,7 +36,7 @@ class OrderController extends Controller
     {
         Gate::authorize('view', $order);
 
-        $order->loadMissing(['items', 'deliveryOption', 'paymentOption', 'payments']);
+        $order->loadMissing(['items.product', 'deliveryOption', 'paymentOption', 'payments']);
 
         return Inertia::render('Account/Order', [
             'order' => OrderResource::make($order),

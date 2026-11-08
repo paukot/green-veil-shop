@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     CheckboxField,
@@ -14,7 +14,11 @@ import Breadcrumbs from '@/components/storefront/Breadcrumbs.vue';
 import AddressFormFields from '@/components/storefront/checkout/AddressFormFields.vue';
 import CheckoutOrderSummary from '@/components/storefront/checkout/CheckoutOrderSummary.vue';
 import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
-import type { CheckoutPageProps } from '@/types/storefront';
+import type {
+    AppliedPromotionData,
+    AvailablePromotionData,
+    CheckoutPageProps,
+} from '@/types/storefront';
 import { store as checkoutStore } from '@/actions/App/Http/Controllers/CheckoutController';
 import { index as cartIndex } from '@/routes/cart';
 import { login } from '@/routes';
@@ -24,21 +28,19 @@ defineOptions({ layout: StorefrontLayout });
 
 const mobileSummaryOpen = ref(false);
 
-const COUNTRY_OPTIONS: SelectOption[] = [
-    { value: 'IE', label: 'Ireland' },
-    { value: 'GB', label: 'United Kingdom' },
-    { value: 'FR', label: 'France' },
-    { value: 'DE', label: 'Germany' },
-    { value: 'ES', label: 'Spain' },
-    { value: 'IT', label: 'Italy' },
-    { value: 'NL', label: 'Netherlands' },
-];
-
 const props = defineProps<CheckoutPageProps>();
+
+const countryOptions = computed<SelectOption[]>(() => {
+    if (props.countries && props.countries.length > 0) {
+        return props.countries;
+    }
+    return [{ value: 'IE', label: 'Ireland' }];
+});
 
 const defaultDelivery =
     props.deliveryOptions.find((d) => d.is_free) ?? props.deliveryOptions[0];
 const defaultPayment = props.paymentOptions[0];
+const defaultCountry = props.countries?.[0]?.value ?? 'IE';
 
 const form = useForm({
     customer_name: props.customer?.name ?? '',
@@ -51,7 +53,7 @@ const form = useForm({
         line2: '',
         city: '',
         postal_code: '',
-        country: 'IE',
+        country: defaultCountry,
     },
     billing_same_as_shipping: true,
     billing_address: {
@@ -59,7 +61,7 @@ const form = useForm({
         line2: '',
         city: '',
         postal_code: '',
-        country: 'IE',
+        country: defaultCountry,
     },
     notes: '',
     promotion_id: props.appliedPromotion?.id ?? null,
@@ -84,9 +86,34 @@ const deliveryCost = computed(() => {
     return selectedDelivery.value.is_free ? 0 : selectedDelivery.value.price;
 });
 
+const isApplyingPromo = ref(false);
+const promoError = ref<string | null>(null);
+const promoSuccess = ref<string | null>(null);
+const mobilePromoCode = ref('');
+
+const cart = useCart();
+
+onMounted(() => {
+    cart.initFromServer(
+        props.items as any,
+        props.appliedPromotion,
+        props.availablePromotions,
+    );
+});
+
+const activePromo = computed<AppliedPromotionData | null>(() => {
+    return cart.appliedPromotion.value ?? props.appliedPromotion ?? null;
+});
+
+const availablePromotions = computed<AvailablePromotionData[]>(() => {
+    return cart.availablePromotions.value.length > 0
+        ? cart.availablePromotions.value
+        : (props.availablePromotions ?? []);
+});
+
 const discountAmount = computed(() => {
-    return props.appliedPromotion
-        ? props.appliedPromotion.discount_amount
+    return activePromo.value
+        ? activePromo.value.discount_amount
         : (props.summary.discount_amount ?? 0);
 });
 
@@ -101,7 +128,57 @@ const generalErrors = computed(
     () => form.errors as Record<string, string | undefined>,
 );
 
-const cart = useCart();
+async function handleApplyPromo(code: string) {
+    if (!code || isApplyingPromo.value) return;
+    promoError.value = null;
+    promoSuccess.value = null;
+    isApplyingPromo.value = true;
+
+    const res = await cart.applyPromotion({ code });
+    isApplyingPromo.value = false;
+
+    if (res.success) {
+        promoSuccess.value = res.message || 'Promotion applied!';
+        mobilePromoCode.value = '';
+        form.promotion_id = cart.appliedPromotion.value?.id ?? null;
+        setTimeout(() => {
+            promoSuccess.value = null;
+        }, 3500);
+    } else {
+        promoError.value = res.error || 'Invalid promotion code';
+    }
+}
+
+async function handleApplyPromoOffer(promoId: number) {
+    if (isApplyingPromo.value) return;
+    promoError.value = null;
+    promoSuccess.value = null;
+    isApplyingPromo.value = true;
+
+    const res = await cart.applyPromotion({ promotion_id: promoId });
+    isApplyingPromo.value = false;
+
+    if (res.success) {
+        promoSuccess.value = res.message || 'Promotion applied!';
+        form.promotion_id = cart.appliedPromotion.value?.id ?? null;
+        setTimeout(() => {
+            promoSuccess.value = null;
+        }, 3500);
+    } else {
+        promoError.value = res.error || 'Failed to apply promotion';
+    }
+}
+
+async function handleRemovePromo() {
+    if (isApplyingPromo.value) return;
+    promoError.value = null;
+    promoSuccess.value = null;
+    isApplyingPromo.value = true;
+
+    await cart.removePromotion();
+    isApplyingPromo.value = false;
+    form.promotion_id = null;
+}
 
 const removeLocationListener = router.on('location', () => {
     cart.clearCart();
@@ -254,6 +331,205 @@ function submit() {
                             </div>
                         </div>
 
+                        <!-- Mobile Promotions Section -->
+                        <div class="border-t border-cream-100 pt-3">
+                            <!-- Active Promotion Banner if applied -->
+                            <div
+                                v-if="activePromo"
+                                class="mb-3 flex items-center justify-between rounded-xl border border-sage-200 bg-sage-50/70 p-2.5 text-xs"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-800 text-cream-50"
+                                    >
+                                        <svg
+                                            class="h-3 w-3"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2.5"
+                                                d="M5 13l4 4L19 7"
+                                            />
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <span
+                                            class="font-medium text-sage-900"
+                                            >{{ activePromo.name }}</span
+                                        >
+                                        <span
+                                            v-if="activePromo.code"
+                                            class="ml-1 rounded bg-sage-200/70 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-sage-800 uppercase"
+                                        >
+                                            {{ activePromo.code }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="font-semibold text-emerald-800"
+                                    >
+                                        {{ activePromo.formatted_discount }}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        @click="handleRemovePromo"
+                                        class="text-[11px] font-medium text-rose-600 hover:text-rose-800"
+                                        title="Remove promo code"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Promo Input -->
+                            <div v-else class="mb-3 space-y-1.5">
+                                <div class="flex gap-2">
+                                    <input
+                                        v-model="mobilePromoCode"
+                                        type="text"
+                                        placeholder="Promo code"
+                                        class="placeholder-charcoal-400 w-full rounded-xl border border-cream-300 bg-cream-50/50 px-3 py-2 text-xs uppercase placeholder:normal-case focus:border-sage-500 focus:bg-white focus:outline-none"
+                                        :disabled="isApplyingPromo"
+                                        @keydown.enter.prevent="
+                                            handleApplyPromo(mobilePromoCode)
+                                        "
+                                    />
+                                    <button
+                                        type="button"
+                                        @click="
+                                            handleApplyPromo(mobilePromoCode)
+                                        "
+                                        :disabled="
+                                            isApplyingPromo ||
+                                            !mobilePromoCode.trim()
+                                        "
+                                        class="shrink-0 rounded-xl bg-sage-800 px-3.5 py-2 text-xs font-semibold text-cream-50 uppercase transition-colors hover:bg-sage-900 disabled:opacity-50"
+                                    >
+                                        {{ isApplyingPromo ? '...' : 'Apply' }}
+                                    </button>
+                                </div>
+                                <p
+                                    v-if="promoError"
+                                    class="text-[11px] text-rose-600"
+                                >
+                                    {{ promoError }}
+                                </p>
+                                <p
+                                    v-if="promoSuccess"
+                                    class="text-[11px] font-medium text-emerald-700"
+                                >
+                                    {{ promoSuccess }}
+                                </p>
+                            </div>
+
+                            <!-- Mobile Available Store Offers -->
+                            <div
+                                v-if="
+                                    availablePromotions &&
+                                    availablePromotions.length > 0
+                                "
+                                class="mb-3 space-y-2 border-t border-cream-100 pt-2.5"
+                            >
+                                <div
+                                    class="text-[10px] font-semibold tracking-wider text-charcoal-700 uppercase"
+                                >
+                                    Available Store Offers
+                                </div>
+                                <div class="space-y-1.5">
+                                    <div
+                                        v-for="offer in availablePromotions"
+                                        :key="offer.id"
+                                        class="flex items-center justify-between gap-2 rounded-xl border p-2 text-xs transition-all"
+                                        :class="
+                                            offer.is_applied
+                                                ? 'border-sage-300 bg-sage-50/70'
+                                                : offer.is_eligible
+                                                  ? 'border-cream-200 bg-cream-50/40'
+                                                  : 'border-cream-100 opacity-75'
+                                        "
+                                    >
+                                        <div class="min-w-0 flex-1">
+                                            <div
+                                                class="flex items-center gap-1"
+                                            >
+                                                <span
+                                                    class="truncate text-xs font-medium text-charcoal-900"
+                                                    >{{ offer.name }}</span
+                                                >
+                                                <span
+                                                    v-if="offer.code"
+                                                    class="rounded bg-cream-200/70 px-1 py-0.5 font-mono text-[9px] text-charcoal-700 uppercase"
+                                                    >{{ offer.code }}</span
+                                                >
+                                            </div>
+                                            <div
+                                                class="text-charcoal-500 text-[10px]"
+                                            >
+                                                <template
+                                                    v-if="
+                                                        offer.discount_type ===
+                                                        'percentage'
+                                                    "
+                                                >
+                                                    {{ offer.discount_value }}%
+                                                    off
+                                                </template>
+                                                <template v-else>
+                                                    €{{ offer.discount_value }}
+                                                    off
+                                                </template>
+                                                <span
+                                                    v-if="
+                                                        offer.minimum_order_amount
+                                                    "
+                                                >
+                                                    • over €{{
+                                                        offer.minimum_order_amount
+                                                    }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="shrink-0">
+                                            <span
+                                                v-if="offer.is_applied"
+                                                class="rounded-full bg-sage-100 px-2 py-0.5 text-[10px] font-semibold text-sage-800"
+                                            >
+                                                Applied
+                                            </span>
+                                            <button
+                                                v-else-if="offer.is_eligible"
+                                                type="button"
+                                                @click="
+                                                    handleApplyPromoOffer(
+                                                        offer.id,
+                                                    )
+                                                "
+                                                :disabled="isApplyingPromo"
+                                                class="rounded-full bg-sage-800 px-2.5 py-0.5 text-[10px] font-medium text-cream-50"
+                                            >
+                                                {{
+                                                    activePromo
+                                                        ? 'Switch'
+                                                        : 'Apply'
+                                                }}
+                                            </button>
+                                            <span
+                                                v-else
+                                                class="text-charcoal-500 rounded-full bg-cream-200/70 px-2 py-0.5 text-[9px]"
+                                            >
+                                                Locked
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Breakdown -->
                         <div
                             class="space-y-1.5 border-t border-cream-100 pt-3 text-xs"
@@ -369,7 +645,7 @@ function submit() {
                         id-prefix="shipping"
                         error-prefix="shipping_address"
                         v-model="form.shipping_address"
-                        :country-options="COUNTRY_OPTIONS"
+                        :country-options="countryOptions"
                         :errors="form.errors"
                     />
 
@@ -396,7 +672,7 @@ function submit() {
                                 id-prefix="billing"
                                 error-prefix="billing_address"
                                 v-model="form.billing_address"
-                                :country-options="COUNTRY_OPTIONS"
+                                :country-options="countryOptions"
                                 :errors="form.errors"
                             />
                         </div>
@@ -495,13 +771,20 @@ function submit() {
             <CheckoutOrderSummary
                 :items="items"
                 :summary="summary"
-                :applied-promotion="appliedPromotion"
+                :applied-promotion="activePromo"
+                :available-promotions="availablePromotions"
                 :selected-delivery="selectedDelivery"
                 :selected-payment="selectedPayment"
                 :delivery-cost="deliveryCost"
                 :discount-amount="discountAmount"
                 :calculated-total="calculatedTotal"
                 :processing="form.processing"
+                :is-applying-promo="isApplyingPromo"
+                :promo-error="promoError"
+                :promo-success="promoSuccess"
+                @apply-promo="handleApplyPromo"
+                @apply-offer="handleApplyPromoOffer"
+                @remove-promo="handleRemovePromo"
             />
         </form>
     </div>

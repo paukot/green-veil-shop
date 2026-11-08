@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
-use App\Filament\Resources\Brands\Schemas\BrandForm;
 use App\Models\Brand;
+use App\Models\Country;
 use App\Models\Product;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
@@ -356,7 +356,7 @@ class ProductForm
                                                     ->nullable(),
                                                 Select::make('manufactured_in')
                                                     ->label('Country of Manufacture')
-                                                    ->options(BrandForm::COUNTRIES)
+                                                    ->options(fn (): array => Country::getOptionList())
                                                     ->searchable()
                                                     ->nullable(),
                                                 TextInput::make('responsible_person')

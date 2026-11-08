@@ -6,6 +6,7 @@ import CartEmptyState from '@/components/storefront/cart/CartEmptyState.vue';
 import CartItemList from '@/components/storefront/cart/CartItemList.vue';
 import CartPromotionCard from '@/components/storefront/cart/CartPromotionCard.vue';
 import CartSummaryCard from '@/components/storefront/cart/CartSummaryCard.vue';
+import SavedForLaterList from '@/components/storefront/cart/SavedForLaterList.vue';
 import { useCart } from '@/composables/useCart';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CartPageProps } from '@/types/storefront';
@@ -27,6 +28,16 @@ onMounted(() => {
         props.appliedPromotion,
         props.availablePromotions,
     );
+});
+
+const availablePromotions = computed(() => {
+    return cart.availablePromotions.value.length > 0
+        ? cart.availablePromotions.value
+        : (props.availablePromotions ?? []);
+});
+
+const appliedPromotion = computed(() => {
+    return cart.appliedPromotion.value ?? props.appliedPromotion ?? null;
 });
 
 async function handleApplyPromoCode(code: string) {
@@ -140,6 +151,13 @@ async function proceedToCheckout() {
                     @dismiss-warnings="dismissWarnings"
                     @update-quantity="cart.updateQuantity"
                     @remove-item="cart.removeItem"
+                    @save-for-later="cart.saveForLater"
+                />
+
+                <SavedForLaterList
+                    :items="cart.savedItems.value"
+                    @move-to-cart="cart.moveToCart"
+                    @remove-item="cart.removeSavedItem"
                 />
             </div>
 
@@ -150,7 +168,7 @@ async function proceedToCheckout() {
                     :subtotal="cart.subtotal.value"
                     :discount-amount="cart.discountAmount.value"
                     :total-after-discount="cart.totalAfterDiscount.value"
-                    :applied-promotion="cart.appliedPromotion.value"
+                    :applied-promotion="appliedPromotion"
                     :qualifies-for-free-shipping="qualifiesForFreeShipping"
                     :delivery-options="computedDeliveryOptions"
                     :is-syncing="cart.isSyncing.value"
@@ -160,8 +178,8 @@ async function proceedToCheckout() {
                 />
 
                 <CartPromotionCard
-                    :applied-promotion="cart.appliedPromotion.value"
-                    :available-promotions="cart.availablePromotions.value"
+                    :applied-promotion="appliedPromotion"
+                    :available-promotions="availablePromotions"
                     :is-applying="isApplyingPromo"
                     :error="promoError"
                     :success="promoSuccess"
@@ -211,6 +229,18 @@ async function proceedToCheckout() {
         </div>
 
         <!-- Empty Cart State -->
-        <CartEmptyState v-else />
+        <div v-else class="space-y-10">
+            <CartEmptyState />
+            <div
+                v-if="cart.savedItems.value.length > 0"
+                class="mx-auto max-w-4xl"
+            >
+                <SavedForLaterList
+                    :items="cart.savedItems.value"
+                    @move-to-cart="cart.moveToCart"
+                    @remove-item="cart.removeSavedItem"
+                />
+            </div>
+        </div>
     </section>
 </template>

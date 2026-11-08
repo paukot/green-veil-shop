@@ -2,14 +2,20 @@
 
 namespace App\Services;
 
+use App\Enums\CacheKey;
+use App\Enums\CacheTag;
 use App\Models\Brand;
 use App\Models\Claim;
+use App\Models\Country;
 use App\Models\Effect;
 use App\Models\HairType;
 use App\Models\Ingredient;
 use App\Models\Product;
 use App\Models\SkinType;
+use App\Services\Cache\AppCache;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 class ProductCatalogService
 {
@@ -22,6 +28,27 @@ class ProductCatalogService
     public function getFilteredProductsQuery(array $filters = []): Builder
     {
         $query = Product::query()
+            ->select([
+                'id',
+                'category_id',
+                'brand_id',
+                'sku',
+                'slug',
+                'name',
+                'short_description',
+                'price',
+                'compare_at_price',
+                'stock_quantity',
+                'track_inventory',
+                'is_active',
+                'is_featured',
+                'sort_order',
+                'main_image',
+                'volume',
+                'unit',
+                'unit_price_base_amount',
+                'created_at',
+            ])
             ->where('is_active', true)
             ->with(['category:id,slug,name', 'brand:id,slug,name'])
             ->withCount('variants');
@@ -155,96 +182,103 @@ class ProductCatalogService
      */
     public function getFilterFacets(?array $categoryIds = null): array
     {
-        $activeProductsConstraint = $categoryIds
-            ? fn (Builder $q) => $q->where('is_active', true)->whereIn('category_id', $categoryIds)
-            : fn (Builder $q) => $q->where('is_active', true);
+        $normalizedCategoryIds = $categoryIds !== null
+            ? array_values(array_unique(array_filter(array_map('intval', $categoryIds))))
+            : null;
 
-        return [
-            'brands' => Brand::query()
-                ->whereHas('products', $activeProductsConstraint)
-                ->withCount(['products' => $activeProductsConstraint])
-                ->orderBy('name')
-                ->get(['id', 'name', 'slug']),
+        if ($normalizedCategoryIds !== null) {
+            sort($normalizedCategoryIds);
+        }
 
-            'skin_types' => SkinType::query()
-                ->whereHas('products', $activeProductsConstraint)
-                ->withCount(['products' => $activeProductsConstraint])
-                ->orderBy('sort_order')
-                ->get(['id', 'name', 'slug']),
+        $cacheKey = empty($normalizedCategoryIds)
+            ? CacheKey::CatalogFacetsGlobal->value
+            : CacheKey::CatalogFacetsCategoryPrefix->with(implode('-', $normalizedCategoryIds));
 
-            'hair_types' => HairType::query()
-                ->whereHas('products', $activeProductsConstraint)
-                ->withCount(['products' => $activeProductsConstraint])
-                ->orderBy('sort_order')
-                ->get(['id', 'name', 'slug']),
+        return AppCache::remember($cacheKey, function () use ($normalizedCategoryIds): array {
+            $activeProductsConstraint = $normalizedCategoryIds
+                ? fn (Builder $q) => $q->where('is_active', true)->whereIn('category_id', $normalizedCategoryIds)
+                : fn (Builder $q) => $q->where('is_active', true);
 
-            'effects' => Effect::query()
-                ->whereHas('products', $activeProductsConstraint)
-                ->withCount(['products' => $activeProductsConstraint])
-                ->orderBy('sort_order')
-                ->get(['id', 'name', 'slug']),
+            $formatTaxonomy = function (Builder $query) use ($activeProductsConstraint): array {
+                /** @var Collection<int, Model> $items */
+                $items = $query
+                    ->whereHas('products', $activeProductsConstraint)
+                    ->withCount(['products' => $activeProductsConstraint])
+                    ->get(['id', 'name', 'slug']);
 
-            'ingredients' => Ingredient::query()
-                ->whereHas('products', $activeProductsConstraint)
-                ->withCount(['products' => $activeProductsConstraint])
-                ->orderBy('sort_order')
-                ->get(['id', 'name', 'slug']),
+                return $items->map(fn ($item): array => [
+                    'id' => (int) $item->getAttribute('id'),
+                    'name' => (string) $item->getAttribute('name'),
+                    'slug' => (string) $item->getAttribute('slug'),
+                    'products_count' => (int) ($item->getAttribute('products_count') ?? 0),
+                ])->values()->all();
+            };
 
-            'claims' => Claim::query()
-                ->whereHas('products', $activeProductsConstraint)
-                ->withCount(['products' => $activeProductsConstraint])
-                ->orderBy('sort_order')
-                ->get(['id', 'name', 'slug']),
+            $formatScalar = function (string $column) use ($normalizedCategoryIds): array {
+                $selectExpression = match ($column) {
+                    'classification' => 'classification as value, count(*) as count',
+                    'formula_type' => 'formula_type as value, count(*) as count',
+                    'gender' => 'gender as value, count(*) as count',
+                    'spf' => 'spf as value, count(*) as count',
+                    default => 'id as value, count(*) as count',
+                };
 
-            'classifications' => Product::query()
-                ->where('is_active', true)
-                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
-                ->whereNotNull('classification')
-                ->selectRaw('classification as value, count(*) as count')
-                ->groupBy('classification')
-                ->get(),
+                /** @var Collection<int, Product> $items */
+                $items = Product::query()
+                    ->where('is_active', true)
+                    ->when($normalizedCategoryIds, fn (Builder $q) => $q->whereIn('category_id', $normalizedCategoryIds))
+                    ->whereNotNull($column)
+                    ->selectRaw($selectExpression)
+                    ->groupBy($column)
+                    ->get();
 
-            'formula_types' => Product::query()
-                ->where('is_active', true)
-                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
-                ->whereNotNull('formula_type')
-                ->selectRaw('formula_type as value, count(*) as count')
-                ->groupBy('formula_type')
-                ->get(),
+                return $items->map(fn ($item): array => [
+                    'value' => (string) $item->getAttribute('value'),
+                    'count' => (int) $item->getAttribute('count'),
+                ])->values()->all();
+            };
 
-            'genders' => Product::query()
-                ->where('is_active', true)
-                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
-                ->whereNotNull('gender')
-                ->selectRaw('gender as value, count(*) as count')
-                ->groupBy('gender')
-                ->get(),
+            return [
+                'brands' => $formatTaxonomy(Brand::query()->orderBy('name')),
+                'skin_types' => $formatTaxonomy(SkinType::query()->orderBy('sort_order')),
+                'hair_types' => $formatTaxonomy(HairType::query()->orderBy('sort_order')),
+                'effects' => $formatTaxonomy(Effect::query()->orderBy('sort_order')),
+                'ingredients' => $formatTaxonomy(Ingredient::query()->orderBy('sort_order')),
+                'claims' => $formatTaxonomy(Claim::query()->orderBy('sort_order')),
+                'classifications' => $formatScalar('classification'),
+                'formula_types' => $formatScalar('formula_type'),
+                'genders' => $formatScalar('gender'),
+                'spf' => $formatScalar('spf'),
 
-            'spf' => Product::query()
-                ->where('is_active', true)
-                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
-                ->whereNotNull('spf')
-                ->selectRaw('spf as value, count(*) as count')
-                ->groupBy('spf')
-                ->get(),
+                'origins' => Product::query()
+                    ->where('is_active', true)
+                    ->when($normalizedCategoryIds, fn (Builder $q) => $q->whereIn('category_id', $normalizedCategoryIds))
+                    ->whereNotNull('manufactured_in')
+                    ->selectRaw('manufactured_in as value, count(*) as count')
+                    ->groupBy('manufactured_in')
+                    ->get()
+                    ->map(function (Product $item): array {
+                        $val = (string) $item->getAttribute('value');
 
-            'origins' => Product::query()
-                ->where('is_active', true)
-                ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
-                ->whereNotNull('manufactured_in')
-                ->selectRaw('manufactured_in as value, count(*) as count')
-                ->groupBy('manufactured_in')
-                ->get(),
+                        return [
+                            'value' => $val,
+                            'count' => (int) $item->getAttribute('count'),
+                            'name' => Country::getNameByCode($val) ?? $val,
+                        ];
+                    })
+                    ->values()
+                    ->all(),
 
-            'price_bounds' => [
-                'min' => (float) (Product::where('is_active', true)
-                    ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
-                    ->min('price') ?? 0),
-                'max' => (float) (Product::where('is_active', true)
-                    ->when($categoryIds, fn (Builder $q) => $q->whereIn('category_id', $categoryIds))
-                    ->max('price') ?? 0),
-            ],
-        ];
+                'price_bounds' => [
+                    'min' => (float) (Product::where('is_active', true)
+                        ->when($normalizedCategoryIds, fn (Builder $q) => $q->whereIn('category_id', $normalizedCategoryIds))
+                        ->min('price') ?? 0),
+                    'max' => (float) (Product::where('is_active', true)
+                        ->when($normalizedCategoryIds, fn (Builder $q) => $q->whereIn('category_id', $normalizedCategoryIds))
+                        ->max('price') ?? 0),
+                ],
+            ];
+        }, [CacheTag::Catalog, CacheTag::Taxonomies]);
     }
 
     /**

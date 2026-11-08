@@ -9,6 +9,7 @@ use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CartItemResource;
 use App\Http\Resources\PaymentOptionResource;
 use App\Mail\OrderConfirmationMail;
+use App\Models\Country;
 use App\Models\PaymentOption;
 use App\Payments\PaymentManager;
 use App\Services\CartService;
@@ -33,10 +34,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('info', 'Your shopping bag is empty.');
         }
 
-        $paymentOptions = PaymentOption::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->get();
+        $paymentOptions = PaymentOption::getActiveOptions();
 
         $user = $request->user();
 
@@ -44,8 +42,10 @@ class CheckoutController extends Controller
             'items' => CartItemResource::collection($overview['items']),
             'summary' => $overview['summary'],
             'appliedPromotion' => $overview['applied_promotion'],
+            'availablePromotions' => $overview['available_promotions'],
             'deliveryOptions' => $overview['delivery_options'],
             'paymentOptions' => PaymentOptionResource::collection($paymentOptions),
+            'countries' => Country::getShippingOptions(),
             'customer' => $user ? [
                 'name' => $user->name,
                 'email' => $user->email,

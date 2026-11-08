@@ -29,6 +29,16 @@ describe('Checkout Order Submission', function () {
         ]);
     });
 
+    it('rejects order submission when shipping country is not available for shipping', function () {
+        $response = $this->post(route('checkout.store'), [
+            'shipping_address' => [
+                'country' => 'US', // US is active, but is_shipping_available is false
+            ],
+        ]);
+
+        $response->assertSessionHasErrors(['shipping_address.country']);
+    });
+
     it('rejects order placement when item becomes out of stock during submission', function () {
         $product = Product::factory()->create([
             'stock_quantity' => 1,

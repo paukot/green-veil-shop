@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import Button from '@/components/ui/Button.vue';
 import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
 import type {
     AppliedPromotionData,
+    AvailablePromotionData,
     CartSummary,
     PaymentOptionItem,
 } from '@/types/storefront';
@@ -26,17 +28,36 @@ defineProps<{
     items: CheckoutOrderItem[];
     summary: CartSummary;
     appliedPromotion?: AppliedPromotionData | null;
+    availablePromotions?: AvailablePromotionData[];
     selectedDelivery?: { name: string } | null;
     selectedPayment?: PaymentOptionItem | null;
     deliveryCost: number;
     discountAmount: number;
     calculatedTotal: number;
     processing: boolean;
+    isApplyingPromo?: boolean;
+    promoError?: string | null;
+    promoSuccess?: string | null;
 }>();
+
+const emit = defineEmits<{
+    (e: 'apply-promo', code: string): void;
+    (e: 'apply-offer', promoId: number): void;
+    (e: 'remove-promo'): void;
+}>();
+
+const promoCodeInput = ref('');
+
+function applyCode() {
+    const code = promoCodeInput.value.trim();
+    if (!code) return;
+    emit('apply-promo', code);
+    promoCodeInput.value = '';
+}
 </script>
 
 <template>
-    <div class="space-y-6 lg:sticky lg:top-32 lg:col-span-5">
+    <div class="space-y-6 lg:col-span-5">
         <div
             class="space-y-6 rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-7"
         >
@@ -100,44 +121,6 @@ defineProps<{
                         {{ formatCurrency(item.subtotal) }}
                     </span>
                 </div>
-            </div>
-
-            <!-- Applied Promotion Tag -->
-            <div
-                v-if="appliedPromotion"
-                class="flex items-center justify-between rounded-2xl border border-sage-200 bg-sage-50/70 px-3.5 py-2.5 text-xs"
-            >
-                <div class="flex items-center gap-2">
-                    <span
-                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-800 text-cream-50"
-                    >
-                        <svg
-                            class="h-3 w-3"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2.5"
-                                d="M5 13l4 4L19 7"
-                            />
-                        </svg>
-                    </span>
-                    <span class="font-medium text-sage-900">
-                        {{ appliedPromotion.name }}
-                    </span>
-                    <span
-                        v-if="appliedPromotion.code"
-                        class="rounded bg-sage-200/70 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-sage-800 uppercase"
-                    >
-                        {{ appliedPromotion.code }}
-                    </span>
-                </div>
-                <span class="font-semibold text-emerald-800">
-                    {{ appliedPromotion.formatted_discount }}
-                </span>
             </div>
 
             <!-- Calculations Table -->
@@ -220,6 +203,200 @@ defineProps<{
                 </div>
             </div>
 
+            <!-- Active Promotion Badge or Promo Code Input -->
+            <div class="border-t border-cream-100 pt-4">
+                <div
+                    v-if="appliedPromotion"
+                    class="flex items-center justify-between rounded-2xl border border-sage-200 bg-sage-50/70 p-3 text-xs"
+                >
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-800 text-cream-50"
+                        >
+                            <svg
+                                class="h-3 w-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2.5"
+                                    d="M5 13l4 4L19 7"
+                                />
+                            </svg>
+                        </span>
+                        <div>
+                            <span class="font-medium text-sage-900">
+                                {{ appliedPromotion.name }}
+                            </span>
+                            <span
+                                v-if="appliedPromotion.code"
+                                class="ml-1.5 rounded bg-sage-200/70 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-sage-800 uppercase"
+                            >
+                                {{ appliedPromotion.code }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold text-emerald-800">
+                            {{ appliedPromotion.formatted_discount }}
+                        </span>
+                        <button
+                            type="button"
+                            @click="emit('remove-promo')"
+                            class="text-[11px] font-medium text-rose-600 hover:text-rose-800 hover:underline"
+                            title="Remove promo code"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input for Promo Code if not yet applied -->
+                <div v-else class="space-y-1.5">
+                    <div class="flex gap-2">
+                        <input
+                            v-model="promoCodeInput"
+                            type="text"
+                            placeholder="Promo code (e.g. WELCOME10)"
+                            class="placeholder-charcoal-400 w-full rounded-xl border border-cream-300 bg-cream-50/50 px-3 py-2 text-xs uppercase placeholder:normal-case focus:border-sage-500 focus:bg-white focus:ring-1 focus:ring-sage-500/20 focus:outline-none"
+                            :disabled="isApplyingPromo"
+                            @keydown.enter.prevent="applyCode"
+                        />
+                        <button
+                            type="button"
+                            @click="applyCode"
+                            :disabled="
+                                isApplyingPromo || !promoCodeInput.trim()
+                            "
+                            class="shrink-0 rounded-xl bg-sage-800 px-4 py-2 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 disabled:opacity-50"
+                        >
+                            {{ isApplyingPromo ? '...' : 'Apply' }}
+                        </button>
+                    </div>
+                    <p v-if="promoError" class="text-xs text-rose-600">
+                        {{ promoError }}
+                    </p>
+                    <p
+                        v-if="promoSuccess"
+                        class="text-xs font-medium text-emerald-700"
+                    >
+                        {{ promoSuccess }}
+                    </p>
+                </div>
+
+                <!-- Available Store Offers / Applicable Promotions -->
+                <div
+                    v-if="availablePromotions && availablePromotions.length > 0"
+                    class="space-y-2.5 border-t border-cream-100 pt-3"
+                >
+                    <div
+                        class="text-[11px] font-semibold tracking-wider text-charcoal-700 uppercase"
+                    >
+                        Available Store Offers
+                    </div>
+                    <div class="space-y-2">
+                        <div
+                            v-for="offer in availablePromotions"
+                            :key="offer.id"
+                            class="flex items-center justify-between gap-2 rounded-2xl border p-3 transition-all"
+                            :class="
+                                offer.is_applied
+                                    ? 'border-sage-300 bg-sage-50/70'
+                                    : offer.is_eligible
+                                      ? 'border-cream-200 bg-cream-50/40 hover:border-sage-200'
+                                      : 'border-cream-100 bg-cream-50/20 opacity-75'
+                            "
+                        >
+                            <div class="min-w-0 flex-1">
+                                <div
+                                    class="flex flex-wrap items-center gap-1.5"
+                                >
+                                    <span
+                                        class="truncate text-xs font-medium text-charcoal-900"
+                                    >
+                                        {{ offer.name }}
+                                    </span>
+                                    <span
+                                        v-if="offer.code"
+                                        class="rounded bg-cream-200/70 px-1.5 py-0.5 font-mono text-[10px] text-charcoal-700 uppercase"
+                                    >
+                                        {{ offer.code }}
+                                    </span>
+                                </div>
+                                <div class="text-charcoal-500 text-[11px]">
+                                    <template
+                                        v-if="
+                                            offer.discount_type === 'percentage'
+                                        "
+                                    >
+                                        {{ offer.discount_value }}% off
+                                    </template>
+                                    <template v-else>
+                                        €{{ offer.discount_value }} off
+                                    </template>
+                                    <span v-if="offer.minimum_order_amount">
+                                        • orders over €{{
+                                            offer.minimum_order_amount
+                                        }}
+                                    </span>
+                                </div>
+                                <div
+                                    v-if="
+                                        !offer.is_eligible &&
+                                        offer.amount_needed > 0
+                                    "
+                                    class="mt-0.5 text-[10px] font-medium text-amber-700"
+                                >
+                                    Add
+                                    {{ formatCurrency(offer.amount_needed) }}
+                                    more to unlock
+                                </div>
+                            </div>
+
+                            <div class="shrink-0">
+                                <span
+                                    v-if="offer.is_applied"
+                                    class="inline-flex items-center gap-1 rounded-full bg-sage-100 px-2.5 py-1 text-[10px] font-semibold text-sage-800"
+                                >
+                                    <svg
+                                        class="h-3 w-3"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2.5"
+                                            d="M5 13l4 4L19 7"
+                                        />
+                                    </svg>
+                                    Applied
+                                </span>
+                                <button
+                                    v-else-if="offer.is_eligible"
+                                    type="button"
+                                    @click="emit('apply-offer', offer.id)"
+                                    :disabled="isApplyingPromo"
+                                    class="rounded-full bg-sage-800 px-3 py-1 text-[11px] font-medium text-cream-50 transition-colors hover:bg-sage-900 disabled:opacity-50"
+                                >
+                                    {{ appliedPromotion ? 'Switch' : 'Apply' }}
+                                </button>
+                                <span
+                                    v-else
+                                    class="text-charcoal-500 rounded-full bg-cream-200/70 px-2.5 py-1 text-[10px] font-medium"
+                                >
+                                    Locked
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- CTA Button -->
             <div class="pt-1">
                 <Button
@@ -234,44 +411,6 @@ defineProps<{
                     >
                     <span v-else>Confirm & Place Order</span>
                 </Button>
-            </div>
-
-            <!-- Trust signals -->
-            <div
-                class="text-charcoal-500 space-y-2 rounded-2xl bg-cream-50/70 p-3.5 text-[11px]"
-            >
-                <div class="flex items-center gap-2.5">
-                    <svg
-                        class="h-4 w-4 shrink-0 text-sage-700"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.75"
-                            d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-                        />
-                    </svg>
-                    <span>256-Bit SSL Encrypted & Secure</span>
-                </div>
-                <div class="flex items-center gap-2.5">
-                    <svg
-                        class="h-4 w-4 shrink-0 text-sage-700"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.75"
-                            d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25-2.25M12 13.875V3.75"
-                        />
-                    </svg>
-                    <span>Pure botanical artisanal formulations</span>
-                </div>
             </div>
         </div>
     </div>

@@ -170,29 +170,36 @@ class FavouriteService
             ->values()
             ->all();
 
-        $user = $request->user();
-        if ($user instanceof User) {
-            // Delete favourites not in the reconciled set
-            Favourite::query()
-                ->where('user_id', $user->id)
-                ->whereNotIn('product_id', $validIds)
-                ->delete();
+        $validIdSet = array_flip($validIds);
+        $reconciledIds = array_values(array_filter($sanitizedIds, fn ($id) => isset($validIdSet[$id])));
 
-            // Insert new favourites
-            foreach ($validIds as $id) {
-                Favourite::firstOrCreate([
-                    'user_id' => $user->id,
-                    'product_id' => $id,
-                ]);
-            }
-        } else {
-            // Guest session
-            $request->session()->put('favourites', $validIds);
+        $user = $request->user();
+        if (! ($user instanceof User)) {
+            $request->session()->put('favourites', $reconciledIds);
+
+            return [
+                'favourites' => $reconciledIds,
+                'count' => count($reconciledIds),
+            ];
+        }
+
+        // Delete favourites not in the reconciled set
+        Favourite::query()
+            ->where('user_id', $user->id)
+            ->whereNotIn('product_id', $reconciledIds)
+            ->delete();
+
+        // Insert new favourites
+        foreach ($reconciledIds as $id) {
+            Favourite::firstOrCreate([
+                'user_id' => $user->id,
+                'product_id' => $id,
+            ]);
         }
 
         return [
-            'favourites' => $validIds,
-            'count' => count($validIds),
+            'favourites' => $reconciledIds,
+            'count' => count($reconciledIds),
         ];
     }
 }

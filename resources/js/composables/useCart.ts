@@ -60,16 +60,19 @@ export type CartSyncResponse = {
 };
 
 const STORAGE_KEY = 'green_veil_cart_v1';
+const SAVED_STORAGE_KEY = 'green_veil_saved_items_v1';
 const DEBOUNCE_DELAY_MS = 600;
 
 // Module-level reactive singleton
 const items = ref<LocalCartItem[]>(loadFromStorage());
+const savedItems = ref<LocalCartItem[]>(loadSavedFromStorage());
 const appliedPromotion = ref<AppliedPromotionData | null>(null);
 const availablePromotions = ref<AvailablePromotionData[]>([]);
 const isSyncing = ref(false);
 const syncError = ref<string | null>(null);
 const syncWarnings = ref<string[]>([]);
 const isInitialized = ref(false);
+const isDrawerOpen = ref(false);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let activeSyncPromise: Promise<CartSyncResponse | null> | null = null;
@@ -92,6 +95,32 @@ function saveToStorage(cartItems: LocalCartItem[]) {
     if (typeof window === 'undefined' || !window.localStorage) return;
     try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems));
+    } catch {
+        // Storage quota full or disabled
+    }
+}
+
+function loadSavedFromStorage(): LocalCartItem[] {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return [];
+    }
+    try {
+        const raw = window.localStorage.getItem(SAVED_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveSavedToStorage(savedList: LocalCartItem[]) {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+        window.localStorage.setItem(
+            SAVED_STORAGE_KEY,
+            JSON.stringify(savedList),
+        );
     } catch {
         // Storage quota full or disabled
     }
@@ -238,6 +267,7 @@ export function useCart() {
             category?: { id: number; name: string; slug: string } | null;
         },
         quantity = 1,
+        openDrawer = false,
     ) {
         const existing = items.value.find((i) => i.product_id === product.id);
         const maxStock = product.track_inventory
@@ -276,6 +306,10 @@ export function useCart() {
 
         saveToStorage(items.value);
         scheduleSync();
+
+        if (openDrawer) {
+            isDrawerOpen.value = true;
+        }
     }
 
     /**
@@ -449,6 +483,52 @@ export function useCart() {
         isInitialized.value = true;
     }
 
+    function openDrawer() {
+        isDrawerOpen.value = true;
+    }
+
+    function closeDrawer() {
+        isDrawerOpen.value = false;
+    }
+
+    function saveForLater(productId: number | string) {
+        const pId = Number(productId);
+        const item = items.value.find((i) => i.product_id === pId);
+        if (!item) return;
+
+        removeItem(pId);
+
+        const exists = savedItems.value.some((i) => i.product_id === pId);
+        if (!exists) {
+            savedItems.value = [item, ...savedItems.value];
+            saveSavedToStorage(savedItems.value);
+        }
+    }
+
+    function moveToCart(productId: number | string) {
+        const pId = Number(productId);
+        const item = savedItems.value.find((i) => i.product_id === pId);
+        if (!item) return;
+
+        savedItems.value = savedItems.value.filter((i) => i.product_id !== pId);
+        saveSavedToStorage(savedItems.value);
+
+        addItem(
+            {
+                ...item,
+                id: item.product_id,
+            },
+            item.quantity,
+            true,
+        );
+    }
+
+    function removeSavedItem(productId: number | string) {
+        const pId = Number(productId);
+        savedItems.value = savedItems.value.filter((i) => i.product_id !== pId);
+        saveSavedToStorage(savedItems.value);
+    }
+
     return {
         items,
         count,
@@ -461,6 +541,13 @@ export function useCart() {
         isSyncing,
         syncError,
         syncWarnings,
+        isDrawerOpen,
+        openDrawer,
+        closeDrawer,
+        savedItems,
+        saveForLater,
+        moveToCart,
+        removeSavedItem,
         addItem,
         updateQuantity,
         removeItem,

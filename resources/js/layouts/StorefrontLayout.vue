@@ -5,6 +5,7 @@ import StorefrontHeader from '@/components/storefront/layout/StorefrontHeader.vu
 import StorefrontFooter from '@/components/storefront/layout/StorefrontFooter.vue';
 import ToastNotification from '@/components/storefront/layout/ToastNotification.vue';
 import MobileNavigationDrawer from '@/components/storefront/MobileNavigationDrawer.vue';
+import MiniCartDrawer from '@/components/storefront/cart/MiniCartDrawer.vue';
 import type { SharedProps } from '@/types/storefront';
 import { useCart } from '@/composables/useCart';
 import { useFavourites } from '@/composables/useFavourites';
@@ -59,7 +60,10 @@ const favouritesCount = computed(() => {
         </a>
 
         <!-- Main Header & Announcement Bar -->
-        <StorefrontHeader v-model:mobile-menu-open="mobileMenuOpen" />
+        <StorefrontHeader
+            v-model:mobile-menu-open="mobileMenuOpen"
+            class="print:hidden"
+        />
 
         <!-- Mobile Navigation Drawer -->
         <MobileNavigationDrawer
@@ -68,17 +72,21 @@ const favouritesCount = computed(() => {
             :user="user"
             :cart-count="cartCount"
             :favourites-count="favouritesCount"
+            class="print:hidden"
         />
 
         <!-- Flash Toast Notification -->
-        <ToastNotification />
+        <ToastNotification class="print:hidden" />
+
+        <!-- Mini-Cart Slideout Drawer -->
+        <MiniCartDrawer class="print:hidden" />
 
         <!-- Main Content Slot -->
-        <main id="main-content" class="grow">
+        <main id="main-content" class="grow print:p-0">
             <slot />
         </main>
 
         <!-- Storefront Footer -->
-        <StorefrontFooter />
+        <StorefrontFooter class="print:hidden" />
     </div>
 </template>

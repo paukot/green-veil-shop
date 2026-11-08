@@ -28,6 +28,16 @@ class ProductResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    protected static ?string $recordTitleAttribute = 'name';
+
+    /**
+     * @return array<string>
+     */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'sku', 'barcode'];
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ProductForm::configure($schema);

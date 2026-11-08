@@ -306,6 +306,7 @@ export type ProductDetail = {
 
     // Origin & Regulatory
     manufactured_in?: string | null;
+    manufactured_in_name?: string | null;
     pao_months?: number | null;
     responsible_person?: string | null;
 
@@ -451,8 +452,10 @@ export type CheckoutPageProps = {
         description?: string | null;
     }>;
     paymentOptions: PaymentOptionItem[];
+    countries?: Array<{ value: string; label: string }>;
     customer: CheckoutCustomer;
     appliedPromotion?: AppliedPromotionData | null;
+    availablePromotions?: AvailablePromotionData[];
 };
 
 export type OrderDetailData = {
@@ -503,6 +506,8 @@ export type OrderDetailData = {
 
 export type OrderItemData = {
     id: number;
+    product_id?: number | null;
+    product_slug?: string | null;
     product_name: string;
     product_sku?: string | null;
     product_image?: string | null;

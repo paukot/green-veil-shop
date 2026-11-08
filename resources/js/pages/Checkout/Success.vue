@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { Head, Link, usePoll } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
+import OrderTrackingStepper from '@/components/storefront/OrderTrackingStepper.vue';
 import type { OrderDetailData } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
 import { formatCurrency } from '@/lib/utils';
@@ -17,6 +18,10 @@ const props = defineProps<{
 }>();
 
 const cart = useCart();
+
+function handlePrint() {
+    window.print();
+}
 
 onMounted(() => {
     cart.clearCart();
@@ -170,6 +175,16 @@ const { stop } = usePoll(
                     {{ order.customer_email }} as soon as Stripe completes
                     processing.
                 </p>
+            </div>
+
+            <!-- Order Timeline Stepper -->
+            <div class="mt-8">
+                <OrderTrackingStepper
+                    :status="order.status"
+                    :payment-status="order.payment_status"
+                    :placed-at="order.placed_at"
+                    :paid-at="order.paid_at"
+                />
             </div>
 
             <!-- Payment Instructions for Offline Drivers -->
@@ -341,8 +356,31 @@ const { stop } = usePoll(
                 </div>
             </div>
 
-            <!-- Back to Shop CTA -->
-            <div class="mt-10 text-center">
+            <!-- CTAs -->
+            <div
+                class="mt-10 flex flex-wrap items-center justify-center gap-3 print:hidden"
+            >
+                <button
+                    type="button"
+                    @click="handlePrint"
+                    class="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-cream-300 bg-white px-6 py-3.5 text-xs font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs transition-colors hover:bg-cream-100 hover:text-sage-900"
+                >
+                    <svg
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.75"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                        />
+                    </svg>
+                    <span>Print Receipt</span>
+                </button>
+
                 <Link
                     :href="productsIndex.url()"
                     class="inline-block rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md"
