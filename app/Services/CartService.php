@@ -103,10 +103,9 @@ class CartService
      */
     public function getFreeShippingThreshold(): float
     {
-        $standardDelivery = DeliveryOption::query()
-            ->active()
+        $standardDelivery = DeliveryOption::getActiveOptions()
             ->whereNotNull('free_threshold')
-            ->orderBy('free_threshold')
+            ->sortBy('free_threshold')
             ->first();
 
         return $standardDelivery?->free_threshold ? (float) $standardDelivery->free_threshold : 50.00;
@@ -119,9 +118,7 @@ class CartService
      */
     public function getDeliveryOptions(float $subtotal): Collection
     {
-        return DeliveryOption::query()
-            ->active()
-            ->get()
+        return DeliveryOption::getActiveOptions()
             ->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
                 ->withSubtotal($subtotal)
             );
@@ -772,18 +769,15 @@ class CartService
         $summary = $this->getSummaryFromCartItems($currentCartItems);
 
         // Fetch delivery options and calculate thresholds
-        $standardDelivery = DeliveryOption::query()
-            ->active()
+        $standardDelivery = DeliveryOption::getActiveOptions()
             ->whereNotNull('free_threshold')
-            ->orderBy('free_threshold')
+            ->sortBy('free_threshold')
             ->first();
 
         $freeShippingThreshold = $standardDelivery?->free_threshold ? (float) $standardDelivery->free_threshold : 50.00;
         $amountUntilFreeShipping = max(0, round($freeShippingThreshold - $summary['subtotal'], 2));
 
-        $deliveryOptions = DeliveryOption::query()
-            ->active()
-            ->get()
+        $deliveryOptions = DeliveryOption::getActiveOptions()
             ->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
                 ->withSubtotal($summary['subtotal'])
             );

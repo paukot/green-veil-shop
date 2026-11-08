@@ -132,8 +132,8 @@ function applyCode() {
                 >
                     <span>Subtotal</span>
                     <span class="font-medium text-charcoal-900">{{
-                            formatCurrency(summary.subtotal)
-                        }}</span>
+                        formatCurrency(summary.subtotal)
+                    }}</span>
                 </div>
 
                 <div
@@ -144,7 +144,7 @@ function applyCode() {
                         <span>Promotion Savings</span>
                     </span>
                     <span class="font-semibold"
-                    >-{{ formatCurrency(discountAmount) }}</span
+                        >-{{ formatCurrency(discountAmount) }}</span
                     >
                 </div>
 
@@ -156,7 +156,7 @@ function applyCode() {
                         <span
                             v-if="selectedDelivery"
                             class="text-charcoal-400 text-[11px]"
-                        >({{ selectedDelivery.name }})</span
+                            >({{ selectedDelivery.name }})</span
                         >
                     </span>
                     <span
@@ -176,10 +176,10 @@ function applyCode() {
                         <div>
                             <span
                                 class="font-serif text-lg font-medium text-charcoal-900"
-                            >Grand Total</span
+                                >Grand Total</span
                             >
                             <span class="text-charcoal-400 block text-[11px]"
-                            >Taxes & duties included</span
+                                >Taxes & duties included</span
                             >
                         </div>
                         <div class="text-right">
@@ -396,8 +396,6 @@ function applyCode() {
                     </div>
                 </div>
             </div>
-
-
 
             <!-- CTA Button -->
             <div class="pt-1">

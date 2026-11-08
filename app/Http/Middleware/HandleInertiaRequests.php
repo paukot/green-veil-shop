@@ -2,12 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\CacheKey;
+use App\Enums\CacheTag;
 use App\Models\Category;
 use App\Models\User;
+use App\Services\Cache\AppCache;
 use App\Services\CartService;
 use App\Services\FavouriteService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -45,32 +47,34 @@ class HandleInertiaRequests extends Middleware
         $cartCount = $cartSummary['count'];
         $cartSubtotal = $cartSummary['subtotal'];
 
-        $navigation = Cache::remember('storefront_category_navigation', 3600, function () {
-            try {
-                return Category::query()
-                    ->where('is_active', true)
-                    ->whereNull('parent_id')
-                    ->orderBy('sort_order')
-                    ->with([
-                        'children' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order'),
-                    ])
-                    ->get(['id', 'slug', 'name', 'parent_id'])
-                    ->map(fn (Category $cat) => [
-                        'id' => $cat->id,
-                        'slug' => $cat->slug,
-                        'name' => $cat->name,
-                        'children' => $cat->children->map(fn (Category $child) => [
-                            'id' => $child->id,
-                            'slug' => $child->slug,
-                            'name' => $child->name,
-                        ])->values()->all(),
-                    ])
-                    ->values()
-                    ->all();
-            } catch (\Throwable) {
-                return [];
-            }
-        });
+        $navigation = AppCache::remember(
+            CacheKey::StorefrontNavigation,
+            function () {
+                try {
+                    return Category::query()
+                        ->where('is_active', true)
+                        ->whereNull('parent_id')
+                        ->orderBy('sort_order')
+                        ->with([
+                            'children' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order'),
+                        ])
+                        ->get(['id', 'slug', 'name', 'parent_id'])
+                        ->map(fn (Category $cat) => [
+                            'id' => $cat->id,
+                            'slug' => $cat->slug,
+                            'name' => $cat->name,
+                            'children' => $cat->children->map(fn (Category $child) => [
+                                'id' => $child->id,
+                                'slug' => $child->slug,
+                                'name' => $child->name,
+                            ])->values()->all(),
+                        ])
+                        ->values()
+                        ->all();
+                } catch (\Throwable) {
+                    return [];
+                }
+            }, [CacheTag::Categories, CacheTag::Catalog]);
 
         return [
             ...parent::share($request),

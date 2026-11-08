@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CacheKey;
+use App\Enums\CacheTag;
 use App\Http\Requests\CatalogFilterRequest;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\SimpleCategoryResource;
@@ -9,6 +11,7 @@ use App\Http\Resources\SimpleProductResource;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\BreadcrumbService;
+use App\Services\Cache\AppCache;
 use App\Services\ProductCatalogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,15 +38,21 @@ class ProductController extends Controller
 
         $facets = $this->catalogService->getFilterFacets();
 
-        $categories = Category::query()
-            ->where('is_active', true)
-            ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
-            ->orderBy('sort_order')
-            ->get(['id', 'slug', 'name']);
+        $categories = AppCache::remember(
+            CacheKey::CatalogCategoriesList,
+            fn (): array => SimpleCategoryResource::collection(
+                Category::query()
+                    ->where('is_active', true)
+                    ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
+                    ->orderBy('sort_order')
+                    ->get(['id', 'slug', 'name'])
+            )->resolve(),
+            [CacheTag::Categories, CacheTag::Catalog],
+        );
 
         return Inertia::render('Catalog/Index', [
             'products' => ProductResource::collection($products)->additional(['total' => $products->total()]),
-            'categories' => SimpleCategoryResource::collection($categories)->resolve(),
+            'categories' => $categories,
             'facets' => $facets,
             'priceRange' => $facets['price_bounds'],
             'filters' => $request->toInertiaFilters(includeCategory: true),

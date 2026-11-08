@@ -34,10 +34,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('info', 'Your shopping bag is empty.');
         }
 
-        $paymentOptions = PaymentOption::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->get();
+        $paymentOptions = PaymentOption::getActiveOptions();
 
         $user = $request->user();
 

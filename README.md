@@ -20,6 +20,7 @@ Green Veil is built around a practical, production-ready architecture designed f
 - **Lean Multi-Stage Docker Builds:** The Dockerfile builds dependencies, compiles frontend assets with Node/Vite, and copies only the finished build into a minimal Alpine production image. Build tools and heavy `node_modules` are completely excluded from production.
 - **Host Reverse Proxy (Port 8080):** The app container runs on port `8080` rather than taking over ports `80` and `443`. A host-level reverse proxy (Nginx or Caddy) manages SSL certificates and forwards traffic, making it easy to run multiple independent web apps on a single VPS without port conflicts.
 - **MySQL 8.4 & Redis Separation:** MySQL manages relational e-commerce data (orders, variants, stock, transactions) with container healthchecks, while Redis handles in-memory sessions and hot caching to protect database performance.
+- **Intelligent Storefront Caching & Database Indexing:** Production Redis caching (`AppCache`) with a 5-minute bounded TTL, native Redis domain tags, typed `CacheKey`/`CacheTag` enums, and composite SQL indexes (`products_active_featured_sort_idx`, `products_active_price_idx`, `products_cat_active_sort_idx`). Reactive Eloquent observers automatically flush targeted cache tags when products, taxonomies, promotions, or settings change.
 - **Automated CI/CD Pipeline:** GitHub Actions automatically runs code style checks (Pint), static analysis (PHPStan), TypeScript validation (`vue-tsc`), and automated tests (Pest) on every push. When tests pass on `master`, it executes a zero-downtime deployment script over SSH.
 - **Monolith with Inertia.js:** Instead of maintaining disconnected frontend and API repositories, Inertia pairs Vue 3 directly with Laravel. This gives users a smooth Single Page Application experience without the added burden of API versioning, CORS configuration, or token syncing.
 
@@ -42,11 +43,11 @@ Green Veil is built around a practical, production-ready architecture designed f
 
 ### Storefront & Customer Experience (Vue 3 & Inertia.js)
 
-- **Product Discovery & Filtering:** Browse the cosmetics catalog with multi-attribute filtering by category, skin type, hair type, active ingredients, and specific claims (e.g., vegan, cruelty-free, organic).
+- **Product Discovery & Filtering:** Browse the cosmetics catalog with multi-attribute filtering (category, skin type, hair type, active ingredients, claims), real-time search, and optimized cached facet aggregations.
 - **Dynamic Product Variants:** Seamless variant switching (sizes, scents, formulations) with instant price, imagery, and stock status updates.
-- **Cart & Wishlist Management:** Real-time cart synchronization and customer favorites for both guest visitors and authenticated users.
-- **Frictionless Stripe Checkout:** End-to-end checkout flow supporting delivery options and address handling, with automated order creation powered by Stripe webhooks.
-- **Promotions & Discounts:** Flexible discount code engine with cart minimums, usage caps, and expiration windows.
+- **Cart & Wishlist Synchronization:** Real-time cart state, persistent guest sessions, and automatic wishlist reconciliation upon login/registration.
+- **Frictionless Stripe Checkout:** End-to-end checkout flow supporting country-specific shipping options, delivery threshold calculations, and automated order creation powered by Stripe webhooks.
+- **Promotions & Discounts:** Flexible discount code engine with cart minimums, usage caps, expiration windows, and instant promotion breakdown in checkout.
 - **Customer Account Portal:** Self-service profile to inspect past orders, fulfillment statuses, and personal details.
 
 ### Back-Office Administration (Filament 5)
@@ -54,6 +55,7 @@ Green Veil is built around a practical, production-ready architecture designed f
 - **Catalog & Inventory Control:** Full CRUD management for products, brands, categories, variants, and gallery media with real-time stock tracking.
 - **Order Processing & Fulfillment:** Inspect incoming orders, customer details, payment states, and update fulfillment progress.
 - **Marketing & Promotions:** Create and schedule coupon codes, homepage slider banners, and promotional campaigns.
+- **Granular Cache Management:** Reactive cache invalidation across all models plus a dedicated artisan CLI command (`php artisan app:cache-flush`) for tag- or key-based maintenance.
 - **Role-Based Access Control (RBAC):** Granular administrative role and user management separating store staff from regular customers.
 - **Dashboard Analytics:** Overview widgets tracking key business metrics, recent order volumes, and inventory alerts.
 
@@ -125,10 +127,12 @@ server {
 Run all quality checks and automated tests with a single command:
 
 ```bash
-composer test         # Runs Pint, PHPStan, and Pest test suite in parallel
-composer lint         # Automatically format code with Laravel Pint
-composer types:check  # PHP static analysis (PHPStan / Larastan)
-npm run types:check   # Vue/TypeScript type verification
+composer test               # Runs Pint, PHPStan, and Pest test suite in parallel
+composer lint               # Automatically format code with Laravel Pint
+composer types:check        # PHP static analysis (PHPStan / Larastan)
+npm run check:fix           # Format and lint frontend code (Biome / Vite)
+npm run types:check         # Vue/TypeScript type verification
+php artisan app:cache-flush # Flush managed Redis storefront cache by tag or key
 ```
 
 ---
@@ -137,9 +141,12 @@ npm run types:check   # Vue/TypeScript type verification
 
 ```
 ├── app/
+│   ├── Enums/           # Domain enums (CacheKey, CacheTag, OrderStatus, etc.)
 │   ├── Filament/        # Admin resources, relations, and dashboard widgets
 │   ├── Http/Controllers# Storefront and checkout controllers (Cart, Stripe, etc.)
-│   └── Models/          # Database models (Products, Variants, Orders, Promotions)
+│   ├── Models/          # Database models (Products, Variants, Orders, Promotions)
+│   ├── Observers/       # Reactive cache invalidation observers
+│   └── Services/        # Domain services & caching layer (AppCache, CartService)
 ├── resources/js/        # Vue 3 pages, components, and layouts
 ├── docker/              # Container boot scripts and configurations
 ├── tests/               # Pest feature and unit tests
