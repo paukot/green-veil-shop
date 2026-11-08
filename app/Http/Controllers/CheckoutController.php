@@ -9,6 +9,7 @@ use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CartItemResource;
 use App\Http\Resources\PaymentOptionResource;
 use App\Mail\OrderConfirmationMail;
+use App\Models\Country;
 use App\Models\PaymentOption;
 use App\Payments\PaymentManager;
 use App\Services\CartService;
@@ -46,6 +47,7 @@ class CheckoutController extends Controller
             'appliedPromotion' => $overview['applied_promotion'],
             'deliveryOptions' => $overview['delivery_options'],
             'paymentOptions' => PaymentOptionResource::collection($paymentOptions),
+            'countries' => Country::getShippingOptions(),
             'customer' => $user ? [
                 'name' => $user->name,
                 'email' => $user->email,

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Brand;
 use App\Models\Claim;
+use App\Models\Country;
 use App\Models\Effect;
 use App\Models\HairType;
 use App\Models\Ingredient;
@@ -234,7 +235,16 @@ class ProductCatalogService
                 ->whereNotNull('manufactured_in')
                 ->selectRaw('manufactured_in as value, count(*) as count')
                 ->groupBy('manufactured_in')
-                ->get(),
+                ->get()
+                ->map(function (Product $item): array {
+                    $val = (string) $item->getAttribute('value');
+
+                    return [
+                        'value' => $val,
+                        'count' => (int) $item->getAttribute('count'),
+                        'name' => Country::getNameByCode($val) ?? $val,
+                    ];
+                }),
 
             'price_bounds' => [
                 'min' => (float) (Product::where('is_active', true)

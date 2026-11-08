@@ -5,6 +5,7 @@ namespace App\Http\Requests\Checkout;
 use App\Actions\Checkout\CheckoutData;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CheckoutRequest extends FormRequest
 {
@@ -29,14 +30,30 @@ class CheckoutRequest extends FormRequest
             'shipping_address.line2' => ['nullable', 'string', 'max:255'],
             'shipping_address.city' => ['required', 'string', 'max:100'],
             'shipping_address.postal_code' => ['required', 'string', 'max:20'],
-            'shipping_address.country' => ['required', 'string', 'max:2'],
+            'shipping_address.country' => [
+                'required',
+                'string',
+                'size:2',
+                Rule::exists('countries', 'code')
+                    ->where('is_active', true)
+                    ->where('is_shipping_available', true)
+                    ->whereNull('deleted_at'),
+            ],
             'billing_same_as_shipping' => ['boolean'],
             'billing_address' => ['nullable', 'array'],
             'billing_address.line1' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:255'],
             'billing_address.line2' => ['nullable', 'string', 'max:255'],
             'billing_address.city' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:100'],
             'billing_address.postal_code' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:20'],
-            'billing_address.country' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:2'],
+            'billing_address.country' => [
+                'required_if:billing_same_as_shipping,false',
+                'nullable',
+                'string',
+                'size:2',
+                Rule::exists('countries', 'code')
+                    ->where('is_active', true)
+                    ->whereNull('deleted_at'),
+            ],
             'notes' => ['nullable', 'string', 'max:1000'],
             'promotion_id' => ['nullable', 'integer', 'exists:promotions,id'],
         ];

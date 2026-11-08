@@ -306,6 +306,7 @@ export type ProductDetail = {
 
     // Origin & Regulatory
     manufactured_in?: string | null;
+    manufactured_in_name?: string | null;
     pao_months?: number | null;
     responsible_person?: string | null;
 
@@ -451,6 +452,7 @@ export type CheckoutPageProps = {
         description?: string | null;
     }>;
     paymentOptions: PaymentOptionItem[];
+    countries?: Array<{ value: string; label: string }>;
     customer: CheckoutCustomer;
     appliedPromotion?: AppliedPromotionData | null;
 };

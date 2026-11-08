@@ -137,7 +137,7 @@ class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentic
             str_ends_with($ability, '_user') || str_ends_with($ability, '_customer') => 'customers',
             str_ends_with($ability, '_payment') => 'finance',
             str_ends_with($ability, '_slider_item') => 'marketing',
-            str_ends_with($ability, '_delivery_option') || str_ends_with($ability, '_payment_option') => 'settings',
+            str_ends_with($ability, '_delivery_option') || str_ends_with($ability, '_payment_option') || str_ends_with($ability, '_country') => 'settings',
             str_ends_with($ability, '_admin_user') || str_ends_with($ability, '_admin_role') || str_ends_with($ability, '_stripe_event') => 'system',
             default => null,
         };

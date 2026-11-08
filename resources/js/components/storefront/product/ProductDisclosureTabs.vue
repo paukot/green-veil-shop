@@ -14,23 +14,12 @@ const activeTab = ref<'description' | 'inci' | 'usage' | 'warnings' | 'specs'>(
     'description',
 );
 
-const countryNames: Record<string, string> = {
-    FR: 'France',
-    PL: 'Poland',
-    IT: 'Italy',
-    KR: 'South Korea',
-    US: 'United States',
-    DE: 'Germany',
-    ES: 'Spain',
-    GB: 'United Kingdom',
-    JP: 'Japan',
-    CH: 'Switzerland',
-};
-
 const manufacturedCountryName = computed(() => {
-    const code = props.product.manufactured_in?.toUpperCase();
-    if (!code) return null;
-    return countryNames[code] || code;
+    return (
+        props.product.manufactured_in_name ||
+        props.product.manufactured_in ||
+        null
+    );
 });
 </script>
 

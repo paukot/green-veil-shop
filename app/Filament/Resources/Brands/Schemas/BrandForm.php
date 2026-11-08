@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Brands\Schemas;
 
 use App\Models\Brand;
+use App\Models\Country;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -16,36 +17,6 @@ use Illuminate\Support\Str;
 
 class BrandForm
 {
-    /**
-     * Common cosmetic producer countries (ISO 3166-1 alpha-2).
-     */
-    public const COUNTRIES = [
-        'FR' => 'France',
-        'PL' => 'Poland',
-        'IT' => 'Italy',
-        'DE' => 'Germany',
-        'US' => 'United States',
-        'KR' => 'South Korea',
-        'JP' => 'Japan',
-        'GB' => 'United Kingdom',
-        'ES' => 'Spain',
-        'CH' => 'Switzerland',
-        'CA' => 'Canada',
-        'SE' => 'Sweden',
-        'AU' => 'Australia',
-        'NL' => 'Netherlands',
-        'BE' => 'Belgium',
-        'DK' => 'Denmark',
-        'FI' => 'Finland',
-        'NO' => 'Norway',
-        'AT' => 'Austria',
-        'IE' => 'Ireland',
-        'IL' => 'Israel',
-        'GR' => 'Greece',
-        'PT' => 'Portugal',
-        'BR' => 'Brazil',
-    ];
-
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -64,7 +35,7 @@ class BrandForm
                                     ->helperText('URL-friendly identifier'),
                                 Select::make('country_of_origin')
                                     ->label('Country of Origin')
-                                    ->options(self::COUNTRIES)
+                                    ->options(fn (): array => Country::getOptionList())
                                     ->searchable()
                                     ->nullable(),
                                 TextInput::make('website_url')

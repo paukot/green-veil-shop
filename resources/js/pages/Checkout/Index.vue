@@ -24,21 +24,19 @@ defineOptions({ layout: StorefrontLayout });
 
 const mobileSummaryOpen = ref(false);
 
-const COUNTRY_OPTIONS: SelectOption[] = [
-    { value: 'IE', label: 'Ireland' },
-    { value: 'GB', label: 'United Kingdom' },
-    { value: 'FR', label: 'France' },
-    { value: 'DE', label: 'Germany' },
-    { value: 'ES', label: 'Spain' },
-    { value: 'IT', label: 'Italy' },
-    { value: 'NL', label: 'Netherlands' },
-];
-
 const props = defineProps<CheckoutPageProps>();
+
+const countryOptions = computed<SelectOption[]>(() => {
+    if (props.countries && props.countries.length > 0) {
+        return props.countries;
+    }
+    return [{ value: 'IE', label: 'Ireland' }];
+});
 
 const defaultDelivery =
     props.deliveryOptions.find((d) => d.is_free) ?? props.deliveryOptions[0];
 const defaultPayment = props.paymentOptions[0];
+const defaultCountry = props.countries?.[0]?.value ?? 'IE';
 
 const form = useForm({
     customer_name: props.customer?.name ?? '',
@@ -51,7 +49,7 @@ const form = useForm({
         line2: '',
         city: '',
         postal_code: '',
-        country: 'IE',
+        country: defaultCountry,
     },
     billing_same_as_shipping: true,
     billing_address: {
@@ -59,7 +57,7 @@ const form = useForm({
         line2: '',
         city: '',
         postal_code: '',
-        country: 'IE',
+        country: defaultCountry,
     },
     notes: '',
     promotion_id: props.appliedPromotion?.id ?? null,
@@ -369,7 +367,7 @@ function submit() {
                         id-prefix="shipping"
                         error-prefix="shipping_address"
                         v-model="form.shipping_address"
-                        :country-options="COUNTRY_OPTIONS"
+                        :country-options="countryOptions"
                         :errors="form.errors"
                     />
 
@@ -396,7 +394,7 @@ function submit() {
                                 id-prefix="billing"
                                 error-prefix="billing_address"
                                 v-model="form.billing_address"
-                                :country-options="COUNTRY_OPTIONS"
+                                :country-options="countryOptions"
                                 :errors="form.errors"
                             />
                         </div>

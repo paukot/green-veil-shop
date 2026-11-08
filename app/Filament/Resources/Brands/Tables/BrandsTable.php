@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Brands\Tables;
 
-use App\Filament\Resources\Brands\Schemas\BrandForm;
 use App\Models\Brand;
+use App\Models\Country;
 use App\Services\StorageImageService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -38,7 +38,7 @@ class BrandsTable
                 TextColumn::make('country_of_origin')
                     ->label('Country')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state): string => $state ? (BrandForm::COUNTRIES[$state] ?? $state) : '—'),
+                    ->formatStateUsing(fn (?string $state): string => $state ? (Country::getNameByCode($state) ?? $state) : '—'),
                 TextColumn::make('products_count')
                     ->counts('products')
                     ->label('Products')
@@ -56,7 +56,7 @@ class BrandsTable
             ->filters([
                 SelectFilter::make('country_of_origin')
                     ->label('Country')
-                    ->options(BrandForm::COUNTRIES),
+                    ->options(fn (): array => Country::getOptionList()),
                 TernaryFilter::make('is_active')
                     ->label('Active'),
                 TrashedFilter::make(),

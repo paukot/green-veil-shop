@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Country;
 use App\Models\Product;
 use App\Services\StorageImageService;
 use Illuminate\Http\Request;
@@ -50,6 +51,7 @@ class ProductResource extends JsonResource
 
             // Origin & Regulatory
             'manufactured_in' => $this->manufactured_in,
+            'manufactured_in_name' => Country::getNameByCode($this->manufactured_in),
             'pao_months' => $this->pao_months,
             'responsible_person' => $this->responsible_person,
 
