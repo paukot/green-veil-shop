@@ -183,7 +183,7 @@ defineProps<AccountOrdersPageProps>();
                                 :href="ordersShow.url(order.public_id)"
                                 class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-xs font-semibold tracking-wider text-charcoal-800 uppercase transition-colors hover:bg-cream-100 hover:text-sage-900 sm:w-auto"
                             >
-                                <span>View Details</span>
+                                <span>Track & Details</span>
                                 <svg
                                     class="h-3.5 w-3.5"
                                     fill="none"

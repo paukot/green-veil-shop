@@ -66,20 +66,27 @@ const emit = defineEmits<{
         <!-- Stock Status -->
         <div class="flex items-center gap-2 text-xs">
             <span
-                class="h-2.5 w-2.5 rounded-full"
-                :class="isInStock ? 'bg-emerald-500' : 'bg-rose-500'"
-            />
-            <span v-if="isInStock" class="font-medium text-charcoal-700">
-                In Stock
+                v-if="isInStock"
+                class="flex flex-wrap items-center gap-2 font-medium text-charcoal-700"
+            >
+                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                <span>In Stock</span>
                 <span
                     v-if="trackInventory && stockQuantity <= 5"
-                    class="ml-1 font-semibold text-amber-700"
+                    class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800"
                 >
-                    (Only {{ stockQuantity }} remaining)
+                    <span
+                        class="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500"
+                    />
+                    Only {{ stockQuantity }} left in current batch
                 </span>
             </span>
-            <span v-else class="font-medium text-rose-700">
-                Currently Out of Stock
+            <span
+                v-else
+                class="flex items-center gap-2 font-medium text-rose-700"
+            >
+                <span class="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                <span>Currently Out of Stock</span>
             </span>
         </div>
     </div>

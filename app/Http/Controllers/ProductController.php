@@ -10,6 +10,8 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Services\BreadcrumbService;
 use App\Services\ProductCatalogService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -79,6 +81,41 @@ class ProductController extends Controller
             'product' => ProductResource::make($product)->resolve(),
             'relatedProducts' => SimpleProductResource::collection($relatedProducts)->resolve(),
             'breadcrumbs' => $this->breadcrumbService->getProductBreadcrumbs($product),
+        ]);
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $term = trim((string) $request->input('q', ''));
+
+        if (mb_strlen($term) < 2) {
+            return response()->json([
+                'products' => [],
+                'categories' => [],
+                'total_matches' => 0,
+            ]);
+        }
+
+        $productsQuery = $this->catalogService
+            ->getFilteredProductsQuery(['q' => $term]);
+
+        $totalMatches = (clone $productsQuery)->count();
+
+        $products = $productsQuery
+            ->limit(5)
+            ->get();
+
+        $categories = Category::query()
+            ->where('is_active', true)
+            ->where('name', 'like', "%{$term}%")
+            ->orderBy('sort_order')
+            ->limit(3)
+            ->get(['id', 'slug', 'name']);
+
+        return response()->json([
+            'products' => SimpleProductResource::collection($products)->resolve(),
+            'categories' => SimpleCategoryResource::collection($categories)->resolve(),
+            'total_matches' => $totalMatches,
         ]);
     }
 }

@@ -5,19 +5,24 @@ namespace App\Filament\Resources\Products\Tables;
 use App\Filament\Resources\Products\Schemas\ProductForm;
 use App\Models\Product;
 use App\Services\StorageImageService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class ProductsTable
 {
@@ -62,8 +67,10 @@ class ProductsTable
                     ->badge()
                     ->color('gray')
                     ->sortable(),
-                TextColumn::make('stock_quantity')
+                TextInputColumn::make('stock_quantity')
                     ->label('Stock')
+                    ->type('number')
+                    ->rules(['required', 'integer', 'min:0'])
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->label('Active')
@@ -102,6 +109,49 @@ class ProductsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                Action::make('duplicate')
+                    ->label('Duplicate')
+                    ->icon(Heroicon::OutlinedDocumentDuplicate)
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->modalHeading('Duplicate Product')
+                    ->modalDescription('Duplicate this botanical formulation? The duplicate will be created as an inactive draft.')
+                    ->action(function (Product $record): void {
+                        $replica = $record->replicate([
+                            'sales_count',
+                            'views_count',
+                            'rating_average',
+                            'rating_count',
+                            'variants_count',
+                        ]);
+                        $replica->name = $record->name.' (Copy)';
+                        $replica->slug = Str::slug($replica->name).'-'.strtolower(Str::random(5));
+                        $replica->is_active = false;
+                        $replica->sku = $record->sku ? $record->sku.'-COPY' : null;
+                        $replica->save();
+
+                        if ($record->skinTypes()->exists()) {
+                            $replica->skinTypes()->sync($record->skinTypes->pluck('id'));
+                        }
+                        if ($record->hairTypes()->exists()) {
+                            $replica->hairTypes()->sync($record->hairTypes->pluck('id'));
+                        }
+                        if ($record->effects()->exists()) {
+                            $replica->effects()->sync($record->effects->pluck('id'));
+                        }
+                        if ($record->ingredients()->exists()) {
+                            $replica->ingredients()->sync($record->ingredients->pluck('id'));
+                        }
+                        if ($record->claims()->exists()) {
+                            $replica->claims()->sync($record->claims->pluck('id'));
+                        }
+
+                        Notification::make()
+                            ->title('Product Duplicated')
+                            ->body("Created draft formulation '{$replica->name}'.")
+                            ->success()
+                            ->send();
+                    }),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

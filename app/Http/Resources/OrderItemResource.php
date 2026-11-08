@@ -17,6 +17,8 @@ class OrderItemResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'product_id' => $this->product_id,
+            'product_slug' => $this->product?->slug,
             'product_name' => $this->product_name,
             'product_sku' => $this->product_sku,
             'product_image' => (new StorageImageService)->getImage($this->product_image),

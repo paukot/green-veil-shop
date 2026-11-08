@@ -455,6 +455,7 @@ export type CheckoutPageProps = {
     countries?: Array<{ value: string; label: string }>;
     customer: CheckoutCustomer;
     appliedPromotion?: AppliedPromotionData | null;
+    availablePromotions?: AvailablePromotionData[];
 };
 
 export type OrderDetailData = {
@@ -505,6 +506,8 @@ export type OrderDetailData = {
 
 export type OrderItemData = {
     id: number;
+    product_id?: number | null;
+    product_slug?: string | null;
     product_name: string;
     product_sku?: string | null;
     product_image?: string | null;

@@ -181,3 +181,38 @@ describe('Product Catalog Index', function () {
         );
     });
 });
+
+describe('Product Live Search', function () {
+    it('returns matching active products and categories for search query', function () {
+        $category = Category::factory()->create(['name' => 'Elixirs', 'slug' => 'elixirs']);
+        $product = Product::factory()->withCategory($category)->create([
+            'name' => 'Rosehip Radiance Elixir',
+            'is_active' => true,
+        ]);
+        Product::factory()->create([
+            'name' => 'Inactive Elixir',
+            'is_active' => false,
+        ]);
+
+        $response = $this->getJson(route('products.search', ['q' => 'Elixir']));
+
+        $response->assertOk()
+            ->assertJsonPath('total_matches', 1)
+            ->assertJsonPath('products.0.id', $product->id)
+            ->assertJsonPath('products.0.name', 'Rosehip Radiance Elixir')
+            ->assertJsonCount(1, 'products');
+    });
+
+    it('returns empty result when query is under 2 characters', function () {
+        Product::factory()->create(['name' => 'Rosehip Oil', 'is_active' => true]);
+
+        $response = $this->getJson(route('products.search', ['q' => 'R']));
+
+        $response->assertOk()
+            ->assertJson([
+                'products' => [],
+                'categories' => [],
+                'total_matches' => 0,
+            ]);
+    });
+});

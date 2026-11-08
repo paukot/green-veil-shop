@@ -411,7 +411,17 @@ onUnmounted(() => {
                                             ? accountRituals.url()
                                             : favouritesIndex.url()
                                     "
-                                    class="flex items-center justify-between rounded-xl border border-cream-200 bg-white/70 px-3.5 py-2.5 text-xs font-medium text-charcoal-800 transition-colors hover:border-sage-300 hover:bg-white"
+                                    class="flex items-center justify-between rounded-xl border border-cream-200 px-3.5 py-2.5 text-xs font-medium text-charcoal-800 transition-colors hover:border-sage-300 hover:bg-white"
+                                    :class="
+                                        $page.url.startsWith(
+                                            favouritesIndex.url(),
+                                        ) ||
+                                        $page.url.startsWith(
+                                            accountRituals.url(),
+                                        )
+                                            ? 'border-sage-300 bg-cream-100 font-semibold text-sage-900'
+                                            : 'bg-white/70'
+                                    "
                                     @click="close"
                                 >
                                     <div class="flex items-center gap-2.5">

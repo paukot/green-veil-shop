@@ -6,6 +6,7 @@ use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\RelationManagers\UserCartRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserFavouritesRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserOrdersRelationManager;
+use App\Filament\Resources\Users\UserResource;
 use App\Models\AdminUser;
 use App\Models\CartItem;
 use App\Models\Favourite;
@@ -112,5 +113,10 @@ describe('UserResource in Filament', function () {
             ])
             ->assertCanSeeTableRecords([$favourite])
             ->assertSee('Rose Hydrosol');
+    });
+
+    it('defines globally searchable attributes on UserResource', function () {
+        $attributes = UserResource::getGloballySearchableAttributes();
+        expect($attributes)->toContain('name', 'email');
     });
 });

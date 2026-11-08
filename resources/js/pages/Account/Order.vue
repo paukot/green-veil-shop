@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AccountLayout from '@/layouts/AccountLayout.vue';
 import OrderStatusBadge from '@/components/storefront/OrderStatusBadge.vue';
 import PaymentStatusBadge from '@/components/storefront/PaymentStatusBadge.vue';
+import OrderTrackingStepper from '@/components/storefront/OrderTrackingStepper.vue';
+import { useCart } from '@/composables/useCart';
 import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
 import type { AccountOrderDetailProps } from '@/types/storefront';
 import { index as ordersIndex } from '@/actions/App/Http/Controllers/OrderController';
@@ -12,6 +14,8 @@ import { retry as checkoutRetry } from '@/actions/App/Http/Controllers/CheckoutR
 defineOptions({ layout: AccountLayout });
 
 const props = defineProps<AccountOrderDetailProps>();
+const cart = useCart();
+const reorderSuccessMessage = ref(false);
 
 const isUnpaid = computed(
     () =>
@@ -20,6 +24,37 @@ const isUnpaid = computed(
 );
 
 const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
+
+function handleReorder() {
+    let addedCount = 0;
+    for (const item of props.items) {
+        if (item.product_id) {
+            cart.addItem(
+                {
+                    id: item.product_id,
+                    name: item.product_name,
+                    slug: item.product_slug || '',
+                    price: item.unit_price,
+                    main_image: item.product_image,
+                    sku: item.product_sku,
+                },
+                item.quantity,
+            );
+            addedCount++;
+        }
+    }
+    if (addedCount > 0) {
+        reorderSuccessMessage.value = true;
+        cart.openDrawer();
+        setTimeout(() => {
+            reorderSuccessMessage.value = false;
+        }, 4000);
+    }
+}
+
+function handlePrint() {
+    window.print();
+}
 </script>
 
 <template>
@@ -27,7 +62,7 @@ const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
 
     <div class="space-y-6">
         <!-- Navigation back -->
-        <div>
+        <div class="print:hidden">
             <Link
                 :href="ordersIndex.url()"
                 class="inline-flex min-h-[44px] items-center gap-2 text-xs font-medium text-sage-700 transition-colors hover:text-sage-900"
@@ -47,6 +82,38 @@ const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
                 </svg>
                 <span>Back to all orders</span>
             </Link>
+        </div>
+
+        <!-- Success Toast for Reorder -->
+        <div
+            v-if="reorderSuccessMessage"
+            class="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800 print:hidden"
+        >
+            <div class="flex items-center gap-2">
+                <svg
+                    class="h-4 w-4 text-emerald-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                    />
+                </svg>
+                <span class="font-medium"
+                    >Items from this order have been added to your bag!</span
+                >
+            </div>
+            <button
+                type="button"
+                @click="reorderSuccessMessage = false"
+                class="text-emerald-700 hover:text-emerald-900"
+            >
+                ✕
+            </button>
         </div>
 
         <!-- Header Card -->
@@ -83,19 +150,73 @@ const isStripe = computed(() => props.paymentOption?.driver === 'stripe');
                     </p>
                 </div>
 
-                <!-- Retry Payment CTA if pending Stripe payment -->
-                <div v-if="isUnpaid && isStripe" class="shrink-0">
-                    <Link
-                        :href="checkoutRetry.url(order.public_id)"
-                        method="post"
-                        as="button"
-                        class="inline-flex min-h-[44px] w-full items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 sm:w-auto"
+                <!-- Action buttons -->
+                <div class="flex flex-wrap items-center gap-2 print:hidden">
+                    <button
+                        type="button"
+                        @click="handlePrint"
+                        class="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-cream-300 bg-white px-4 py-2 text-xs font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs transition-colors hover:bg-cream-100 hover:text-sage-900"
                     >
-                        Complete Payment
-                    </Link>
+                        <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.75"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                            />
+                        </svg>
+                        <span>Print Receipt</span>
+                    </button>
+
+                    <button
+                        v-if="order.status !== 'cancelled' && items.length > 0"
+                        type="button"
+                        @click="handleReorder"
+                        class="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-sage-700 bg-sage-50 px-4 py-2 text-xs font-semibold tracking-wider text-sage-900 uppercase shadow-xs transition-colors hover:bg-sage-100"
+                    >
+                        <svg
+                            class="h-4 w-4 text-sage-700"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                        </svg>
+                        <span>Reorder Ritual</span>
+                    </button>
+
+                    <!-- Retry Payment CTA if pending Stripe payment -->
+                    <div v-if="isUnpaid && isStripe" class="shrink-0">
+                        <Link
+                            :href="checkoutRetry.url(order.public_id)"
+                            method="post"
+                            as="button"
+                            class="inline-flex min-h-[40px] items-center justify-center rounded-full bg-sage-800 px-5 py-2 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900"
+                        >
+                            Complete Payment
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Order Timeline Stepper -->
+        <OrderTrackingStepper
+            :status="order.status"
+            :payment-status="order.payment_status"
+            :placed-at="order.placed_at"
+            :paid-at="order.paid_at"
+        />
 
         <!-- Unpaid / Offline Payment Instructions Alert -->
         <div

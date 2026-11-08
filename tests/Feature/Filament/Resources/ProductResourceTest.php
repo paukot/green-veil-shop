@@ -3,6 +3,7 @@
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
+use App\Filament\Resources\Products\ProductResource;
 use App\Models\AdminUser;
 use App\Models\Brand;
 use App\Models\Category;
@@ -130,5 +131,27 @@ describe('Filament Product Cosmetic Management', function () {
         expect($product->fresh()->classification)->toBe('dermocosmetic');
         expect($product->fresh()->pao_months)->toBe(6);
         expect($product->fresh()->spf)->toBe('SPF 30');
+    });
+
+    it('allows admin to duplicate a product via table action', function () {
+        $product = Product::factory()->create([
+            'name' => 'Rose Petal Face Mist',
+            'sku' => 'MIST-001',
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($this->admin, 'admin')
+            ->test(ListProducts::class)
+            ->callTableAction('duplicate', $product);
+
+        $duplicate = Product::where('sku', 'MIST-001-COPY')->first();
+        expect($duplicate)->not->toBeNull();
+        expect($duplicate->name)->toBe('Rose Petal Face Mist (Copy)');
+        expect($duplicate->is_active)->toBeFalse();
+    });
+
+    it('defines globally searchable attributes on ProductResource', function () {
+        $attributes = ProductResource::getGloballySearchableAttributes();
+        expect($attributes)->toContain('name', 'sku', 'barcode');
     });
 });

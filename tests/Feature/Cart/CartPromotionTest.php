@@ -260,5 +260,6 @@ test('checkout page renders applied promotion and reflects discount in summary',
             ->where('appliedPromotion.discount_amount', fn ($val) => (float) $val === 10.0)
             ->where('summary.discount_amount', fn ($val) => (float) $val === 10.0)
             ->where('summary.total', fn ($val) => (float) $val === 90.0)
+            ->has('availablePromotions')
         );
 });

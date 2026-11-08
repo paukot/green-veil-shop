@@ -13,9 +13,11 @@ const user = computed(() => page.props.auth?.user);
 
 <template>
     <StorefrontLayout>
-        <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <div
+            class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 print:p-0"
+        >
             <!-- Header greeting -->
-            <div class="mb-8 border-b border-cream-200 pb-6">
+            <div class="mb-8 border-b border-cream-200 pb-6 print:hidden">
                 <p
                     class="text-xs font-semibold tracking-widest text-sage-600 uppercase"
                 >
@@ -33,9 +35,11 @@ const user = computed(() => page.props.auth?.user);
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 gap-8 md:grid-cols-4 lg:gap-10">
+            <div
+                class="grid grid-cols-1 gap-8 md:grid-cols-4 lg:gap-10 print:block"
+            >
                 <!-- Account Navigation Sidebar -->
-                <aside class="md:col-span-1">
+                <aside class="md:col-span-1 print:hidden">
                     <nav
                         class="flex scrollbar-none flex-row items-center gap-2 overflow-x-auto rounded-2xl border border-cream-200 bg-white p-2 shadow-xs sm:p-3 md:flex-col md:items-stretch md:gap-0 md:space-y-1 md:p-4"
                         aria-label="Account navigation"
@@ -50,7 +54,12 @@ const user = computed(() => page.props.auth?.user);
                             "
                         >
                             <svg
-                                class="h-4 w-4 shrink-0 text-sage-600"
+                                class="h-4 w-4 shrink-0 transition-colors"
+                                :class="
+                                    $page.url.startsWith(profile.url())
+                                        ? 'text-sage-900'
+                                        : 'text-sage-600'
+                                "
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -75,7 +84,12 @@ const user = computed(() => page.props.auth?.user);
                             "
                         >
                             <svg
-                                class="h-4 w-4 shrink-0 text-sage-600"
+                                class="h-4 w-4 shrink-0 transition-colors"
+                                :class="
+                                    $page.url.startsWith(ordersIndex.url())
+                                        ? 'text-sage-900'
+                                        : 'text-sage-600'
+                                "
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -101,7 +115,13 @@ const user = computed(() => page.props.auth?.user);
                             "
                         >
                             <svg
-                                class="h-4 w-4 shrink-0 text-sage-600"
+                                class="h-4 w-4 shrink-0 transition-colors"
+                                :class="
+                                    $page.url.startsWith(rituals.url()) ||
+                                    $page.url.startsWith('/favourites')
+                                        ? 'text-sage-900'
+                                        : 'text-sage-600'
+                                "
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -145,7 +165,7 @@ const user = computed(() => page.props.auth?.user);
                 </aside>
 
                 <!-- Content Area -->
-                <div class="md:col-span-3">
+                <div class="md:col-span-3 print:w-full">
                     <slot />
                 </div>
             </div>

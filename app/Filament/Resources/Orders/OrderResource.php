@@ -28,6 +28,16 @@ class OrderResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    protected static ?string $recordTitleAttribute = 'number';
+
+    /**
+     * @return array<string>
+     */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['number', 'customer_name', 'customer_email'];
+    }
+
     /** Orders are created by customers, not by admins. */
     public static function canCreate(): bool
     {

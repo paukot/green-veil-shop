@@ -5,6 +5,7 @@ import FilterSidebar from '@/components/storefront/FilterSidebar.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import BotanicalLoader from '@/components/ui/BotanicalLoader.vue';
+import ActiveFilterChips from '@/components/storefront/filters/ActiveFilterChips.vue';
 import { useCatalogFilters } from '@/composables/useCatalogFilters';
 import { usePageLoading } from '@/composables/usePageLoading';
 import type {
@@ -174,6 +175,14 @@ onUnmounted(() => {
                         }}
                     </div>
                 </div>
+
+                <!-- Active Filter Chips Bar -->
+                <ActiveFilterChips
+                    :filters="filters"
+                    :facets="facets"
+                    :base-url="baseUrl"
+                    :reset-url="resetUrl"
+                />
 
                 <!-- Products Grid -->
                 <div v-if="products.data.length > 0">

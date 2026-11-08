@@ -45,6 +45,7 @@ class CheckoutController extends Controller
             'items' => CartItemResource::collection($overview['items']),
             'summary' => $overview['summary'],
             'appliedPromotion' => $overview['applied_promotion'],
+            'availablePromotions' => $overview['available_promotions'],
             'deliveryOptions' => $overview['delivery_options'],
             'paymentOptions' => PaymentOptionResource::collection($paymentOptions),
             'countries' => Country::getShippingOptions(),
