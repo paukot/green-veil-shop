@@ -102,7 +102,7 @@ export type HomePageProps = {
     heroSlides: HeroSlide[];
     promotions: PromotionBanner[];
     featuredCategories: CategoryCardData[];
-    featuredProducts: ProductCardData[];
+    featuredProducts?: ProductCardData[] | null;
 };
 
 export type PaginationLink = {
@@ -327,7 +327,7 @@ export type ProductDetail = {
 
 export type ProductDetailPageProps = {
     product: ProductDetail;
-    relatedProducts: ProductCardData[];
+    relatedProducts?: ProductCardData[] | null;
     breadcrumbs: BreadcrumbItem[];
 };
 
@@ -425,6 +425,22 @@ export type CheckoutCustomer = {
     email: string;
 } | null;
 
+export type SavedAddressItem = {
+    id: number;
+    label: string;
+    recipient_name: string;
+    phone?: string | null;
+    line1: string;
+    line2?: string | null;
+    city: string;
+    postal_code: string;
+    country: string;
+    country_name?: string | null;
+    formatted: string;
+    is_default: boolean;
+    created_at?: string | null;
+};
+
 export type CheckoutPageProps = {
     items: Array<{
         id: number | string;
@@ -454,6 +470,8 @@ export type CheckoutPageProps = {
     paymentOptions: PaymentOptionItem[];
     countries?: Array<{ value: string; label: string }>;
     customer: CheckoutCustomer;
+    savedAddresses?: SavedAddressItem[];
+    canSaveAddress?: boolean;
     appliedPromotion?: AppliedPromotionData | null;
     availablePromotions?: AvailablePromotionData[];
 };

@@ -49,25 +49,23 @@ class HomeController extends Controller
             [CacheTag::Home, CacheTag::Categories],
         );
 
-        $featuredProducts = AppCache::remember(
-            CacheKey::HomeFeaturedProducts,
-            fn () => SimpleProductResource::collection(
-                Product::query()
-                    ->active()
-                    ->featured()
-                    ->with(['category'])
-                    ->orderBy('sort_order')
-                    ->take(8)
-                    ->get()
-            )->resolve(),
-            [CacheTag::Home, CacheTag::Products],
-        );
-
         return Inertia::render('Home', [
             'heroSlides' => $heroSlides,
             'promotions' => $promotions,
             'featuredCategories' => $featuredCategories,
-            'featuredProducts' => $featuredProducts,
+            'featuredProducts' => Inertia::defer(fn () => AppCache::remember(
+                CacheKey::HomeFeaturedProducts,
+                fn () => SimpleProductResource::collection(
+                    Product::query()
+                        ->active()
+                        ->featured()
+                        ->with(['category'])
+                        ->orderBy('sort_order')
+                        ->take(8)
+                        ->get()
+                )->resolve(),
+                [CacheTag::Home, CacheTag::Products],
+            )),
         ]);
     }
 }

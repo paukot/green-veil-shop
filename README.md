@@ -48,12 +48,12 @@ Green Veil is built around a practical, production-ready architecture designed f
 - **Cart & Wishlist Synchronization:** Real-time cart state, persistent guest sessions, and automatic wishlist reconciliation upon login/registration.
 - **Frictionless Stripe Checkout:** End-to-end checkout flow supporting country-specific shipping options, delivery threshold calculations, and automated order creation powered by Stripe webhooks.
 - **Promotions & Discounts:** Flexible discount code engine with cart minimums, usage caps, expiration windows, and instant promotion breakdown in checkout.
-- **Customer Account Portal:** Self-service profile to inspect past orders, fulfillment statuses, and personal details.
+- **Customer Account Portal:** Self-service profile to inspect past orders, fulfillment statuses, personal details, and manage up to 3 saved shipping addresses with default address designations and direct checkout integration.
 
 ### Back-Office Administration (Filament 5)
 
 - **Catalog & Inventory Control:** Full CRUD management for products, brands, categories, variants, and gallery media with real-time stock tracking.
-- **Order Processing & Fulfillment:** Inspect incoming orders, customer details, payment states, and update fulfillment progress.
+- **Customer 360 & Order Fulfillment:** Inspect incoming orders, customer details, payment states, active carts, wishlists, and read-only saved shipping addresses.
 - **Marketing & Promotions:** Create and schedule coupon codes, homepage slider banners, and promotional campaigns.
 - **Granular Cache Management:** Reactive cache invalidation across all models plus a dedicated artisan CLI command (`php artisan app:cache-flush`) for tag- or key-based maintenance.
 - **Role-Based Access Control (RBAC):** Granular administrative role and user management separating store staff from regular customers.

@@ -18,6 +18,7 @@ import type {
     AppliedPromotionData,
     AvailablePromotionData,
     CheckoutPageProps,
+    SavedAddressItem,
 } from '@/types/storefront';
 import { store as checkoutStore } from '@/actions/App/Http/Controllers/CheckoutController';
 import { index as cartIndex } from '@/routes/cart';
@@ -42,30 +43,78 @@ const defaultDelivery =
 const defaultPayment = props.paymentOptions[0];
 const defaultCountry = props.countries?.[0]?.value ?? 'IE';
 
+const defaultSavedAddress = computed<SavedAddressItem | null>(() => {
+    if (!props.savedAddresses || props.savedAddresses.length === 0) {
+        return null;
+    }
+    return (
+        props.savedAddresses.find((a) => a.is_default) ??
+        props.savedAddresses[0]
+    );
+});
+
 const form = useForm({
-    customer_name: props.customer?.name ?? '',
+    customer_name:
+        defaultSavedAddress.value?.recipient_name ?? props.customer?.name ?? '',
     customer_email: props.customer?.email ?? '',
-    customer_phone: '',
+    customer_phone: defaultSavedAddress.value?.phone ?? '',
     delivery_option_id: defaultDelivery ? defaultDelivery.id : 0,
     payment_option_id: defaultPayment ? defaultPayment.id : 0,
     shipping_address: {
-        line1: '',
-        line2: '',
-        city: '',
-        postal_code: '',
-        country: defaultCountry,
+        line1: defaultSavedAddress.value?.line1 ?? '',
+        line2: defaultSavedAddress.value?.line2 ?? '',
+        city: defaultSavedAddress.value?.city ?? '',
+        postal_code: defaultSavedAddress.value?.postal_code ?? '',
+        country: defaultSavedAddress.value?.country ?? defaultCountry,
     },
     billing_same_as_shipping: true,
     billing_address: {
+        line1: defaultSavedAddress.value?.line1 ?? '',
+        line2: defaultSavedAddress.value?.line2 ?? '',
+        city: defaultSavedAddress.value?.city ?? '',
+        postal_code: defaultSavedAddress.value?.postal_code ?? '',
+        country: defaultSavedAddress.value?.country ?? defaultCountry,
+    },
+    notes: '',
+    promotion_id: props.appliedPromotion?.id ?? null,
+    selected_address_id: defaultSavedAddress.value?.id ?? null,
+    save_address_to_profile: false,
+    address_label: '',
+});
+
+function selectSavedAddress(address: SavedAddressItem) {
+    form.selected_address_id = address.id;
+    form.customer_name = address.recipient_name;
+    if (address.phone) {
+        form.customer_phone = address.phone;
+    }
+    form.shipping_address = {
+        line1: address.line1,
+        line2: address.line2 ?? '',
+        city: address.city,
+        postal_code: address.postal_code,
+        country: address.country,
+    };
+    if (form.billing_same_as_shipping) {
+        form.billing_address = { ...form.shipping_address };
+    }
+    form.save_address_to_profile = false;
+    form.address_label = '';
+}
+
+function selectNewAddress() {
+    form.selected_address_id = null;
+    form.shipping_address = {
         line1: '',
         line2: '',
         city: '',
         postal_code: '',
         country: defaultCountry,
-    },
-    notes: '',
-    promotion_id: props.appliedPromotion?.id ?? null,
-});
+    };
+    if (form.billing_same_as_shipping) {
+        form.billing_address = { ...form.shipping_address };
+    }
+}
 
 const selectedDelivery = computed(() => {
     return (
@@ -641,13 +690,190 @@ function submit() {
                         </h2>
                     </div>
 
-                    <AddressFormFields
-                        id-prefix="shipping"
-                        error-prefix="shipping_address"
-                        v-model="form.shipping_address"
-                        :country-options="countryOptions"
-                        :errors="form.errors"
-                    />
+                    <!-- Saved Addresses Selector (for authenticated users with addresses) -->
+                    <div
+                        v-if="savedAddresses && savedAddresses.length > 0"
+                        class="mb-6 space-y-3"
+                    >
+                        <div class="flex items-center justify-between">
+                            <label
+                                class="text-xs font-semibold tracking-wider text-charcoal-700 uppercase"
+                            >
+                                Select a Saved Delivery Address
+                            </label>
+                            <span class="text-charcoal-500 text-[11px]">
+                                {{ savedAddresses.length }} of 3 saved
+                            </span>
+                        </div>
+
+                        <div
+                            class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+                        >
+                            <button
+                                v-for="address in savedAddresses"
+                                :key="address.id"
+                                type="button"
+                                @click="selectSavedAddress(address)"
+                                class="relative flex min-h-[110px] flex-col justify-between rounded-2xl border p-4 text-left transition-all"
+                                :class="
+                                    form.selected_address_id === address.id
+                                        ? 'border-sage-600 bg-sage-50/70 shadow-xs ring-1 ring-sage-600'
+                                        : 'border-cream-200 bg-white hover:border-cream-300'
+                                "
+                            >
+                                <div>
+                                    <div
+                                        class="mb-1.5 flex items-center justify-between gap-1.5"
+                                    >
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-cream-200/80 px-2 py-0.5 text-[10px] font-semibold text-charcoal-800"
+                                        >
+                                            {{ address.label }}
+                                        </span>
+                                        <span
+                                            v-if="address.is_default"
+                                            class="rounded-full bg-sage-200/90 px-2 py-0.5 text-[9px] font-semibold text-sage-900"
+                                        >
+                                            Default
+                                        </span>
+                                    </div>
+                                    <p
+                                        class="font-serif text-xs font-medium text-charcoal-900"
+                                    >
+                                        {{ address.recipient_name }}
+                                    </p>
+                                    <p
+                                        class="text-charcoal-600 mt-1 line-clamp-2 text-[11px]"
+                                    >
+                                        {{ address.formatted }}
+                                    </p>
+                                </div>
+                                <p
+                                    v-if="address.phone"
+                                    class="text-charcoal-500 mt-2 text-[10px]"
+                                >
+                                    📞 {{ address.phone }}
+                                </p>
+                            </button>
+
+                            <!-- Enter New Address Card -->
+                            <button
+                                type="button"
+                                @click="selectNewAddress"
+                                class="flex min-h-[110px] flex-col items-center justify-center rounded-2xl border border-dashed p-4 text-center transition-all"
+                                :class="
+                                    form.selected_address_id === null
+                                        ? 'border-sage-600 bg-sage-50/40 ring-1 ring-sage-600'
+                                        : 'hover:border-cream-400 border-cream-300 bg-cream-50/30 hover:bg-cream-50/70'
+                                "
+                            >
+                                <span
+                                    class="mb-1 flex h-6 w-6 items-center justify-center rounded-full bg-cream-200 text-sm font-semibold text-charcoal-700"
+                                >
+                                    +
+                                </span>
+                                <span
+                                    class="text-xs font-medium text-charcoal-900"
+                                >
+                                    Use a new address
+                                </span>
+                                <span
+                                    class="text-charcoal-500 mt-0.5 text-[10px]"
+                                >
+                                    Enter details below
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selected Address Summary Card (when a saved address is chosen) -->
+                    <div
+                        v-if="form.selected_address_id !== null"
+                        class="rounded-2xl border border-sage-200 bg-sage-50/50 p-4.5"
+                    >
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <span
+                                    class="text-[10px] font-semibold tracking-wider text-sage-800 uppercase"
+                                >
+                                    Selected Shipping Address
+                                </span>
+                                <p
+                                    class="font-serif text-sm font-medium text-charcoal-900"
+                                >
+                                    {{ form.customer_name }}
+                                </p>
+                                <p class="mt-0.5 text-xs text-charcoal-700">
+                                    {{ form.shipping_address.line1
+                                    }}<template
+                                        v-if="form.shipping_address.line2"
+                                        >,
+                                        {{
+                                            form.shipping_address.line2
+                                        }}</template
+                                    >, {{ form.shipping_address.city }},
+                                    {{ form.shipping_address.postal_code }} ({{
+                                        form.shipping_address.country
+                                    }})
+                                </p>
+                                <p
+                                    v-if="form.customer_phone"
+                                    class="text-charcoal-600 mt-1 text-[11px]"
+                                >
+                                    Delivery SMS phone:
+                                    <span
+                                        class="font-medium text-charcoal-800"
+                                        >{{ form.customer_phone }}</span
+                                    >
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                @click="selectNewAddress"
+                                class="rounded-xl border border-sage-300 bg-white px-3 py-1.5 text-xs font-medium text-sage-800 shadow-2xs transition-colors hover:bg-sage-50"
+                            >
+                                Enter Different Address
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Address Input Form (when entering a new address or no saved addresses exist) -->
+                    <div v-else class="space-y-4">
+                        <AddressFormFields
+                            id-prefix="shipping"
+                            error-prefix="shipping_address"
+                            v-model="form.shipping_address"
+                            :country-options="countryOptions"
+                            :errors="form.errors"
+                        />
+
+                        <!-- Option to save to customer profile -->
+                        <div
+                            v-if="customer && canSaveAddress"
+                            class="space-y-3 rounded-2xl border border-cream-200 bg-cream-50/60 p-4"
+                        >
+                            <CheckboxField
+                                id="save_address_to_profile"
+                                v-model="form.save_address_to_profile"
+                                label="Save this shipping address to my profile"
+                                subtext="Save up to 3 addresses with phone numbers for 1-click checkout next time"
+                            />
+
+                            <div
+                                v-if="form.save_address_to_profile"
+                                class="max-w-xs pt-1"
+                            >
+                                <TextField
+                                    id="address_label"
+                                    v-model="form.address_label"
+                                    label="Address Label"
+                                    placeholder="e.g. Home, Office, Studio"
+                                    subtext="(optional, defaults to 'Home')"
+                                    :error="form.errors.address_label"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Billing toggle -->
                     <div class="mt-6 border-t border-cream-100 pt-5">

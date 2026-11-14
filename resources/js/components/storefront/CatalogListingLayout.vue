@@ -4,7 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import FilterSidebar from '@/components/storefront/FilterSidebar.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
-import BotanicalLoader from '@/components/ui/BotanicalLoader.vue';
+import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSkeleton.vue';
 import ActiveFilterChips from '@/components/storefront/filters/ActiveFilterChips.vue';
 import { useCatalogFilters } from '@/composables/useCatalogFilters';
 import { usePageLoading } from '@/composables/usePageLoading';
@@ -133,32 +133,6 @@ onUnmounted(() => {
 
             <!-- Product Listing Area -->
             <div class="relative min-w-0 flex-1">
-                <!-- Loading State Overlay -->
-                <Transition
-                    enter-active-class="transition-opacity duration-200"
-                    enter-from-class="opacity-0"
-                    enter-to-class="opacity-100"
-                    leave-active-class="transition-opacity duration-150"
-                    leave-from-class="opacity-100"
-                    leave-to-class="opacity-0"
-                >
-                    <div
-                        v-if="isLoading"
-                        class="absolute inset-0 z-30 flex flex-col items-center rounded-2xl bg-cream-50/75 pt-6 backdrop-blur-[2px]"
-                        aria-live="polite"
-                        aria-busy="true"
-                    >
-                        <div
-                            class="sticky top-28 z-40 flex flex-col items-center gap-3 rounded-2xl border border-cream-200/90 bg-white/95 px-8 py-6 shadow-xl backdrop-blur-md"
-                        >
-                            <BotanicalLoader
-                                text="Curating botanical formulas..."
-                                size="md"
-                            />
-                        </div>
-                    </div>
-                </Transition>
-
                 <!-- Top Count (Desktop) -->
                 <div
                     class="text-charcoal-600 mb-6 hidden items-center justify-between border-b border-cream-200 pb-4 text-xs lg:flex"
@@ -184,8 +158,11 @@ onUnmounted(() => {
                     :reset-url="resetUrl"
                 />
 
-                <!-- Products Grid -->
-                <div v-if="products.data.length > 0">
+                <!-- Products Grid / Skeleton Loading -->
+                <div v-if="isLoading">
+                    <ProductGridSkeleton :count="products.data.length || 12" />
+                </div>
+                <div v-else-if="products.data.length > 0">
                     <ProductGrid :products="products.data" />
 
                     <!-- Pagination -->

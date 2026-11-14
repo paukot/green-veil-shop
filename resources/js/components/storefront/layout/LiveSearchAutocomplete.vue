@@ -8,6 +8,7 @@ import {
     search as productSearch,
     show as productShow,
 } from '@/actions/App/Http/Controllers/ProductController';
+import SearchAutocompleteSkeleton from '@/components/storefront/skeletons/SearchAutocompleteSkeleton.vue';
 import type { ProductCardData } from '@/types/storefront';
 
 const props = withDefaults(
@@ -148,6 +149,8 @@ watch(query, (val) => {
         isLoading.value = false;
         return;
     }
+
+    isLoading.value = true;
 
     debounceTimeout = setTimeout(() => {
         fetchSearchResults(trimmed);
@@ -346,7 +349,12 @@ const showDropdown = computed(() => {
                     </div>
                 </div>
 
-                <!-- State 2: Active Results -->
+                <!-- State 2: Fetching Results (Skeleton) -->
+                <SearchAutocompleteSkeleton
+                    v-if="isLoading && query.trim().length >= 2"
+                />
+
+                <!-- State 3: Active Results -->
                 <div
                     v-else-if="query.trim().length >= 2"
                     class="divide-y divide-cream-100"

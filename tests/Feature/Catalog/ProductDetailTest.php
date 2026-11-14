@@ -123,8 +123,10 @@ describe('Product Detail Page', function () {
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
-            ->has('relatedProducts', 1)
-            ->where('relatedProducts.0.name', 'Related Active Product')
+            ->loadDeferredProps(fn (Assert $page) => $page
+                ->has('relatedProducts', 1)
+                ->where('relatedProducts.0.name', 'Related Active Product')
+            )
         );
     });
 
