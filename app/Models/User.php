@@ -67,4 +67,35 @@ class User extends Authenticatable
     {
         return $this->hasMany(Favourite::class)->latest();
     }
+
+    /** @return HasMany<CustomerAddress, $this> */
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(CustomerAddress::class)->orderByDesc('is_default')->latest();
+    }
+
+    /**
+     * Get the customer's default shipping address, if any.
+     */
+    public function defaultAddress(): ?CustomerAddress
+    {
+        if ($this->relationLoaded('addresses')) {
+            return $this->addresses->firstWhere('is_default', true) ?? $this->addresses->first();
+        }
+
+        return $this->addresses()->where('is_default', true)->first()
+            ?? $this->addresses()->first();
+    }
+
+    /**
+     * Check if customer can add another shipping address (max 3).
+     */
+    public function canAddAddress(): bool
+    {
+        $count = $this->relationLoaded('addresses')
+            ? $this->addresses->count()
+            : $this->addresses()->count();
+
+        return $count < CustomerAddress::MAX_PER_USER;
+    }
 }

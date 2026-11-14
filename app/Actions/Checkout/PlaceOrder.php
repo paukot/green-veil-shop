@@ -200,6 +200,21 @@ class PlaceOrder
                 OrderItem::create($itemData);
             }
 
+            // Optionally save shipping address to customer profile
+            if ($data->saveAddressToProfile && $data->user && $data->user->canAddAddress()) {
+                $data->user->addresses()->create([
+                    'label' => $data->addressLabel ?: 'Home',
+                    'recipient_name' => $data->customerName,
+                    'phone' => $data->customerPhone,
+                    'line1' => (string) ($data->shippingAddress['line1'] ?? ''),
+                    'line2' => $data->shippingAddress['line2'] ?? null,
+                    'city' => (string) ($data->shippingAddress['city'] ?? ''),
+                    'postal_code' => (string) ($data->shippingAddress['postal_code'] ?? ''),
+                    'country' => strtoupper((string) ($data->shippingAddress['country'] ?? 'IE')),
+                    'is_default' => false,
+                ]);
+            }
+
             if ($request->hasSession()) {
                 $request->session()->forget('applied_promotion_id');
             }

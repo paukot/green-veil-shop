@@ -768,19 +768,9 @@ class CartService
 
         $summary = $this->getSummaryFromCartItems($currentCartItems);
 
-        // Fetch delivery options and calculate thresholds
-        $standardDelivery = DeliveryOption::getActiveOptions()
-            ->whereNotNull('free_threshold')
-            ->sortBy('free_threshold')
-            ->first();
-
-        $freeShippingThreshold = $standardDelivery?->free_threshold ? (float) $standardDelivery->free_threshold : 50.00;
-        $amountUntilFreeShipping = max(0, round($freeShippingThreshold - $summary['subtotal'], 2));
-
-        $deliveryOptions = DeliveryOption::getActiveOptions()
-            ->map(fn ($deliveryOption) => DeliveryOptionResource::make($deliveryOption)
-                ->withSubtotal($summary['subtotal'])
-            );
+        $freeShippingThreshold = $this->getFreeShippingThreshold();
+        $amountUntilFreeShipping = max(0.0, round($freeShippingThreshold - $summary['subtotal'], 2));
+        $deliveryOptions = $this->getDeliveryOptions($summary['subtotal']);
 
         $appliedPromoData = $this->getAppliedPromotionData($request, $currentCartItems, $summary['subtotal'], $warnings);
         $discountAmount = $appliedPromoData ? $appliedPromoData['discount_amount'] : 0.0;
