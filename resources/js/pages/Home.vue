@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, WhenVisible } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import HeroSlider from '@/components/storefront/HeroSlider.vue';
 import PromoBanner from '@/components/storefront/PromoBanner.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
+import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSkeleton.vue';
 import CategoryCard from '@/components/storefront/CategoryCard.vue';
 import type { HomePageProps } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
@@ -220,7 +221,7 @@ defineProps<HomePageProps>();
 
     <!-- Featured Formulations Section -->
     <section
-        v-if="featuredProducts.length > 0"
+        v-if="!featuredProducts || featuredProducts.length > 0"
         class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8"
     >
         <div
@@ -259,7 +260,17 @@ defineProps<HomePageProps>();
             </Link>
         </div>
 
-        <ProductGrid :products="featuredProducts" />
+        <WhenVisible data="featuredProducts">
+            <template #fallback>
+                <ProductGridSkeleton :count="8" />
+            </template>
+            <template #default>
+                <ProductGrid
+                    v-if="featuredProducts && featuredProducts.length > 0"
+                    :products="featuredProducts"
+                />
+            </template>
+        </WhenVisible>
     </section>
 
     <!-- Brand Story / Philosophy Section -->

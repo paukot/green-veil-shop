@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\RelationManagers\UserAddressesRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserCartRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserFavouritesRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserOrdersRelationManager;
@@ -58,6 +59,7 @@ class UserResource extends Resource
     {
         return [
             UserOrdersRelationManager::class,
+            UserAddressesRelationManager::class,
             UserCartRelationManager::class,
             UserFavouritesRelationManager::class,
         ];

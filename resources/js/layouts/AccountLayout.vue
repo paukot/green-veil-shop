@@ -5,6 +5,7 @@ import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CustomerUser } from '@/types/storefront';
 import { profile, rituals } from '@/routes/account';
 import { index as ordersIndex } from '@/routes/account/orders';
+import { index as addressesIndex } from '@/routes/account/addresses';
 import { logout } from '@/routes';
 
 const page = usePage<{ auth: { user: CustomerUser | null } }>();
@@ -72,6 +73,42 @@ const user = computed(() => page.props.auth?.user);
                                 />
                             </svg>
                             <span>Profile & Security</span>
+                        </Link>
+
+                        <Link
+                            :href="addressesIndex.url()"
+                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
+                            :class="
+                                $page.url.startsWith(addressesIndex.url())
+                                    ? 'bg-sage-100 font-semibold text-sage-900'
+                                    : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
+                            "
+                        >
+                            <svg
+                                class="h-4 w-4 shrink-0 transition-colors"
+                                :class="
+                                    $page.url.startsWith(addressesIndex.url())
+                                        ? 'text-sage-900'
+                                        : 'text-sage-600'
+                                "
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                                />
+                            </svg>
+                            <span>Shipping Addresses</span>
                         </Link>
 
                         <Link

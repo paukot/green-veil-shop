@@ -4,6 +4,8 @@ import AccountLayout from '@/layouts/AccountLayout.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import OrderStatusBadge from '@/components/storefront/OrderStatusBadge.vue';
 import PaymentStatusBadge from '@/components/storefront/PaymentStatusBadge.vue';
+import OrderCardSkeleton from '@/components/storefront/skeletons/OrderCardSkeleton.vue';
+import { usePageLoading } from '@/composables/usePageLoading';
 import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
 import type { AccountOrdersPageProps } from '@/types/storefront';
 import { show as ordersShow } from '@/actions/App/Http/Controllers/OrderController';
@@ -12,6 +14,8 @@ import { index as productsIndex } from '@/routes/products';
 defineOptions({ layout: AccountLayout });
 
 defineProps<AccountOrdersPageProps>();
+
+const { isLoading } = usePageLoading();
 </script>
 
 <template>
@@ -44,9 +48,12 @@ defineProps<AccountOrdersPageProps>();
             </div>
         </div>
 
+        <!-- Loading Skeletons -->
+        <OrderCardSkeleton v-if="isLoading" :count="orders.data.length || 3" />
+
         <!-- Empty State -->
         <div
-            v-if="orders.data.length === 0"
+            v-else-if="orders.data.length === 0"
             class="rounded-2xl border border-cream-200 bg-white p-12 text-center shadow-xs"
         >
             <div

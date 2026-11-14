@@ -7,10 +7,12 @@ use App\Actions\Checkout\RecordPaymentSession;
 use App\Actions\Checkout\ReleaseOrderStock;
 use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CartItemResource;
+use App\Http\Resources\CustomerAddressResource;
 use App\Http\Resources\PaymentOptionResource;
 use App\Mail\OrderConfirmationMail;
 use App\Models\Country;
 use App\Models\PaymentOption;
+use App\Models\User;
 use App\Payments\PaymentManager;
 use App\Services\CartService;
 use Illuminate\Http\RedirectResponse;
@@ -46,10 +48,14 @@ class CheckoutController extends Controller
             'deliveryOptions' => $overview['delivery_options'],
             'paymentOptions' => PaymentOptionResource::collection($paymentOptions),
             'countries' => Country::getShippingOptions(),
-            'customer' => $user ? [
+            'customer' => $user instanceof User ? [
                 'name' => $user->name,
                 'email' => $user->email,
             ] : null,
+            'savedAddresses' => $user instanceof User
+                ? CustomerAddressResource::collection($user->addresses)->resolve()
+                : [],
+            'canSaveAddress' => $user instanceof User ? $user->canAddAddress() : false,
         ]);
     }
 

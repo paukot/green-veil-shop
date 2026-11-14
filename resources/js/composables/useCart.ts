@@ -538,6 +538,7 @@ export function useCart() {
         appliedPromotion,
         availablePromotions,
         isEmpty,
+        isInitialized,
         isSyncing,
         syncError,
         syncWarnings,

@@ -76,19 +76,19 @@ class ProductController extends Controller
             'claims:id,name,slug',
         ]);
 
-        $relatedProducts = Product::query()
-            ->where('is_active', true)
-            ->where('id', '!=', $product->id)
-            ->when($product->category_id, fn ($query) => $query->where('category_id', $product->category_id))
-            ->with(['category:id,slug,name', 'brand:id,slug,name'])
-            ->withCount('variants')
-            ->inRandomOrder()
-            ->limit(self::DEFAULT_FEATURED_PAGINATION)
-            ->get();
-
         return Inertia::render('Catalog/Product', [
             'product' => ProductResource::make($product)->resolve(),
-            'relatedProducts' => SimpleProductResource::collection($relatedProducts)->resolve(),
+            'relatedProducts' => Inertia::defer(fn (): array => SimpleProductResource::collection(
+                Product::query()
+                    ->where('is_active', true)
+                    ->where('id', '!=', $product->id)
+                    ->when($product->category_id, fn ($query) => $query->where('category_id', $product->category_id))
+                    ->with(['category:id,slug,name', 'brand:id,slug,name'])
+                    ->withCount('variants')
+                    ->inRandomOrder()
+                    ->limit(self::DEFAULT_FEATURED_PAGINATION)
+                    ->get()
+            )->resolve()),
             'breadcrumbs' => $this->breadcrumbService->getProductBreadcrumbs($product),
         ]);
     }

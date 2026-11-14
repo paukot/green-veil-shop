@@ -3,12 +3,13 @@
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\RelationManagers\UserAddressesRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserCartRelationManager;
-use App\Filament\Resources\Users\RelationManagers\UserFavouritesRelationManager;
 use App\Filament\Resources\Users\RelationManagers\UserOrdersRelationManager;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\AdminUser;
 use App\Models\CartItem;
+use App\Models\CustomerAddress;
 use App\Models\Favourite;
 use App\Models\Order;
 use App\Models\Product;
@@ -105,14 +106,26 @@ describe('UserResource in Filament', function () {
             ->assertSee('Rose Hydrosol')
             ->assertSee('€48.00');
 
-        // Favourites relation manager
+        // Addresses relation manager (read-only customer addresses)
+        $address = CustomerAddress::factory()->create([
+            'user_id' => $customer->id,
+            'label' => 'Sanctuary Flat',
+            'recipient_name' => 'Donna Noble',
+            'line1' => '7 Chiswick High Road',
+            'city' => 'London',
+            'postal_code' => 'W4 2AA',
+            'country' => 'GB',
+        ]);
+
         Livewire::actingAs($this->admin, 'admin')
-            ->test(UserFavouritesRelationManager::class, [
+            ->test(UserAddressesRelationManager::class, [
                 'ownerRecord' => $customer,
                 'pageClass' => EditUser::class,
             ])
-            ->assertCanSeeTableRecords([$favourite])
-            ->assertSee('Rose Hydrosol');
+            ->assertCanSeeTableRecords([$address])
+            ->assertSee('Sanctuary Flat')
+            ->assertSee('7 Chiswick High Road')
+            ->assertActionDoesNotExist('create');
     });
 
     it('defines globally searchable attributes on UserResource', function () {

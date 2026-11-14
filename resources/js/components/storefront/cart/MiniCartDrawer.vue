@@ -7,6 +7,7 @@ import { index as cartIndex } from '@/routes/cart';
 import { show as checkoutShow } from '@/actions/App/Http/Controllers/CheckoutController';
 import { index as productsIndex } from '@/routes/products';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
+import CartItemSkeleton from '@/components/storefront/skeletons/CartItemSkeleton.vue';
 
 const cart = useCart();
 
@@ -178,11 +179,21 @@ function navigateToProducts() {
                         </div>
                     </div>
 
-                    <!-- Body: Items List or Empty State -->
+                    <!-- Body: Items List, Skeleton, or Empty State -->
                     <div class="flex-1 overflow-y-auto p-6">
+                        <!-- Skeleton Loading State -->
+                        <div
+                            v-if="
+                                !cart.isInitialized.value ||
+                                (cart.isSyncing.value && cart.isEmpty.value)
+                            "
+                        >
+                            <CartItemSkeleton :count="3" />
+                        </div>
+
                         <!-- Empty State -->
                         <div
-                            v-if="cart.isEmpty.value"
+                            v-else-if="cart.isEmpty.value"
                             class="flex h-full flex-col items-center justify-center text-center"
                         >
                             <div

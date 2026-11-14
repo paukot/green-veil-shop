@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountAddressController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
@@ -58,6 +59,13 @@ Route::middleware(['web'])->group(function () {
         Route::get('/account/profile', [AccountController::class, 'edit'])->name('account.profile');
         Route::patch('/account/profile', [AccountController::class, 'updateProfile'])->name('account.profile.update');
         Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
+
+        // Customer Saved Shipping Addresses
+        Route::get('/account/addresses', [AccountAddressController::class, 'index'])->name('account.addresses.index');
+        Route::post('/account/addresses', [AccountAddressController::class, 'store'])->name('account.addresses.store');
+        Route::put('/account/addresses/{address}', [AccountAddressController::class, 'update'])->name('account.addresses.update');
+        Route::delete('/account/addresses/{address}', [AccountAddressController::class, 'destroy'])->name('account.addresses.destroy');
+        Route::patch('/account/addresses/{address}/default', [AccountAddressController::class, 'setDefault'])->name('account.addresses.default');
 
         // Customer Order History routes
         Route::get('/account/orders', [OrderController::class, 'index'])->name('account.orders.index');

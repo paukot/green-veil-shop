@@ -14,6 +14,21 @@ class CheckoutRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $shipping = $this->input('shipping_address');
+        if (is_array($shipping) && isset($shipping['country']) && is_string($shipping['country'])) {
+            $shipping['country'] = strtoupper(trim($shipping['country']));
+            $this->merge(['shipping_address' => $shipping]);
+        }
+
+        $billing = $this->input('billing_address');
+        if (is_array($billing) && isset($billing['country']) && is_string($billing['country'])) {
+            $billing['country'] = strtoupper(trim($billing['country']));
+            $this->merge(['billing_address' => $billing]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -56,6 +71,14 @@ class CheckoutRequest extends FormRequest
             ],
             'notes' => ['nullable', 'string', 'max:1000'],
             'promotion_id' => ['nullable', 'integer', 'exists:promotions,id'],
+            'selected_address_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('customer_addresses', 'id')
+                    ->where('user_id', $this->user() instanceof User ? $this->user()->id : 0),
+            ],
+            'save_address_to_profile' => ['nullable', 'boolean'],
+            'address_label' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -72,6 +95,8 @@ class CheckoutRequest extends FormRequest
             ? (int) $this->validated('promotion_id')
             : ($sessionPromoId ? (int) $sessionPromoId : null);
 
+        $user = $this->user();
+
         return new CheckoutData(
             customerName: (string) $this->validated('customer_name'),
             customerEmail: (string) $this->validated('customer_email'),
@@ -81,8 +106,10 @@ class CheckoutRequest extends FormRequest
             shippingAddress: $shipping,
             billingAddress: $billing,
             notes: $this->validated('notes'),
-            user: ($user = $this->user()) instanceof User ? $user : null,
+            user: $user instanceof User ? $user : null,
             promotionId: $promotionId,
+            saveAddressToProfile: ! $this->filled('selected_address_id') && $this->boolean('save_address_to_profile'),
+            addressLabel: $this->filled('address_label') ? (string) $this->validated('address_label') : null,
         );
     }
 }

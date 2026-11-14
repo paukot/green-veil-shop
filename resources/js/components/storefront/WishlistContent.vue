@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
+import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSkeleton.vue';
 import type { ProductCardData } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
 
@@ -9,16 +10,23 @@ withDefaults(
         products: ProductCardData[];
         showBrowseLink?: boolean;
         emptyTitle?: string;
+        loading?: boolean;
     }>(),
     {
         showBrowseLink: false,
         emptyTitle: 'Your wishlist is empty',
+        loading: false,
     },
 );
 </script>
 
 <template>
-    <div v-if="products.length > 0">
+    <!-- Skeleton Loading State -->
+    <div v-if="loading" aria-busy="true" aria-label="Loading wishlist items">
+        <ProductGridSkeleton :count="4" />
+    </div>
+
+    <div v-else-if="products.length > 0">
         <div
             class="text-charcoal-600 mb-6 flex items-center justify-between border-b border-cream-200 pb-4 text-xs sm:text-sm"
         >
