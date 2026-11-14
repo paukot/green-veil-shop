@@ -6,12 +6,14 @@ import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import WishlistContent from '@/components/storefront/WishlistContent.vue';
 import type { CustomerUser, ProductCardData } from '@/types/storefront';
 import { useFavourites } from '@/composables/useFavourites';
+import { usePageLoading } from '@/composables/usePageLoading';
 
 defineOptions({
     layout: (pageProps: { auth?: { user?: CustomerUser | null } }) =>
         pageProps.auth?.user ? AccountLayout : StorefrontLayout,
 });
 
+const { isLoading } = usePageLoading();
 const page = usePage<{ auth: { user: CustomerUser | null } }>();
 const user = computed(() => page.props.auth?.user);
 
@@ -61,6 +63,7 @@ const displayedProducts = computed(() => {
 
             <WishlistContent
                 :products="displayedProducts"
+                :loading="isLoading"
                 empty-title="Your ritual list is empty"
             />
         </div>
@@ -98,6 +101,7 @@ const displayedProducts = computed(() => {
         <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
             <WishlistContent
                 :products="displayedProducts"
+                :loading="isLoading"
                 :show-browse-link="true"
                 empty-title="Your wishlist is empty"
             />

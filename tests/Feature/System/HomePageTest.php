@@ -24,8 +24,10 @@ describe('HomeController', function () {
             ->where('promotions.0.id', $promotion->id)
             ->has('featuredCategories', 1)
             ->where('featuredCategories.0.id', $category->id)
-            ->has('featuredProducts', 1)
-            ->where('featuredProducts.0.id', $product->id)
+            ->loadDeferredProps(fn (Assert $page) => $page
+                ->has('featuredProducts', 1)
+                ->where('featuredProducts.0.id', $product->id)
+            )
         );
     });
 
@@ -103,9 +105,11 @@ describe('HomeController', function () {
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Home')
-            ->has('featuredProducts', 8)
-            ->where('featuredProducts.0.name', 'Featured Product 1')
-            ->where('featuredProducts.7.name', 'Featured Product 8')
+            ->loadDeferredProps(fn (Assert $page) => $page
+                ->has('featuredProducts', 8)
+                ->where('featuredProducts.0.name', 'Featured Product 1')
+                ->where('featuredProducts.7.name', 'Featured Product 8')
+            )
         );
     });
 
@@ -118,7 +122,9 @@ describe('HomeController', function () {
             ->has('heroSlides', 0)
             ->has('promotions', 0)
             ->has('featuredCategories', 0)
-            ->has('featuredProducts', 0)
+            ->loadDeferredProps(fn (Assert $page) => $page
+                ->has('featuredProducts', 0)
+            )
         );
     });
 });

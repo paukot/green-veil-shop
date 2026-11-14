@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, WhenVisible } from '@inertiajs/vue3';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import { QuantityInput } from '@/components/form';
 import Breadcrumbs from '@/components/storefront/Breadcrumbs.vue';
@@ -10,6 +10,7 @@ import ProductDisclosureTabs from '@/components/storefront/product/ProductDisclo
 import ProductGallery from '@/components/storefront/product/ProductGallery.vue';
 import ProductVariantSelector from '@/components/storefront/product/ProductVariantSelector.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
+import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSkeleton.vue';
 import { useCart } from '@/composables/useCart';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import { formatCurrency } from '@/lib/utils';
@@ -584,7 +585,7 @@ onUnmounted(() => {
 
     <!-- Related Products Section -->
     <section
-        v-if="relatedProducts.length > 0"
+        v-if="!relatedProducts || relatedProducts.length > 0"
         class="border-t border-cream-200 bg-cream-100/60 py-12 sm:py-16"
     >
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -601,7 +602,17 @@ onUnmounted(() => {
                 </h2>
             </div>
 
-            <ProductGrid :products="relatedProducts" />
+            <WhenVisible data="relatedProducts">
+                <template #fallback>
+                    <ProductGridSkeleton :count="4" />
+                </template>
+                <template #default>
+                    <ProductGrid
+                        v-if="relatedProducts && relatedProducts.length > 0"
+                        :products="relatedProducts"
+                    />
+                </template>
+            </WhenVisible>
         </div>
     </section>
 

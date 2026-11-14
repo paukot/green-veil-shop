@@ -102,7 +102,7 @@ export type HomePageProps = {
     heroSlides: HeroSlide[];
     promotions: PromotionBanner[];
     featuredCategories: CategoryCardData[];
-    featuredProducts: ProductCardData[];
+    featuredProducts?: ProductCardData[] | null;
 };
 
 export type PaginationLink = {
@@ -327,7 +327,7 @@ export type ProductDetail = {
 
 export type ProductDetailPageProps = {
     product: ProductDetail;
-    relatedProducts: ProductCardData[];
+    relatedProducts?: ProductCardData[] | null;
     breadcrumbs: BreadcrumbItem[];
 };
 
