@@ -15,6 +15,7 @@ import type {
     PaginatedData,
     ProductCardData,
 } from '@/types/storefront';
+import { SearchIcon, SlidersHorizontalIcon } from '@lucide/vue';
 
 const props = withDefaults(
     defineProps<{
@@ -93,19 +94,11 @@ onUnmounted(() => {
                 @click="mobileFilterOpen = true"
                 class="inline-flex items-center gap-1.5 rounded-full border border-cream-300 bg-white px-3 py-1.5 text-xs font-medium text-charcoal-800 shadow-xs hover:border-sage-500"
             >
-                <svg
+                <SlidersHorizontalIcon
                     class="h-4 w-4 text-sage-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                    />
-                </svg>
+                    :stroke-width="1.5"
+                    aria-hidden="true"
+                />
                 <span>Filters & Sort</span>
                 <span
                     v-if="activeFilterCount > 0"
@@ -177,19 +170,11 @@ onUnmounted(() => {
                     <div
                         class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sage-100 text-sage-700"
                     >
-                        <svg
+                        <SearchIcon
                             class="h-8 w-8"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                     </div>
                     <h2 class="mb-2 font-serif text-xl text-charcoal-900">
                         {{ emptyTitle }}

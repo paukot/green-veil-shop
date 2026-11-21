@@ -8,6 +8,7 @@ import type {
     CartSummary,
     PaymentOptionItem,
 } from '@/types/storefront';
+import { CheckIcon } from '@lucide/vue';
 
 export type CheckoutOrderItem = {
     id: number | string;
@@ -213,19 +214,11 @@ function applyCode() {
                         <span
                             class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-800 text-cream-50"
                         >
-                            <svg
+                            <CheckIcon
                                 class="h-3 w-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2.5"
-                                    d="M5 13l4 4L19 7"
-                                />
-                            </svg>
+                                :stroke-width="2.5"
+                                aria-hidden="true"
+                            />
                         </span>
                         <div>
                             <span class="font-medium text-sage-900">
@@ -361,19 +354,11 @@ function applyCode() {
                                     v-if="offer.is_applied"
                                     class="inline-flex items-center gap-1 rounded-full bg-sage-100 px-2.5 py-1 text-[10px] font-semibold text-sage-800"
                                 >
-                                    <svg
+                                    <CheckIcon
                                         class="h-3 w-3"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2.5"
-                                            d="M5 13l4 4L19 7"
-                                        />
-                                    </svg>
+                                        :stroke-width="2.5"
+                                        aria-hidden="true"
+                                    />
                                     Applied
                                 </span>
                                 <button

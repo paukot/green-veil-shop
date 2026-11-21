@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import type { PromotionBanner } from '@/types/storefront';
 import { useCarousel } from '@/composables/useCarousel';
+import { ChevronLeftIcon, ChevronRightIcon } from '@lucide/vue';
 
 const props = defineProps<{
     promotions: PromotionBanner[];
@@ -83,19 +84,7 @@ function copyCode(code: string) {
                         aria-label="Previous promotion"
                         @click="prevSlide"
                     >
-                        <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M15 19l-7-7 7-7"
-                            />
-                        </svg>
+                        <ChevronLeftIcon class="h-4 w-4" aria-hidden="true" />
                     </button>
                     <button
                         type="button"
@@ -103,19 +92,7 @@ function copyCode(code: string) {
                         aria-label="Next promotion"
                         @click="nextSlide"
                     >
-                        <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 5l7 7-7 7"
-                            />
-                        </svg>
+                        <ChevronRightIcon class="h-4 w-4" aria-hidden="true" />
                     </button>
                 </div>
             </div>

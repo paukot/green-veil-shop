@@ -7,6 +7,13 @@ import { profile, rituals } from '@/routes/account';
 import { index as ordersIndex } from '@/routes/account/orders';
 import { index as addressesIndex } from '@/routes/account/addresses';
 import { logout } from '@/routes';
+import {
+    FileTextIcon,
+    HeartIcon,
+    LogOutIcon,
+    MapPinIcon,
+    UserIcon,
+} from '@lucide/vue';
 
 const page = usePage<{ auth: { user: CustomerUser | null } }>();
 const user = computed(() => page.props.auth?.user);
@@ -54,24 +61,16 @@ const user = computed(() => page.props.auth?.user);
                                     : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
                             "
                         >
-                            <svg
+                            <UserIcon
                                 class="h-4 w-4 shrink-0 transition-colors"
                                 :class="
                                     $page.url.startsWith(profile.url())
                                         ? 'text-sage-900'
                                         : 'text-sage-600'
                                 "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                             <span>Profile & Security</span>
                         </Link>
 
@@ -84,30 +83,16 @@ const user = computed(() => page.props.auth?.user);
                                     : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
                             "
                         >
-                            <svg
+                            <MapPinIcon
                                 class="h-4 w-4 shrink-0 transition-colors"
                                 :class="
                                     $page.url.startsWith(addressesIndex.url())
                                         ? 'text-sage-900'
                                         : 'text-sage-600'
                                 "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                             <span>Shipping Addresses</span>
                         </Link>
 
@@ -120,24 +105,16 @@ const user = computed(() => page.props.auth?.user);
                                     : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
                             "
                         >
-                            <svg
+                            <FileTextIcon
                                 class="h-4 w-4 shrink-0 transition-colors"
                                 :class="
                                     $page.url.startsWith(ordersIndex.url())
                                         ? 'text-sage-900'
                                         : 'text-sage-600'
                                 "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                             <span>Order History</span>
                         </Link>
 
@@ -151,7 +128,7 @@ const user = computed(() => page.props.auth?.user);
                                     : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
                             "
                         >
-                            <svg
+                            <HeartIcon
                                 class="h-4 w-4 shrink-0 transition-colors"
                                 :class="
                                     $page.url.startsWith(rituals.url()) ||
@@ -159,17 +136,9 @@ const user = computed(() => page.props.auth?.user);
                                         ? 'text-sage-900'
                                         : 'text-sage-600'
                                 "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                             <span>Wishlist</span>
                         </Link>
 
@@ -182,19 +151,11 @@ const user = computed(() => page.props.auth?.user);
                                 as="button"
                                 class="flex min-h-[44px] w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                             >
-                                <svg
+                                <LogOutIcon
                                     class="h-4 w-4 shrink-0 text-red-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-                                    />
-                                </svg>
+                                    :stroke-width="1.5"
+                                    aria-hidden="true"
+                                />
                                 <span>Sign Out</span>
                             </Link>
                         </div>

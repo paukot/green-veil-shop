@@ -8,6 +8,7 @@ import type { OrderDetailData } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
 import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/composables/useCart';
+import { CheckIcon, PlusIcon, PrinterIcon } from '@lucide/vue';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -71,19 +72,7 @@ const { stop } = usePoll(
                     v-if="isPaid"
                     class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-700"
                 >
-                    <svg
-                        class="h-8 w-8"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                        />
-                    </svg>
+                    <CheckIcon class="h-8 w-8" aria-hidden="true" />
                 </div>
                 <div
                     v-else-if="isPendingPayment"
@@ -95,19 +84,7 @@ const { stop } = usePoll(
                     v-else
                     class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-700"
                 >
-                    <svg
-                        class="h-8 w-8"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                    </svg>
+                    <PlusIcon class="h-8 w-8" aria-hidden="true" />
                 </div>
 
                 <div
@@ -365,19 +342,11 @@ const { stop } = usePoll(
                     @click="handlePrint"
                     class="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-cream-300 bg-white px-6 py-3.5 text-xs font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs transition-colors hover:bg-cream-100 hover:text-sage-900"
                 >
-                    <svg
+                    <PrinterIcon
                         class="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.75"
-                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                        />
-                    </svg>
+                        :stroke-width="1.75"
+                        aria-hidden="true"
+                    />
                     <span>Print Receipt</span>
                 </button>
 

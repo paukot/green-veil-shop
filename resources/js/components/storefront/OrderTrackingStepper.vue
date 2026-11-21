@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { CheckIcon } from '@lucide/vue';
 
 const props = defineProps<{
     status: string; // 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
@@ -137,20 +138,12 @@ const steps = computed<Step[]>(() => {
                                   : 'text-charcoal-400 border border-cream-300 bg-cream-100'
                         "
                     >
-                        <svg
+                        <CheckIcon
                             v-if="step.isCompleted"
                             class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2.5"
-                                d="M5 13l4 4L19 7"
-                            />
-                        </svg>
+                            :stroke-width="2.5"
+                            aria-hidden="true"
+                        />
                         <span v-else>{{ idx + 1 }}</span>
                     </span>
 

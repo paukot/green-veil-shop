@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import type { HeroSlide } from '@/types/storefront';
 import { resolveStorageUrl } from '@/lib/utils';
 import { useCarousel } from '@/composables/useCarousel';
+import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon } from '@lucide/vue';
 
 const props = defineProps<{
     slides: HeroSlide[];
@@ -183,19 +184,10 @@ const currentTheme = computed<'light' | 'dark'>(() => {
                                 <span>{{
                                     slide.button_label || 'Discover'
                                 }}</span>
-                                <svg
+                                <ArrowRightIcon
                                     class="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                    />
-                                </svg>
+                                    aria-hidden="true"
+                                />
                             </a>
                             <Link
                                 v-else
@@ -210,19 +202,10 @@ const currentTheme = computed<'light' | 'dark'>(() => {
                                 <span>{{
                                     slide.button_label || 'Discover'
                                 }}</span>
-                                <svg
+                                <ArrowRightIcon
                                     class="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                    />
-                                </svg>
+                                    aria-hidden="true"
+                                />
                             </Link>
                         </div>
                     </div>
@@ -246,19 +229,7 @@ const currentTheme = computed<'light' | 'dark'>(() => {
                 "
                 aria-label="Previous slide"
             >
-                <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 19l-7-7 7-7"
-                    />
-                </svg>
+                <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
             </button>
             <button
                 type="button"
@@ -271,19 +242,7 @@ const currentTheme = computed<'light' | 'dark'>(() => {
                 "
                 aria-label="Next slide"
             >
-                <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5l7 7-7 7"
-                    />
-                </svg>
+                <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
             </button>
         </div>
 

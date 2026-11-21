@@ -5,6 +5,7 @@ import type {
     AppliedPromotionData,
     AvailablePromotionData,
 } from '@/types/storefront';
+import { CheckIcon, XIcon } from '@lucide/vue';
 
 defineProps<{
     appliedPromotion: AppliedPromotionData | null;
@@ -58,19 +59,11 @@ function handleSubmit() {
                     <span
                         class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage-800 text-cream-50"
                     >
-                        <svg
+                        <CheckIcon
                             class="h-3 w-3"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2.5"
-                                d="M5 13l4 4L19 7"
-                            />
-                        </svg>
+                            :stroke-width="2.5"
+                            aria-hidden="true"
+                        />
                     </span>
                     <div>
                         <div class="font-semibold text-sage-950">
@@ -95,19 +88,7 @@ function handleSubmit() {
                     class="rounded-md p-1 text-sage-500 transition-colors hover:bg-sage-200/60 hover:text-sage-900 disabled:opacity-50"
                     title="Remove promotion"
                 >
-                    <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
-                    </svg>
+                    <XIcon class="h-4 w-4" aria-hidden="true" />
                 </button>
             </div>
         </div>
@@ -203,19 +184,11 @@ function handleSubmit() {
                             v-if="offer.is_applied"
                             class="inline-flex items-center gap-1 rounded-full bg-sage-100 px-2.5 py-1 text-[10px] font-semibold text-sage-800"
                         >
-                            <svg
+                            <CheckIcon
                                 class="h-3 w-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2.5"
-                                    d="M5 13l4 4L19 7"
-                                />
-                            </svg>
+                                :stroke-width="2.5"
+                                aria-hidden="true"
+                            />
                             Applied
                         </span>
                         <button

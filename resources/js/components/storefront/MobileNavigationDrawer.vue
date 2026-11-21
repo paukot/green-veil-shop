@@ -10,6 +10,17 @@ import { index as cartIndex } from '@/routes/cart';
 import { index as favouritesIndex } from '@/routes/favourites';
 import { profile, rituals as accountRituals } from '@/routes/account';
 import { index as ordersIndex } from '@/routes/account/orders';
+import {
+    ChevronDownIcon,
+    ChevronRightIcon,
+    HeartIcon,
+    HouseIcon,
+    LogOutIcon,
+    PackageIcon,
+    ShoppingBagIcon,
+    UserIcon,
+    XIcon,
+} from '@lucide/vue';
 
 const open = defineModel<boolean>('open', { default: false });
 
@@ -149,19 +160,11 @@ onUnmounted(() => {
                                 aria-label="Close navigation"
                                 @click="close"
                             >
-                                <svg
+                                <XIcon
                                     class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                                    :stroke-width="1.5"
+                                    aria-hidden="true"
+                                />
                             </button>
                         </div>
 
@@ -189,19 +192,11 @@ onUnmounted(() => {
                                     class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-charcoal-800 transition-colors hover:bg-cream-100 hover:text-sage-800"
                                     @click="close"
                                 >
-                                    <svg
+                                    <HouseIcon
                                         class="h-4 w-4 text-sage-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                                        />
-                                    </svg>
+                                        :stroke-width="1.5"
+                                        aria-hidden="true"
+                                    />
                                     <span>Home</span>
                                 </Link>
 
@@ -210,19 +205,11 @@ onUnmounted(() => {
                                     class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-charcoal-800 transition-colors hover:bg-cream-100 hover:text-sage-800"
                                     @click="close"
                                 >
-                                    <svg
+                                    <PackageIcon
                                         class="h-4 w-4 text-sage-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                                        />
-                                    </svg>
+                                        :stroke-width="1.5"
+                                        aria-hidden="true"
+                                    />
                                     <span>All Botanicals</span>
                                 </Link>
                             </div>
@@ -288,19 +275,10 @@ onUnmounted(() => {
                                                             : 'text-charcoal-500 bg-cream-200/60'
                                                     "
                                                 >
-                                                    <svg
+                                                    <ChevronDownIcon
                                                         class="h-4 w-4"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 9l-7 7-7-7"
-                                                        />
-                                                    </svg>
+                                                        aria-hidden="true"
+                                                    />
                                                 </span>
                                             </div>
                                         </button>
@@ -313,19 +291,11 @@ onUnmounted(() => {
                                             @click="close"
                                         >
                                             <span>{{ cat.name }}</span>
-                                            <svg
+                                            <ChevronRightIcon
                                                 class="text-charcoal-400 h-4 w-4"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="1.5"
-                                                    d="M9 5l7 7-7 7"
-                                                />
-                                            </svg>
+                                                :stroke-width="1.5"
+                                                aria-hidden="true"
+                                            />
                                         </Link>
 
                                         <!-- Children subcategories accordion -->
@@ -425,19 +395,11 @@ onUnmounted(() => {
                                     @click="close"
                                 >
                                     <div class="flex items-center gap-2.5">
-                                        <svg
+                                        <HeartIcon
                                             class="h-4 w-4 text-sage-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                                            />
-                                        </svg>
+                                            :stroke-width="1.5"
+                                            aria-hidden="true"
+                                        />
                                         <span>Wishlist & Favourites</span>
                                     </div>
                                     <span
@@ -453,19 +415,11 @@ onUnmounted(() => {
                                     @click="close"
                                 >
                                     <div class="flex items-center gap-2.5">
-                                        <svg
+                                        <ShoppingBagIcon
                                             class="h-4 w-4 text-sage-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25c-.67 0-1.19-.578-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                                            />
-                                        </svg>
+                                            :stroke-width="1.5"
+                                            aria-hidden="true"
+                                        />
                                         <span>Shopping Cart</span>
                                     </div>
                                     <span
@@ -510,19 +464,11 @@ onUnmounted(() => {
                                         class="flex items-center justify-center gap-1.5 rounded-lg border border-cream-200 bg-cream-50 py-2 font-medium text-charcoal-800 transition-colors hover:bg-cream-100 hover:text-sage-800"
                                         @click="close"
                                     >
-                                        <svg
+                                        <UserIcon
                                             class="h-3.5 w-3.5 text-sage-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                                            />
-                                        </svg>
+                                            :stroke-width="1.5"
+                                            aria-hidden="true"
+                                        />
                                         <span>Profile</span>
                                     </Link>
 
@@ -531,19 +477,11 @@ onUnmounted(() => {
                                         class="flex items-center justify-center gap-1.5 rounded-lg border border-cream-200 bg-cream-50 py-2 font-medium text-charcoal-800 transition-colors hover:bg-cream-100 hover:text-sage-800"
                                         @click="close"
                                     >
-                                        <svg
+                                        <PackageIcon
                                             class="h-3.5 w-3.5 text-sage-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                                            />
-                                        </svg>
+                                            :stroke-width="1.5"
+                                            aria-hidden="true"
+                                        />
                                         <span>Orders</span>
                                     </Link>
                                 </div>
@@ -556,19 +494,11 @@ onUnmounted(() => {
                                         class="flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                                         @click="close"
                                     >
-                                        <svg
+                                        <LogOutIcon
                                             class="h-3.5 w-3.5"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-                                            />
-                                        </svg>
+                                            :stroke-width="1.5"
+                                            aria-hidden="true"
+                                        />
                                         <span>Sign Out</span>
                                     </Link>
                                 </div>

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { resolveStorageUrl } from '@/lib/utils';
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ImageIcon,
+    XIcon,
+    ZoomInIcon,
+    ZoomOutIcon,
+} from '@lucide/vue';
 
 export type GalleryImageItem = {
     id: number | string;
@@ -91,19 +99,11 @@ onUnmounted(() => {
                 v-else
                 class="text-charcoal-400 p-8 text-center text-sm font-light"
             >
-                <svg
+                <ImageIcon
                     class="mx-auto mb-2 h-16 w-16 text-cream-300"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1"
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                </svg>
+                    :stroke-width="1"
+                    aria-hidden="true"
+                />
                 <span>Botanical Image Preview</span>
             </div>
 
@@ -120,19 +120,7 @@ onUnmounted(() => {
                 v-if="activeImage"
                 class="pointer-events-none absolute right-4 bottom-4 flex items-center gap-1.5 rounded-full bg-charcoal-900/60 px-3 py-1 text-[11px] font-medium text-cream-50 opacity-0 backdrop-blur-xs transition-opacity duration-200 group-hover:opacity-100"
             >
-                <svg
-                    class="h-3.5 w-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
-                    />
-                </svg>
+                <ZoomInIcon class="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Click to zoom</span>
             </div>
         </div>
@@ -206,34 +194,18 @@ onUnmounted(() => {
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-charcoal-800/80 text-cream-100 transition-colors hover:bg-charcoal-700"
                                 :title="isZoomed ? 'Actual size' : 'Zoom in'"
                             >
-                                <svg
+                                <ZoomInIcon
                                     v-if="!isZoomed"
                                     class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
-                                    />
-                                </svg>
-                                <svg
+                                    :stroke-width="1.5"
+                                    aria-hidden="true"
+                                />
+                                <ZoomOutIcon
                                     v-else
                                     class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h-6"
-                                    />
-                                </svg>
+                                    :stroke-width="1.5"
+                                    aria-hidden="true"
+                                />
                             </button>
 
                             <!-- Close button -->
@@ -243,19 +215,11 @@ onUnmounted(() => {
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-charcoal-800/80 text-cream-100 transition-colors hover:bg-charcoal-700"
                                 title="Close (Esc)"
                             >
-                                <svg
+                                <XIcon
                                     class="h-6 w-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                                    :stroke-width="1.5"
+                                    aria-hidden="true"
+                                />
                             </button>
                         </div>
                     </div>
@@ -272,19 +236,10 @@ onUnmounted(() => {
                             class="absolute left-2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-charcoal-800/80 text-cream-100 shadow-md backdrop-blur-xs transition-colors hover:bg-charcoal-700 sm:left-4"
                             aria-label="Previous image"
                         >
-                            <svg
+                            <ChevronLeftIcon
                                 class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15 19l-7-7 7-7"
-                                />
-                            </svg>
+                                aria-hidden="true"
+                            />
                         </button>
 
                         <!-- The Image -->
@@ -316,19 +271,10 @@ onUnmounted(() => {
                             class="absolute right-2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-charcoal-800/80 text-cream-100 shadow-md backdrop-blur-xs transition-colors hover:bg-charcoal-700 sm:right-4"
                             aria-label="Next image"
                         >
-                            <svg
+                            <ChevronRightIcon
                                 class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 5l7 7-7 7"
-                                />
-                            </svg>
+                                aria-hidden="true"
+                            />
                         </button>
                     </div>
 

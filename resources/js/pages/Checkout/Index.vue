@@ -24,6 +24,7 @@ import { store as checkoutStore } from '@/actions/App/Http/Controllers/CheckoutC
 import { index as cartIndex } from '@/routes/cart';
 import { login } from '@/routes';
 import { useCart } from '@/composables/useCart';
+import { CheckIcon, ChevronDownIcon, ShoppingBagIcon } from '@lucide/vue';
 
 defineOptions({ layout: StorefrontLayout });
 
@@ -285,38 +286,21 @@ function submit() {
                         <span
                             class="flex items-center gap-2 font-medium text-sage-900"
                         >
-                            <svg
+                            <ShoppingBagIcon
                                 class="h-4 w-4 text-sage-700"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                             <span>{{
                                 mobileSummaryOpen
                                     ? 'Hide order summary'
                                     : 'Show order summary'
                             }}</span>
-                            <svg
+                            <ChevronDownIcon
                                 class="h-3.5 w-3.5 transition-transform"
                                 :class="mobileSummaryOpen ? 'rotate-180' : ''"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 9l-7 7-7-7"
-                                />
-                            </svg>
+                                aria-hidden="true"
+                            />
                         </span>
                         <span class="text-sm font-bold text-charcoal-900">
                             {{ formatCurrency(calculatedTotal) }}
@@ -391,19 +375,11 @@ function submit() {
                                     <span
                                         class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-800 text-cream-50"
                                     >
-                                        <svg
+                                        <CheckIcon
                                             class="h-3 w-3"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2.5"
-                                                d="M5 13l4 4L19 7"
-                                            />
-                                        </svg>
+                                            :stroke-width="2.5"
+                                            aria-hidden="true"
+                                        />
                                     </span>
                                     <div>
                                         <span

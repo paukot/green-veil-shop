@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LeafIcon } from '@lucide/vue';
 withDefaults(
     defineProps<{
         text?: string;
@@ -26,25 +27,16 @@ withDefaults(
             />
             <!-- Inner leaf icon -->
             <div class="absolute">
-                <svg
+                <LeafIcon
                     class="animate-pulse text-sage-600"
                     :class="{
                         'h-3.5 w-3.5': size === 'sm',
                         'h-5 w-5': size === 'md',
                         'h-7 w-7': size === 'lg',
                     }"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.75"
                     aria-hidden="true"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21V3m0 0a9.004 9.004 0 018.716 6.747M12 3a9.004 9.004 0 00-8.716 6.747"
-                    />
-                </svg>
+                    :stroke-width="1.75"
+                />
             </div>
         </div>
 

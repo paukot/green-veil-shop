@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import type { BreadcrumbItem } from '@/types/storefront';
+import { ChevronRightIcon } from '@lucide/vue';
 
 withDefaults(
     defineProps<{
@@ -44,21 +45,11 @@ withDefaults(
                     >
                         {{ crumb.name }}
                     </span>
-                    <svg
+                    <ChevronRightIcon
                         v-if="idx < items.length - 1"
                         class="text-charcoal-400 mx-1 h-3 w-3 shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         aria-hidden="true"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 5l7 7-7 7"
-                        />
-                    </svg>
+                    />
                 </li>
             </ol>
         </div>

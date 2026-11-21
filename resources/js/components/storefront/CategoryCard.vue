@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import type { CategoryCardData } from '@/types/storefront';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import { resolveStorageUrl } from '@/lib/utils';
+import { ArrowRightIcon } from '@lucide/vue';
 
 const props = defineProps<{
     category: CategoryCardData;
@@ -57,19 +58,10 @@ const imageUrl = computed(() => resolveStorageUrl(props.category.image));
                 class="inline-flex items-center gap-1.5 pt-1.5 text-xs font-semibold tracking-wider text-cream-200 uppercase transition-all duration-200 group-hover:translate-x-1 group-hover:text-white"
             >
                 <span>Explore</span>
-                <svg
+                <ArrowRightIcon
                     class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                </svg>
+                    aria-hidden="true"
+                />
             </span>
         </div>
     </Link>

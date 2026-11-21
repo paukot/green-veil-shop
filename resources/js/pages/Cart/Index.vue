@@ -10,6 +10,7 @@ import SavedForLaterList from '@/components/storefront/cart/SavedForLaterList.vu
 import { useCart } from '@/composables/useCart';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import type { CartPageProps } from '@/types/storefront';
+import { RefreshCwIcon, ShieldCheckIcon } from '@lucide/vue';
 
 defineOptions({ layout: StorefrontLayout });
 
@@ -193,35 +194,19 @@ async function proceedToCheckout() {
                     class="text-charcoal-600 space-y-2 rounded-xl border border-cream-200 bg-cream-100/60 p-4 text-xs"
                 >
                     <div class="flex items-center gap-2">
-                        <svg
+                        <ShieldCheckIcon
                             class="h-4 w-4 shrink-0 text-sage-700"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                         <span>Encrypted 256-bit secure checkout</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <svg
+                        <RefreshCwIcon
                             class="h-4 w-4 shrink-0 text-sage-700"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                         <span>30-day conscious returns & exchanges</span>
                     </div>
                 </div>

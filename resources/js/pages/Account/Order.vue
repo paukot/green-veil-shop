@@ -10,6 +10,14 @@ import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
 import type { AccountOrderDetailProps } from '@/types/storefront';
 import { index as ordersIndex } from '@/actions/App/Http/Controllers/OrderController';
 import { retry as checkoutRetry } from '@/actions/App/Http/Controllers/CheckoutResultController';
+import {
+    CheckIcon,
+    ChevronLeftIcon,
+    InfoIcon,
+    PackageIcon,
+    PrinterIcon,
+    RefreshCwIcon,
+} from '@lucide/vue';
 
 defineOptions({ layout: AccountLayout });
 
@@ -67,19 +75,7 @@ function handlePrint() {
                 :href="ordersIndex.url()"
                 class="inline-flex min-h-[44px] items-center gap-2 text-xs font-medium text-sage-700 transition-colors hover:text-sage-900"
             >
-                <svg
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 19l-7-7 7-7"
-                    />
-                </svg>
+                <ChevronLeftIcon class="h-4 w-4" aria-hidden="true" />
                 <span>Back to all orders</span>
             </Link>
         </div>
@@ -90,19 +86,10 @@ function handlePrint() {
             class="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800 print:hidden"
         >
             <div class="flex items-center gap-2">
-                <svg
+                <CheckIcon
                     class="h-4 w-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                    />
-                </svg>
+                    aria-hidden="true"
+                />
                 <span class="font-medium"
                     >Items from this order have been added to your bag!</span
                 >
@@ -157,19 +144,11 @@ function handlePrint() {
                         @click="handlePrint"
                         class="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-cream-300 bg-white px-4 py-2 text-xs font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs transition-colors hover:bg-cream-100 hover:text-sage-900"
                     >
-                        <svg
+                        <PrinterIcon
                             class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.75"
-                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                            />
-                        </svg>
+                            :stroke-width="1.75"
+                            aria-hidden="true"
+                        />
                         <span>Print Receipt</span>
                     </button>
 
@@ -179,19 +158,10 @@ function handlePrint() {
                         @click="handleReorder"
                         class="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-sage-700 bg-sage-50 px-4 py-2 text-xs font-semibold tracking-wider text-sage-900 uppercase shadow-xs transition-colors hover:bg-sage-100"
                     >
-                        <svg
+                        <RefreshCwIcon
                             class="h-4 w-4 text-sage-700"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                            />
-                        </svg>
+                            aria-hidden="true"
+                        />
                         <span>Reorder Ritual</span>
                     </button>
 
@@ -224,19 +194,10 @@ function handlePrint() {
             class="rounded-2xl border border-amber-200 bg-amber-50/60 p-6 shadow-xs"
         >
             <div class="flex items-start gap-3">
-                <svg
+                <InfoIcon
                     class="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                </svg>
+                    aria-hidden="true"
+                />
                 <div>
                     <h3
                         class="text-xs font-semibold tracking-wider text-amber-900 uppercase"
@@ -281,19 +242,11 @@ function handlePrint() {
                             v-else
                             class="text-sage-400 flex h-full w-full items-center justify-center"
                         >
-                            <svg
+                            <PackageIcon
                                 class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.25"
-                                    d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                                />
-                            </svg>
+                                :stroke-width="1.25"
+                                aria-hidden="true"
+                            />
                         </div>
                     </div>
 

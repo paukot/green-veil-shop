@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
 import type { LocalCartItem } from '@/composables/useCart';
 import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
+import { BookmarkIcon, PlusIcon, Trash2Icon } from '@lucide/vue';
 
 defineProps<{
     items: LocalCartItem[];
@@ -23,19 +24,11 @@ const emit = defineEmits<{
             class="mb-4 flex items-center justify-between border-b border-cream-100 pb-3"
         >
             <div class="flex items-center gap-2">
-                <svg
+                <BookmarkIcon
                     class="h-5 w-5 text-sage-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-                    />
-                </svg>
+                    :stroke-width="1.5"
+                    aria-hidden="true"
+                />
                 <h3 class="font-serif text-base text-sage-900">
                     Saved For Later ({{ items.length }})
                 </h3>
@@ -120,19 +113,10 @@ const emit = defineEmits<{
                         @click="emit('move-to-cart', item.product_id)"
                         class="inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-sage-700 bg-sage-50 px-4 py-2 text-xs font-semibold tracking-wider text-sage-900 uppercase transition-colors hover:bg-sage-100"
                     >
-                        <svg
+                        <PlusIcon
                             class="h-3.5 w-3.5 text-sage-700"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 4v16m8-8H4"
-                            />
-                        </svg>
+                            aria-hidden="true"
+                        />
                         <span>Move to Bag</span>
                     </button>
 
@@ -143,19 +127,11 @@ const emit = defineEmits<{
                         aria-label="Remove from saved items"
                         title="Remove"
                     >
-                        <svg
+                        <Trash2Icon
                             class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                     </button>
                 </div>
             </div>

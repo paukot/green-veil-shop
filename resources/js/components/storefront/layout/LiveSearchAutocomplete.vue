@@ -10,6 +10,13 @@ import {
 } from '@/actions/App/Http/Controllers/ProductController';
 import SearchAutocompleteSkeleton from '@/components/storefront/skeletons/SearchAutocompleteSkeleton.vue';
 import type { ProductCardData } from '@/types/storefront';
+import {
+    ChevronRightIcon,
+    ClockIcon,
+    LoaderCircleIcon,
+    SearchIcon,
+    XIcon,
+} from '@lucide/vue';
 
 const props = withDefaults(
     defineProps<{
@@ -212,40 +219,16 @@ const showDropdown = computed(() => {
             <span
                 class="pointer-events-none absolute left-3.5 flex items-center text-sage-600"
             >
-                <svg
+                <SearchIcon
                     v-if="!isLoading"
                     class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                    />
-                </svg>
-                <svg
+                    aria-hidden="true"
+                />
+                <LoaderCircleIcon
                     v-else
                     class="h-4 w-4 animate-spin text-sage-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                >
-                    <circle
-                        class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"
-                    />
-                    <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    />
-                </svg>
+                    aria-hidden="true"
+                />
             </span>
 
             <input
@@ -275,19 +258,7 @@ const showDropdown = computed(() => {
                 class="text-charcoal-400 absolute right-3 hover:text-charcoal-700 focus:outline-none"
                 aria-label="Clear search input"
             >
-                <svg
-                    class="h-3.5 w-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                    />
-                </svg>
+                <XIcon class="h-3.5 w-3.5" aria-hidden="true" />
             </button>
         </div>
 
@@ -331,19 +302,10 @@ const showDropdown = computed(() => {
                             @click="submitFullSearch(term)"
                             class="inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-cream-50 px-3 py-1 text-xs text-charcoal-800 transition-colors hover:border-sage-300 hover:bg-sage-50 hover:text-sage-900"
                         >
-                            <svg
+                            <ClockIcon
                                 class="text-charcoal-400 h-3 w-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
+                                aria-hidden="true"
+                            />
                             <span>{{ term }}</span>
                         </button>
                     </div>
@@ -456,19 +418,11 @@ const showDropdown = computed(() => {
                                     </span>
                                 </div>
                             </div>
-                            <svg
+                            <ChevronRightIcon
                                 class="text-charcoal-300 h-4 w-4 shrink-0"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                         </button>
                     </div>
 

@@ -16,6 +16,7 @@ import type {
     CategoryFilterItem,
     FilterFacets,
 } from '@/types/storefront';
+import { FunnelIcon } from '@lucide/vue';
 
 const { isLoading } = usePageLoading();
 
@@ -364,20 +365,12 @@ const totalActiveFilters = computed(() => {
                 class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 active:bg-sage-950 disabled:cursor-not-allowed disabled:opacity-75"
             >
                 <LoadingSpinner v-if="isLoading" size="sm" class="text-white" />
-                <svg
+                <FunnelIcon
                     v-else
                     class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                    />
-                </svg>
+                    :stroke-width="1.5"
+                    aria-hidden="true"
+                />
                 <span class="inline-flex items-center gap-1">
                     <span>{{ isLoading ? 'Applying' : 'Apply Filters' }}</span>
                     <span
@@ -656,20 +649,12 @@ const totalActiveFilters = computed(() => {
                 class="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 active:bg-sage-950 disabled:cursor-not-allowed disabled:opacity-75 sm:py-2.5"
             >
                 <LoadingSpinner v-if="isLoading" size="sm" class="text-white" />
-                <svg
+                <FunnelIcon
                     v-else
                     class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                    />
-                </svg>
+                    :stroke-width="1.5"
+                    aria-hidden="true"
+                />
                 <span class="inline-flex items-center gap-1">
                     <span>{{ isLoading ? 'Applying' : 'Apply Filters' }}</span>
                     <span

@@ -10,6 +10,7 @@ import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
 import type { AccountOrdersPageProps } from '@/types/storefront';
 import { show as ordersShow } from '@/actions/App/Http/Controllers/OrderController';
 import { index as productsIndex } from '@/routes/products';
+import { ChevronRightIcon, FileTextIcon, PackageIcon } from '@lucide/vue';
 
 defineOptions({ layout: AccountLayout });
 
@@ -59,19 +60,11 @@ const { isLoading } = usePageLoading();
             <div
                 class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-cream-100 text-sage-600"
             >
-                <svg
+                <FileTextIcon
                     class="h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-                    />
-                </svg>
+                    :stroke-width="1.5"
+                    aria-hidden="true"
+                />
             </div>
             <h3 class="font-serif text-lg text-sage-900">
                 No Orders Placed Yet
@@ -150,19 +143,11 @@ const { isLoading } = usePageLoading();
                                     v-else
                                     class="text-sage-400 flex h-full w-full items-center justify-center"
                                 >
-                                    <svg
+                                    <PackageIcon
                                         class="h-7 w-7"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.25"
-                                            d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                                        />
-                                    </svg>
+                                        :stroke-width="1.25"
+                                        aria-hidden="true"
+                                    />
                                 </div>
                             </div>
 
@@ -191,19 +176,10 @@ const { isLoading } = usePageLoading();
                                 class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-xs font-semibold tracking-wider text-charcoal-800 uppercase transition-colors hover:bg-cream-100 hover:text-sage-900 sm:w-auto"
                             >
                                 <span>Track & Details</span>
-                                <svg
+                                <ChevronRightIcon
                                     class="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 5l7 7-7 7"
-                                    />
-                                </svg>
+                                    aria-hidden="true"
+                                />
                             </Link>
                         </div>
                     </div>

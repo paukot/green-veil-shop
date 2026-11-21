@@ -6,6 +6,7 @@ import type {
     AppliedPromotionData,
     DeliveryOptionItem,
 } from '@/types/storefront';
+import { LoaderCircleIcon, LockIcon } from '@lucide/vue';
 
 defineProps<{
     itemCount: number;
@@ -126,25 +127,10 @@ const emit = defineEmits<{
             v-if="isSyncing"
             class="text-charcoal-400 flex items-center justify-center gap-1.5 text-[11px]"
         >
-            <svg
+            <LoaderCircleIcon
                 class="h-3.5 w-3.5 animate-spin text-sage-600"
-                viewBox="0 0 24 24"
-                fill="none"
-            >
-                <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                ></circle>
-                <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                ></path>
-            </svg>
+                aria-hidden="true"
+            />
             <span>Syncing bag with apothecary...</span>
         </div>
 
@@ -156,40 +142,17 @@ const emit = defineEmits<{
                 :disabled="isNavigatingToCheckout || isEmpty"
                 class="flex w-full items-center justify-center gap-2 rounded-full bg-sage-800 px-6 py-4 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
             >
-                <svg
+                <LoaderCircleIcon
                     v-if="isNavigatingToCheckout"
                     class="h-4 w-4 animate-spin text-cream-100"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                >
-                    <circle
-                        class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"
-                    ></circle>
-                    <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                    ></path>
-                </svg>
-                <svg
+                    aria-hidden="true"
+                />
+                <LockIcon
                     v-else
                     class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.75"
-                        d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-                    />
-                </svg>
+                    :stroke-width="1.75"
+                    aria-hidden="true"
+                />
                 <span>{{
                     isNavigatingToCheckout
                         ? 'Securing Bag...'

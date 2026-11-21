@@ -4,6 +4,13 @@ import { show as productShow } from '@/actions/App/Http/Controllers/ProductContr
 import { QuantityInput } from '@/components/form';
 import type { LocalCartItem } from '@/composables/useCart';
 import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
+import {
+    BookmarkIcon,
+    CheckIcon,
+    ImageIcon,
+    Trash2Icon,
+    TriangleAlertIcon,
+} from '@lucide/vue';
 
 defineProps<{
     items: LocalCartItem[];
@@ -32,19 +39,10 @@ const emit = defineEmits<{
                 class="flex items-center justify-between font-semibold text-amber-800"
             >
                 <span class="flex items-center gap-1.5">
-                    <svg
+                    <TriangleAlertIcon
                         class="h-4 w-4 text-amber-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                    </svg>
+                        aria-hidden="true"
+                    />
                     Inventory Adjustment Notice
                 </span>
                 <button
@@ -72,19 +70,10 @@ const emit = defineEmits<{
                     v-if="qualifiesForFreeShipping"
                     class="flex items-center gap-1.5 font-medium text-emerald-800"
                 >
-                    <svg
+                    <CheckIcon
                         class="h-4 w-4 text-emerald-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                        />
-                    </svg>
+                        aria-hidden="true"
+                    />
                     <span
                         >You have unlocked complimentary standard
                         delivery!</span
@@ -136,19 +125,11 @@ const emit = defineEmits<{
                             v-else
                             class="text-charcoal-300 flex h-full w-full items-center justify-center"
                         >
-                            <svg
+                            <ImageIcon
                                 class="h-8 w-8"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1"
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                            </svg>
+                                :stroke-width="1"
+                                aria-hidden="true"
+                            />
                         </div>
                     </Link>
 
@@ -208,19 +189,11 @@ const emit = defineEmits<{
                             class="text-charcoal-500 flex min-h-[44px] items-center gap-1 px-2 text-xs transition-colors hover:text-sage-800"
                             title="Save for later"
                         >
-                            <svg
+                            <BookmarkIcon
                                 class="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                             <span class="hidden sm:inline">Save</span>
                         </button>
 
@@ -231,19 +204,11 @@ const emit = defineEmits<{
                             aria-label="Remove item from bag"
                             title="Remove from bag"
                         >
-                            <svg
+                            <Trash2Icon
                                 class="h-4.5 w-4.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                />
-                            </svg>
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
                         </button>
                     </div>
                 </div>

@@ -8,6 +8,13 @@ import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSk
 import CategoryCard from '@/components/storefront/CategoryCard.vue';
 import type { HomePageProps } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
+import {
+    ArrowRightIcon,
+    LeafIcon,
+    RabbitIcon,
+    RecycleIcon,
+    TruckIcon,
+} from '@lucide/vue';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -47,19 +54,11 @@ defineProps<HomePageProps>();
                     <div
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
                     >
-                        <svg
+                        <LeafIcon
                             class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                     </div>
                     <div>
                         <h4
@@ -77,19 +76,11 @@ defineProps<HomePageProps>();
                     <div
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
                     >
-                        <svg
+                        <RabbitIcon
                             class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                     </div>
                     <div>
                         <h4
@@ -107,19 +98,11 @@ defineProps<HomePageProps>();
                     <div
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
                     >
-                        <svg
+                        <RecycleIcon
                             class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                     </div>
                     <div>
                         <h4
@@ -137,19 +120,11 @@ defineProps<HomePageProps>();
                     <div
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
                     >
-                        <svg
+                        <TruckIcon
                             class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25V3.75m0 3.75h-4.5m4.5 0v3.75m-4.5-3.75V3.75m0 3.75H3.75m0 0v10.5"
-                            />
-                        </svg>
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
                     </div>
                     <div>
                         <h4
@@ -194,19 +169,10 @@ defineProps<HomePageProps>();
                 class="group inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-sage-700 uppercase hover:text-sage-900"
             >
                 <span>View All Collections</span>
-                <svg
+                <ArrowRightIcon
                     class="h-4 w-4 transition-transform group-hover:translate-x-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                </svg>
+                    aria-hidden="true"
+                />
             </Link>
         </div>
 
@@ -244,19 +210,10 @@ defineProps<HomePageProps>();
                 class="group inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-sage-700 uppercase hover:text-sage-900"
             >
                 <span>Explore Catalog</span>
-                <svg
+                <ArrowRightIcon
                     class="h-4 w-4 transition-transform group-hover:translate-x-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                </svg>
+                    aria-hidden="true"
+                />
             </Link>
         </div>
 

@@ -6,6 +6,7 @@ import type { ProductCardData } from '@/types/storefront';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
 import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/composables/useCart';
+import { CheckIcon, MinusIcon, PlusIcon, Trash2Icon } from '@lucide/vue';
 
 const props = defineProps<{
     product: ProductCardData;
@@ -210,34 +211,17 @@ const formattedComparePrice = computed(() => {
                             :aria-label="`Add ${product.name} to bag`"
                             title="Add to bag"
                         >
-                            <svg
+                            <PlusIcon
                                 v-if="!justAdded"
                                 class="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 4.5v15m7.5-7.5h-15"
-                                />
-                            </svg>
-                            <svg
+                                aria-hidden="true"
+                            />
+                            <CheckIcon
                                 v-else
                                 class="h-4 w-4 text-white"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2.5"
-                                    d="M4.5 12.75l6 6 9-13.5"
-                                />
-                            </svg>
+                                :stroke-width="2.5"
+                                aria-hidden="true"
+                            />
                         </button>
 
                         <!-- When already in bag: Add / Remove Stepper -->
@@ -267,34 +251,17 @@ const formattedComparePrice = computed(() => {
                                 "
                             >
                                 <!-- Trash icon if 1, minus icon if > 1 -->
-                                <svg
+                                <Trash2Icon
                                     v-if="quantityInCart === 1"
                                     class="h-3.5 w-3.5 text-rose-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.75"
-                                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                    />
-                                </svg>
-                                <svg
+                                    :stroke-width="1.75"
+                                    aria-hidden="true"
+                                />
+                                <MinusIcon
                                     v-else
                                     class="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19.5 12h-15"
-                                    />
-                                </svg>
+                                    aria-hidden="true"
+                                />
                             </button>
 
                             <!-- Quantity in Bag -->
@@ -317,19 +284,10 @@ const formattedComparePrice = computed(() => {
                                         : 'Add one more'
                                 "
                             >
-                                <svg
+                                <PlusIcon
                                     class="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 4.5v15m7.5-7.5h-15"
-                                    />
-                                </svg>
+                                    aria-hidden="true"
+                                />
                             </button>
                         </div>
                     </div>

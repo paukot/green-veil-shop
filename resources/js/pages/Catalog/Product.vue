@@ -19,6 +19,7 @@ import type {
     ProductDetailPageProps,
     ProductVariantItem,
 } from '@/types/storefront';
+import { CheckIcon, Share2Icon, ShoppingBagIcon } from '@lucide/vue';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -458,34 +459,17 @@ onUnmounted(() => {
                                       : 'text-charcoal-400 cursor-not-allowed bg-cream-200'
                             "
                         >
-                            <svg
+                            <ShoppingBagIcon
                                 v-if="!addedToCartNotice"
                                 class="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.75"
-                                    d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
-                                />
-                            </svg>
-                            <svg
+                                :stroke-width="1.75"
+                                aria-hidden="true"
+                            />
+                            <CheckIcon
                                 v-else
                                 class="h-4 w-4 text-white"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M4.5 12.75l6 6 9-13.5"
-                                />
-                            </svg>
+                                aria-hidden="true"
+                            />
                             <span>{{
                                 addedToCartNotice
                                     ? 'Added to Bag ✓'
@@ -512,34 +496,17 @@ onUnmounted(() => {
                             "
                             aria-label="Share formula"
                         >
-                            <svg
+                            <Share2Icon
                                 v-if="!shareCopied"
                                 class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
-                                />
-                            </svg>
-                            <svg
+                                :stroke-width="1.5"
+                                aria-hidden="true"
+                            />
+                            <CheckIcon
                                 v-else
                                 class="h-5 w-5 text-emerald-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M4.5 12.75l6 6 9-13.5"
-                                />
-                            </svg>
+                                aria-hidden="true"
+                            />
 
                             <!-- Toast popup -->
                             <span
