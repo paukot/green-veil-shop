@@ -2,7 +2,8 @@
 import { ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import type { SharedProps } from '@/types/storefront';
-import { CheckIcon, TriangleAlertIcon } from '@lucide/vue';
+import { CheckIcon, TriangleAlertIcon, XIcon } from '@lucide/vue';
+import { cn } from '@/lib/utils';
 
 const page = usePage<SharedProps>();
 
@@ -41,45 +42,50 @@ watch(
 
 <template>
     <Transition
-        enter-active-class="transform ease-out duration-300 transition"
-        enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-        enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-        leave-active-class="transition ease-in duration-200"
-        leave-from-class="opacity-100"
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="translate-y-2 opacity-0"
+        leave-active-class="transition duration-200 ease-in"
         leave-to-class="opacity-0"
     >
         <div
             v-if="showToast"
-            class="pointer-events-auto fixed inset-x-4 bottom-4 z-50 flex w-auto items-start gap-3 rounded-xl border p-4 shadow-lg sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-full sm:max-w-sm"
             :class="
-                toastType === 'success'
-                    ? 'border-sage-700 bg-sage-900 text-cream-50'
-                    : 'border-red-700 bg-red-900 text-white'
+                cn(
+                    'pointer-events-auto fixed inset-x-4 bottom-4 z-50 flex items-center gap-3 rounded-2xl p-4 shadow-xl sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96',
+                    toastType === 'success'
+                        ? 'bg-sage-950 text-cream-50'
+                        : 'bg-danger-700 text-white',
+                )
             "
-            role="alert"
+            :role="toastType === 'success' ? 'status' : 'alert'"
         >
-            <div class="shrink-0 pt-0.5">
+            <span
+                :class="
+                    cn(
+                        'flex size-8 shrink-0 items-center justify-center rounded-full',
+                        toastType === 'success'
+                            ? 'bg-sage-800 text-sage-200'
+                            : 'bg-danger-800 text-danger-100',
+                    )
+                "
+            >
                 <CheckIcon
                     v-if="toastType === 'success'"
-                    class="h-5 w-5 text-sage-300"
+                    class="size-4"
                     aria-hidden="true"
                 />
-                <TriangleAlertIcon
-                    v-else
-                    class="h-5 w-5 text-red-300"
-                    aria-hidden="true"
-                />
-            </div>
-            <div class="flex-1 text-sm leading-5">
+                <TriangleAlertIcon v-else class="size-4" aria-hidden="true" />
+            </span>
+            <p class="flex-1 text-sm">
                 {{ toastMessage }}
-            </div>
+            </p>
             <button
                 type="button"
                 @click="showToast = false"
-                class="-mt-1 -mr-1 shrink-0 p-1 text-cream-200 hover:text-white"
+                class="flex size-8 shrink-0 items-center justify-center rounded-full text-cream-200 transition-colors hover:bg-white/10 hover:text-white"
                 aria-label="Dismiss notification"
             >
-                &times;
+                <XIcon class="size-4" aria-hidden="true" />
             </button>
         </div>
     </Transition>

@@ -1,29 +1,34 @@
 <script setup lang="ts">
-withDefaults(
+const props = withDefaults(
     defineProps<{
         as?: string;
+        /** Small radii all map to the shared control radius. */
         rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
     }>(),
     {
         as: 'div',
-        rounded: 'xl',
+        rounded: 'lg',
     },
 );
+
+const radiusClass = {
+    none: 'rounded-none',
+    sm: 'rounded-lg',
+    md: 'rounded-lg',
+    lg: 'rounded-lg',
+    xl: 'rounded-lg',
+    '2xl': 'rounded-2xl',
+    full: 'rounded-full',
+}[props.rounded];
 </script>
 
 <template>
     <component
         :is="as"
-        class="animate-pulse bg-cream-200/80 motion-reduce:animate-none motion-reduce:bg-cream-200"
-        :class="{
-            'rounded-none': rounded === 'none',
-            'rounded-sm': rounded === 'sm',
-            'rounded-md': rounded === 'md',
-            'rounded-lg': rounded === 'lg',
-            'rounded-xl': rounded === 'xl',
-            'rounded-2xl': rounded === '2xl',
-            'rounded-full': rounded === 'full',
-        }"
+        :class="[
+            'animate-pulse bg-cream-200 motion-reduce:animate-none',
+            radiusClass,
+        ]"
         aria-hidden="true"
     />
 </template>

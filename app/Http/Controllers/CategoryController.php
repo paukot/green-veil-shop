@@ -40,14 +40,19 @@ class CategoryController extends Controller
             ->paginate(self::DEFAULT_PAGINATION)
             ->withQueryString();
 
-        $facets = $this->catalogService->getFilterFacets($categoryIds->all());
+        // Everything except the product page itself is lazy, so pagination (a partial reload
+        // of `products`) skips the facet, breadcrumb and category work entirely.
+        $facets = null;
+        $resolveFacets = function () use (&$facets, $categoryIds): array {
+            return $facets ??= $this->catalogService->getFilterFacets($categoryIds->all());
+        };
 
         return Inertia::render('Catalog/Category', [
-            'category' => CategoryResource::make($category)->resolve(),
+            'category' => fn (): array => CategoryResource::make($category)->resolve(),
             'products' => ProductResource::collection($products)->additional(['total' => $products->total()]),
-            'breadcrumbs' => $this->breadcrumbService->getCategoryBreadcrumbs($category),
-            'facets' => $facets,
-            'priceRange' => $facets['price_bounds'],
+            'breadcrumbs' => fn (): array => $this->breadcrumbService->getCategoryBreadcrumbs($category),
+            'facets' => $resolveFacets,
+            'priceRange' => fn (): array => $resolveFacets()['price_bounds'],
             'filters' => $request->toInertiaFilters(includeCategory: false),
         ]);
     }

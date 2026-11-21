@@ -21,8 +21,8 @@ const model = defineModel<string | number | boolean>();
         type="radio"
         :class="
             cn(
-                'h-4 w-4 border-cream-300 text-sage-800 transition-colors focus:ring-1 focus:ring-sage-600 focus:ring-offset-0 focus:outline-hidden disabled:opacity-50',
-                hasError && 'border-rose-400 focus:ring-rose-500',
+                'size-4 shrink-0 cursor-pointer accent-sage-800 disabled:cursor-not-allowed disabled:opacity-50',
+                hasError && 'outline-2 outline-offset-2 outline-danger-500',
                 props.class,
             )
         "

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
 import FilterSidebar from '@/components/storefront/FilterSidebar.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import ProductGrid from '@/components/storefront/ProductGrid.vue';
@@ -16,6 +14,10 @@ import type {
     ProductCardData,
 } from '@/types/storefront';
 import { SearchIcon, SlidersHorizontalIcon } from '@lucide/vue';
+import Button from '@/components/ui/Button.vue';
+import Container from '@/components/ui/Container.vue';
+import Drawer from '@/components/ui/Drawer.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
 
 const props = withDefaults(
     defineProps<{
@@ -49,70 +51,15 @@ const { isLoading } = usePageLoading();
 const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
     () => props.filters,
 );
-
-const isMounted = ref(false);
-
-watch(mobileFilterOpen, (isOpen) => {
-    if (typeof document !== 'undefined') {
-        document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-});
-
-function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && mobileFilterOpen.value) {
-        mobileFilterOpen.value = false;
-    }
-}
-
-onMounted(() => {
-    isMounted.value = true;
-    window.addEventListener('keydown', handleKeyDown);
-});
-
-onUnmounted(() => {
-    if (typeof document !== 'undefined') {
-        document.body.style.overflow = '';
-    }
-    window.removeEventListener('keydown', handleKeyDown);
-});
 </script>
 
 <template>
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <!-- Mobile Filters Bar -->
-        <div
-            class="mb-6 flex items-center justify-between border-b border-cream-200 pb-4 lg:hidden"
-        >
-            <div class="text-charcoal-600 text-xs">
-                <span class="font-semibold text-charcoal-900">{{
-                    products.meta.total
-                }}</span>
-                {{ products.meta.total === 1 ? 'product' : 'products' }}
-            </div>
-            <button
-                type="button"
-                @click="mobileFilterOpen = true"
-                class="inline-flex items-center gap-1.5 rounded-full border border-cream-300 bg-white px-3 py-1.5 text-xs font-medium text-charcoal-800 shadow-xs hover:border-sage-500"
-            >
-                <SlidersHorizontalIcon
-                    class="h-4 w-4 text-sage-700"
-                    :stroke-width="1.5"
-                    aria-hidden="true"
-                />
-                <span>Filters & Sort</span>
-                <span
-                    v-if="activeFilterCount > 0"
-                    class="flex h-4 w-4 items-center justify-center rounded-full bg-sage-700 text-[10px] font-bold text-white"
-                >
-                    {{ activeFilterCount }}
-                </span>
-            </button>
-        </div>
-
-        <div class="flex items-start gap-8 lg:gap-12">
-            <!-- Desktop Sidebar -->
-            <div
-                class="hidden w-64 shrink-0 rounded-xl border border-cream-200 bg-white p-6 shadow-xs lg:block"
+    <Container class="py-8 lg:py-12">
+        <div class="flex items-start gap-12">
+            <!-- Desktop filters -->
+            <aside
+                class="sticky top-sticky scrollbar-none hidden max-h-[80vh] w-64 shrink-0 overflow-y-auto pr-4 lg:block"
+                aria-label="Filters"
             >
                 <FilterSidebar
                     :categories="categories"
@@ -122,28 +69,45 @@ onUnmounted(() => {
                     :base-url="baseUrl"
                     :show-categories="showCategoriesInSidebar"
                 />
-            </div>
+            </aside>
 
-            <!-- Product Listing Area -->
-            <div class="relative min-w-0 flex-1">
-                <!-- Top Count (Desktop) -->
+            <div
+                id="catalog-results"
+                class="flex min-w-0 flex-1 scroll-mt-24 flex-col gap-6 lg:scroll-mt-sticky"
+            >
+                <!-- Toolbar -->
                 <div
-                    class="text-charcoal-600 mb-6 hidden items-center justify-between border-b border-cream-200 pb-4 text-xs lg:flex"
+                    class="flex items-center justify-between gap-4 border-b border-border pb-4"
                 >
-                    <div>
-                        Showing
-                        <span class="font-semibold text-charcoal-900">{{
+                    <p class="text-sm text-ink-muted">
+                        <span class="font-semibold text-ink">{{
                             products.meta.total
                         }}</span>
-                        {{
-                            products.meta.total === 1
-                                ? 'botanical product'
-                                : 'botanical products'
-                        }}
-                    </div>
+                        {{ products.meta.total === 1 ? 'product' : 'products' }}
+                    </p>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        class="lg:hidden"
+                        @click="mobileFilterOpen = true"
+                    >
+                        <template #icon>
+                            <SlidersHorizontalIcon
+                                class="size-4"
+                                aria-hidden="true"
+                            />
+                        </template>
+                        Filter & sort
+                        <template v-if="activeFilterCount > 0" #trailing>
+                            <span
+                                class="flex size-4 items-center justify-center rounded-full bg-sage-900 text-xs leading-4 text-cream-50"
+                            >
+                                {{ activeFilterCount }}
+                            </span>
+                        </template>
+                    </Button>
                 </div>
 
-                <!-- Active Filter Chips Bar -->
                 <ActiveFilterChips
                     :filters="filters"
                     :facets="facets"
@@ -151,123 +115,54 @@ onUnmounted(() => {
                     :reset-url="resetUrl"
                 />
 
-                <!-- Products Grid / Skeleton Loading -->
-                <div v-if="isLoading">
-                    <ProductGridSkeleton :count="products.data.length || 12" />
-                </div>
-                <div v-else-if="products.data.length > 0">
-                    <ProductGrid :products="products.data" />
-
-                    <!-- Pagination -->
-                    <Pagination :links="products.meta.links" />
-                </div>
-
-                <!-- Empty State -->
-                <div
-                    v-else
-                    class="mx-auto max-w-md rounded-2xl border border-cream-200 bg-white p-8 py-20 text-center shadow-xs"
-                >
-                    <div
-                        class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sage-100 text-sage-700"
-                    >
-                        <SearchIcon
-                            class="h-8 w-8"
-                            :stroke-width="1.5"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <h2 class="mb-2 font-serif text-xl text-charcoal-900">
-                        {{ emptyTitle }}
-                    </h2>
-                    <p
-                        class="text-charcoal-600 mb-6 text-xs font-light sm:text-sm"
-                    >
-                        {{ emptyDescription }}
-                    </p>
-                    <Link
-                        :href="resetUrl || baseUrl"
-                        class="inline-block rounded-full bg-sage-800 px-6 py-2.5 text-xs font-medium tracking-wider text-cream-50 uppercase transition-colors hover:bg-sage-900"
-                    >
-                        Reset All Filters
-                    </Link>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Filter Drawer -->
-    <Teleport v-if="isMounted" to="body">
-        <div class="relative z-50 lg:hidden">
-            <!-- Backdrop -->
-            <Transition
-                enter-active-class="transition-opacity ease-out duration-300"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-opacity ease-in duration-200"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div
-                    v-if="mobileFilterOpen"
-                    class="fixed inset-0 cursor-pointer bg-charcoal-900/60 backdrop-blur-xs transition-opacity"
-                    aria-hidden="true"
-                    @click="mobileFilterOpen = false"
+                <ProductGridSkeleton
+                    v-if="isLoading"
+                    :count="products.data.length || 12"
                 />
-            </Transition>
-
-            <!-- Slide-out Drawer Panel -->
-            <div
-                v-show="mobileFilterOpen"
-                class="pointer-events-none fixed inset-0 flex justify-end"
-                @click.self="mobileFilterOpen = false"
-            >
-                <Transition
-                    enter-active-class="transform transition ease-out duration-300"
-                    enter-from-class="translate-x-full"
-                    enter-to-class="translate-x-0"
-                    leave-active-class="transform transition ease-in duration-200"
-                    leave-from-class="translate-x-0"
-                    leave-to-class="translate-x-full"
+                <div
+                    v-else-if="products.data.length > 0"
+                    class="flex flex-col gap-12"
                 >
-                    <div
-                        v-if="mobileFilterOpen"
-                        class="pointer-events-auto relative flex h-full w-full max-w-sm flex-col bg-white shadow-2xl"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Filter & Sort Products"
-                    >
-                        <!-- Header with Title & Close Button -->
-                        <div
-                            class="flex shrink-0 items-center justify-between border-b border-cream-200 px-6 py-4"
+                    <ProductGrid :products="products.data" />
+                    <Pagination
+                        :links="products.meta.links"
+                        :only="['products', 'filters']"
+                        scroll-target="catalog-results"
+                    />
+                </div>
+                <EmptyState
+                    v-else
+                    :title="emptyTitle"
+                    :description="emptyDescription"
+                >
+                    <template #icon>
+                        <SearchIcon aria-hidden="true" />
+                    </template>
+                    <template #actions>
+                        <Button :href="resetUrl || baseUrl"
+                            >Reset filters</Button
                         >
-                            <div class="font-serif text-lg text-charcoal-900">
-                                Filter & Sort
-                            </div>
-                            <button
-                                type="button"
-                                @click="mobileFilterOpen = false"
-                                class="text-charcoal-500 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-2xl leading-none transition-colors hover:bg-cream-100 hover:text-charcoal-900"
-                                aria-label="Close filters"
-                            >
-                                &times;
-                            </button>
-                        </div>
-
-                        <!-- Scrollable Body with Sidebar Filters -->
-                        <div class="flex-1 overflow-y-auto p-6">
-                            <FilterSidebar
-                                :categories="categories"
-                                :filters="filters"
-                                :facets="facets"
-                                :price-range="priceRange"
-                                :base-url="baseUrl"
-                                :show-categories="showCategoriesInSidebar"
-                                @close="mobileFilterOpen = false"
-                            />
-                        </div>
-                    </div>
-                </Transition>
+                    </template>
+                </EmptyState>
             </div>
         </div>
-    </Teleport>
+    </Container>
+
+    <Drawer
+        :open="mobileFilterOpen"
+        title="Filter & sort"
+        @close="mobileFilterOpen = false"
+    >
+        <div class="p-6">
+            <FilterSidebar
+                :categories="categories"
+                :filters="filters"
+                :facets="facets"
+                :price-range="priceRange"
+                :base-url="baseUrl"
+                :show-categories="showCategoriesInSidebar"
+                @close="mobileFilterOpen = false"
+            />
+        </div>
+    </Drawer>
 </template>

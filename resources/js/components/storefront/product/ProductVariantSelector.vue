@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Badge from '@/components/ui/Badge.vue';
+import { cn } from '@/lib/utils';
 import type { ProductVariantItem } from '@/types/storefront';
 
 defineProps<{
@@ -15,79 +17,84 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="space-y-3">
-        <!-- Interactive Variant / Shade Selector -->
-        <div
-            v-if="variants && variants.length > 0"
-            class="space-y-3 rounded-xl border border-cream-200 bg-cream-50/60 p-4"
-        >
-            <div class="flex items-center justify-between text-xs">
-                <span
-                    class="font-semibold tracking-wider text-charcoal-800 uppercase"
-                >
-                    Choose Shade / Variant:
+    <div class="flex flex-col gap-4">
+        <div v-if="variants && variants.length > 0" class="flex flex-col gap-3">
+            <p class="flex items-baseline gap-2 text-sm">
+                <span class="font-medium text-ink">
+                    {{ variants.some((v) => v.color_hex) ? 'Shade' : 'Option' }}
                 </span>
-                <span v-if="selectedVariant" class="font-medium text-sage-800">
+                <span v-if="selectedVariant" class="text-ink-muted">
                     {{ selectedVariant.name }}
                 </span>
-            </div>
+            </p>
 
-            <!-- Swatches or Pill buttons -->
-            <div class="flex flex-wrap items-center gap-2.5">
-                <button
-                    v-for="variant in variants"
-                    :key="variant.id"
-                    type="button"
-                    @click="emit('select', variant)"
-                    class="relative flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all"
-                    :class="
-                        selectedVariant?.id === variant.id
-                            ? 'border-sage-700 bg-white text-charcoal-900 shadow-xs ring-2 ring-sage-300'
-                            : 'hover:border-sage-400 border-cream-300 bg-white/80 text-charcoal-700'
-                    "
-                >
-                    <!-- Color Swatch Circle if color_hex present -->
-                    <span
+            <div class="flex flex-wrap items-center gap-2" role="radiogroup">
+                <template v-for="variant in variants" :key="variant.id">
+                    <button
                         v-if="variant.color_hex"
-                        class="border-charcoal-200 h-4 w-4 shrink-0 rounded-full border shadow-inner"
+                        type="button"
+                        role="radio"
+                        :aria-checked="selectedVariant?.id === variant.id"
+                        :aria-label="variant.name"
+                        :title="variant.name"
+                        :class="
+                            cn(
+                                'relative size-8 rounded-full ring-offset-2 ring-offset-surface transition-shadow',
+                                selectedVariant?.id === variant.id
+                                    ? 'ring-2 ring-ink'
+                                    : 'ring-1 ring-border-strong hover:ring-ink-subtle',
+                                !variant.is_in_stock && 'opacity-40',
+                            )
+                        "
                         :style="{ backgroundColor: variant.color_hex }"
+                        @click="emit('select', variant)"
                     />
-                    <span>{{ variant.name }}</span>
-                    <span
-                        v-if="!variant.is_in_stock"
-                        class="text-[10px] font-normal text-rose-500"
+                    <button
+                        v-else
+                        type="button"
+                        role="radio"
+                        :aria-checked="selectedVariant?.id === variant.id"
+                        :class="
+                            cn(
+                                'inline-flex h-8 items-center rounded-full border px-4 text-xs font-medium transition-colors',
+                                selectedVariant?.id === variant.id
+                                    ? 'border-sage-900 bg-sage-900 text-cream-50'
+                                    : 'border-border-strong bg-surface-raised text-ink hover:border-ink',
+                                !variant.is_in_stock &&
+                                    'line-through opacity-50',
+                            )
+                        "
+                        @click="emit('select', variant)"
                     >
-                        (Out)
-                    </span>
-                </button>
+                        {{ variant.name }}
+                    </button>
+                </template>
             </div>
         </div>
 
-        <!-- Stock Status -->
-        <div class="flex items-center gap-2 text-xs">
-            <span
-                v-if="isInStock"
-                class="flex flex-wrap items-center gap-2 font-medium text-charcoal-700"
-            >
-                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                <span>In Stock</span>
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+            <template v-if="isInStock">
                 <span
+                    class="size-2 rounded-full bg-success-600"
+                    aria-hidden="true"
+                />
+                <span class="font-medium text-ink">In stock</span>
+                <Badge
                     v-if="trackInventory && stockQuantity <= 5"
-                    class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800"
+                    tone="warning"
                 >
-                    <span
-                        class="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500"
-                    />
-                    Only {{ stockQuantity }} left in current batch
-                </span>
-            </span>
-            <span
-                v-else
-                class="flex items-center gap-2 font-medium text-rose-700"
-            >
-                <span class="h-2.5 w-2.5 rounded-full bg-rose-500" />
-                <span>Currently Out of Stock</span>
-            </span>
+                    Only {{ stockQuantity }} left
+                </Badge>
+            </template>
+            <template v-else>
+                <span
+                    class="size-2 rounded-full bg-danger-600"
+                    aria-hidden="true"
+                />
+                <span class="font-medium text-danger-700"
+                    >Currently sold out</span
+                >
+            </template>
         </div>
     </div>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Badge from '@/components/ui/Badge.vue';
 import { computed } from 'vue';
 import { CheckIcon } from '@lucide/vue';
 
@@ -82,95 +83,77 @@ const steps = computed<Step[]>(() => {
 </script>
 
 <template>
-    <div
-        class="overflow-hidden rounded-2xl border border-cream-200 bg-white p-6 shadow-xs"
-        aria-label="Order Tracking Timeline"
+    <section
+        class="flex flex-col gap-6 rounded-2xl border border-border p-6"
+        aria-label="Order progress"
     >
-        <div
-            class="mb-4 flex items-center justify-between border-b border-cream-100 pb-3"
-        >
-            <h3 class="font-serif text-base text-sage-900">
-                Order Timeline & Tracking
-            </h3>
-            <span
-                v-if="isCancelled"
-                class="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 uppercase"
-            >
-                Order Cancelled
-            </span>
+        <div class="flex items-center justify-between gap-4">
+            <h3 class="font-serif text-xl text-ink">Order progress</h3>
+            <Badge v-if="isCancelled" tone="danger">Cancelled</Badge>
         </div>
 
-        <!-- Cancelled Notice if applicable -->
-        <div
+        <p
             v-if="isCancelled"
-            class="rounded-xl border border-rose-200 bg-rose-50/70 p-4 text-xs text-rose-800"
+            class="rounded-lg bg-danger-50 p-4 text-sm text-danger-700"
         >
-            This order has been cancelled and will not be prepared or
-            dispatched. If payment was captured, a full refund has been
-            initiated to your original payment method.
-        </div>
+            This order was cancelled and won't be dispatched. If a payment was
+            taken, a full refund has been issued to the original payment method.
+        </p>
 
-        <!-- Timeline Stepper -->
-        <div v-else class="relative py-2">
-            <ol class="grid grid-cols-1 gap-4 sm:grid-cols-5 sm:gap-2">
-                <li
-                    v-for="(step, idx) in steps"
-                    :key="step.id"
-                    class="relative flex items-start gap-3 sm:flex-col sm:items-center sm:text-center"
+        <ol v-else class="grid grid-cols-1 gap-6 sm:grid-cols-5 sm:gap-2">
+            <li
+                v-for="(step, idx) in steps"
+                :key="step.id"
+                class="relative flex items-start gap-4 sm:flex-col sm:items-center sm:gap-3 sm:text-center"
+                :aria-current="step.isCurrent ? 'step' : undefined"
+            >
+                <div
+                    v-if="idx < steps.length - 1"
+                    :class="[
+                        'absolute top-4 left-1/2 hidden h-px w-full sm:block',
+                        step.isCompleted ? 'bg-sage-700' : 'bg-border-strong',
+                    ]"
+                    aria-hidden="true"
+                />
+                <span
+                    :class="[
+                        'relative flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                        step.isCompleted
+                            ? 'bg-sage-800 text-cream-50'
+                            : step.isCurrent
+                              ? 'border-2 border-sage-800 bg-surface-raised text-sage-900'
+                              : 'border border-border-strong bg-surface-sunken text-ink-subtle',
+                    ]"
                 >
-                    <!-- Connector line (Desktop only) -->
-                    <div
-                        v-if="idx < steps.length - 1"
-                        class="absolute top-4 left-1/2 -z-0 hidden h-0.5 w-full -translate-y-1/2 sm:block"
-                        :class="
-                            step.isCompleted ? 'bg-emerald-600' : 'bg-cream-200'
-                        "
+                    <CheckIcon
+                        v-if="step.isCompleted"
+                        class="size-4"
+                        aria-hidden="true"
                     />
-
-                    <!-- Icon / Step Circle -->
-                    <span
-                        class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all"
-                        :class="
-                            step.isCompleted
-                                ? 'bg-emerald-700 text-white shadow-xs ring-4 ring-emerald-50'
-                                : step.isCurrent
-                                  ? 'border-2 border-sage-700 bg-white text-sage-900 ring-4 ring-sage-100'
-                                  : 'text-charcoal-400 border border-cream-300 bg-cream-100'
-                        "
+                    <span v-else>{{ idx + 1 }}</span>
+                </span>
+                <div class="flex min-w-0 flex-col gap-1">
+                    <p
+                        :class="[
+                            'text-sm font-medium',
+                            step.isCompleted || step.isCurrent
+                                ? 'text-ink'
+                                : 'text-ink-subtle',
+                        ]"
                     >
-                        <CheckIcon
-                            v-if="step.isCompleted"
-                            class="h-4 w-4"
-                            :stroke-width="2.5"
-                            aria-hidden="true"
-                        />
-                        <span v-else>{{ idx + 1 }}</span>
-                    </span>
-
-                    <!-- Label & Details -->
-                    <div class="min-w-0 sm:mt-2">
-                        <p
-                            class="text-xs font-semibold"
-                            :class="
-                                step.isCompleted || step.isCurrent
-                                    ? 'text-charcoal-900'
-                                    : 'text-charcoal-400'
-                            "
-                        >
-                            {{ step.title }}
-                        </p>
-                        <p class="text-charcoal-500 text-[11px]">
-                            {{ step.description }}
-                        </p>
-                        <p
-                            v-if="step.date"
-                            class="mt-0.5 font-mono text-[10px] text-sage-700"
-                        >
-                            {{ step.date }}
-                        </p>
-                    </div>
-                </li>
-            </ol>
-        </div>
-    </div>
+                        {{ step.title }}
+                    </p>
+                    <p class="text-xs text-ink-subtle">
+                        {{ step.description }}
+                    </p>
+                    <p
+                        v-if="step.date"
+                        class="text-xs text-sage-700 tabular-nums"
+                    >
+                        {{ step.date }}
+                    </p>
+                </div>
+            </li>
+        </ol>
+    </section>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fieldStateClasses, fieldSurfaceClasses } from '@/lib/fieldStyles';
 import { cn } from '@/lib/utils';
 
 defineOptions({
@@ -7,13 +8,14 @@ defineOptions({
 
 interface Props {
     hasError?: boolean;
+    /** Kept for API compatibility; all textareas use the shared field radius. */
     rounded?: 'md' | 'lg' | 'xl';
     rows?: number;
     class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    rounded: 'xl',
+    rounded: 'lg',
     rows: 3,
 });
 
@@ -27,13 +29,9 @@ const model = defineModel<string | null>();
         :rows="rows"
         :class="
             cn(
-                'placeholder-charcoal-400 block w-full border bg-cream-50/50 px-4 py-2.5 text-base text-charcoal-900 transition-colors focus:bg-white focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm',
-                rounded === 'md' && 'rounded-md',
-                rounded === 'lg' && 'rounded-lg',
-                rounded === 'xl' && 'rounded-xl',
-                hasError
-                    ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
-                    : 'border-cream-300 focus:border-sage-600 focus:ring-1 focus:ring-sage-600',
+                fieldSurfaceClasses,
+                'px-4 py-3 text-base sm:text-sm',
+                fieldStateClasses(hasError),
                 props.class,
             )
         "

@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import AccountLayout from '@/layouts/AccountLayout.vue';
 import Pagination from '@/components/storefront/Pagination.vue';
 import OrderStatusBadge from '@/components/storefront/OrderStatusBadge.vue';
 import PaymentStatusBadge from '@/components/storefront/PaymentStatusBadge.vue';
 import OrderCardSkeleton from '@/components/storefront/skeletons/OrderCardSkeleton.vue';
 import { usePageLoading } from '@/composables/usePageLoading';
-import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
+import {
+    formatCurrency,
+    resolveStorageUrl,
+    showPlaceholderOnError,
+} from '@/lib/utils';
 import type { AccountOrdersPageProps } from '@/types/storefront';
 import { show as ordersShow } from '@/actions/App/Http/Controllers/OrderController';
 import { index as productsIndex } from '@/routes/products';
-import { ChevronRightIcon, FileTextIcon, PackageIcon } from '@lucide/vue';
+import { ChevronRightIcon, FileTextIcon } from '@lucide/vue';
+import Button from '@/components/ui/Button.vue';
+import Card from '@/components/ui/Card.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
 
 defineOptions({ layout: AccountLayout });
 
@@ -20,174 +27,101 @@ const { isLoading } = usePageLoading();
 </script>
 
 <template>
-    <Head title="Order History | Green Veil" />
+    <Head title="Order History" />
 
-    <div class="space-y-6">
-        <!-- Section Header -->
-        <div
-            class="rounded-2xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
-        >
-            <div
-                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-            >
-                <div>
-                    <h2 class="font-serif text-2xl text-sage-900 sm:text-3xl">
-                        Order History
-                    </h2>
-                    <p class="text-charcoal-600 mt-1 text-xs sm:text-sm">
-                        Review and track all your previous botanical rituals and
-                        shipments.
-                    </p>
-                </div>
-                <div
-                    v-if="orders.meta.total > 0"
-                    class="text-charcoal-500 text-xs font-medium"
-                >
-                    Showing {{ orders.meta.total }}
-                    {{ orders.meta.total === 1 ? 'order' : 'orders' }}
-                </div>
-            </div>
+    <section class="flex flex-col gap-6">
+        <div class="flex items-baseline justify-between gap-4">
+            <h2 class="font-serif text-3xl text-ink">Orders</h2>
+            <p v-if="orders.meta.total > 0" class="text-sm text-ink-subtle">
+                {{ orders.meta.total }}
+                {{ orders.meta.total === 1 ? 'order' : 'orders' }}
+            </p>
         </div>
 
-        <!-- Loading Skeletons -->
         <OrderCardSkeleton v-if="isLoading" :count="orders.data.length || 3" />
 
-        <!-- Empty State -->
-        <div
+        <EmptyState
             v-else-if="orders.data.length === 0"
-            class="rounded-2xl border border-cream-200 bg-white p-12 text-center shadow-xs"
+            title="No orders yet"
+            description="When you place an order it will appear here, with tracking and receipts."
         >
-            <div
-                class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-cream-100 text-sage-600"
-            >
-                <FileTextIcon
-                    class="h-8 w-8"
-                    :stroke-width="1.5"
-                    aria-hidden="true"
-                />
-            </div>
-            <h3 class="font-serif text-lg text-sage-900">
-                No Orders Placed Yet
-            </h3>
-            <p
-                class="text-charcoal-600 mx-auto mt-2 max-w-md text-xs leading-relaxed sm:text-sm"
-            >
-                You have not placed any orders yet. Discover our handcrafted
-                botanical formulations, cold-pressed oils, and skincare elixirs.
-            </p>
-            <div class="mt-6">
-                <Link
-                    :href="productsIndex.url()"
-                    class="inline-flex items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900"
-                >
-                    Explore Botanical
-                </Link>
-            </div>
-        </div>
+            <template #icon>
+                <FileTextIcon aria-hidden="true" />
+            </template>
+            <template #actions>
+                <Button :href="productsIndex.url()">Start shopping</Button>
+            </template>
+        </EmptyState>
 
-        <!-- Orders List -->
-        <div v-else class="space-y-4">
-            <article
+        <div v-else class="flex flex-col gap-4">
+            <Card
                 v-for="order in orders.data"
                 :key="order.public_id"
-                class="overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-xs transition-shadow hover:shadow-sm"
+                as="article"
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6"
             >
                 <div
-                    class="border-b border-cream-100 bg-cream-50/60 p-4 sm:flex sm:items-center sm:justify-between sm:px-6"
+                    class="size-16 shrink-0 overflow-hidden rounded-lg bg-surface-sunken"
                 >
-                    <div
-                        class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs"
-                    >
-                        <span class="font-mono font-semibold text-sage-900">
-                            {{ order.number }}
-                        </span>
-                        <span class="text-charcoal-400">•</span>
-                        <span class="text-charcoal-600">
-                            {{ order.placed_at }}
-                        </span>
-                        <span
-                            v-if="order.delivery_name"
-                            class="text-charcoal-500 hidden sm:inline"
-                        >
-                            • {{ order.delivery_name }}
-                        </span>
-                    </div>
+                    <img
+                        v-if="order.first_item_image"
+                        :src="resolveStorageUrl(order.first_item_image)"
+                        :alt="order.number"
+                        class="size-full object-cover"
+                        loading="lazy"
+                        @error="showPlaceholderOnError"
+                    />
+                </div>
 
-                    <div class="mt-2 flex flex-wrap items-center gap-2 sm:mt-0">
+                <div class="flex min-w-0 flex-1 flex-col gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <p class="font-mono text-sm font-semibold text-ink">
+                            {{ order.number }}
+                        </p>
                         <OrderStatusBadge :status="order.status" />
                         <PaymentStatusBadge :status="order.payment_status" />
                     </div>
-                </div>
-
-                <div class="p-4 sm:p-6">
-                    <div
-                        class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+                    <p
+                        class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted"
                     >
-                        <div class="flex items-center gap-4">
-                            <!-- Order Thumbnail -->
-                            <div
-                                class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-cream-200 bg-cream-50"
-                            >
-                                <img
-                                    v-if="order.first_item_image"
-                                    :src="
-                                        resolveStorageUrl(
-                                            order.first_item_image,
-                                        )
-                                    "
-                                    :alt="order.number"
-                                    class="h-full w-full object-cover"
-                                    loading="lazy"
-                                />
-                                <div
-                                    v-else
-                                    class="text-sage-400 flex h-full w-full items-center justify-center"
-                                >
-                                    <PackageIcon
-                                        class="h-7 w-7"
-                                        :stroke-width="1.25"
-                                        aria-hidden="true"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <p
-                                    class="text-charcoal-500 text-xs font-medium"
-                                >
-                                    {{ order.items_count }}
-                                    {{
-                                        order.items_count === 1
-                                            ? 'item'
-                                            : 'items'
-                                    }}
-                                </p>
-                                <p
-                                    class="mt-0.5 font-serif text-lg font-semibold text-sage-900"
-                                >
-                                    {{ formatCurrency(order.total) }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <Link
-                                :href="ordersShow.url(order.public_id)"
-                                class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-cream-300 bg-white px-4 py-2.5 text-xs font-semibold tracking-wider text-charcoal-800 uppercase transition-colors hover:bg-cream-100 hover:text-sage-900 sm:w-auto"
-                            >
-                                <span>Track & Details</span>
-                                <ChevronRightIcon
-                                    class="h-3.5 w-3.5"
-                                    aria-hidden="true"
-                                />
-                            </Link>
-                        </div>
-                    </div>
+                        <span>{{ order.placed_at }}</span>
+                        <span>
+                            {{ order.items_count }}
+                            {{ order.items_count === 1 ? 'item' : 'items' }}
+                        </span>
+                        <span v-if="order.delivery_name">{{
+                            order.delivery_name
+                        }}</span>
+                    </p>
                 </div>
-            </article>
 
-            <!-- Pagination Component -->
-            <Pagination :links="orders.meta.links" />
+                <div
+                    class="flex items-center justify-between gap-4 sm:justify-end"
+                >
+                    <p class="text-lg font-semibold text-ink tabular-nums">
+                        {{ formatCurrency(order.total) }}
+                    </p>
+                    <Button
+                        :href="ordersShow.url(order.public_id)"
+                        variant="outline"
+                        size="sm"
+                    >
+                        Details
+                        <template #trailing>
+                            <ChevronRightIcon
+                                class="size-4"
+                                aria-hidden="true"
+                            />
+                        </template>
+                    </Button>
+                </div>
+            </Card>
+
+            <Pagination
+                :links="orders.meta.links"
+                :only="['orders']"
+                class="pt-4"
+            />
         </div>
-    </div>
+    </section>
 </template>

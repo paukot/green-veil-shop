@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Container from '@/components/ui/Container.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
 import { computed, onMounted, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { show as checkoutShow } from '@/actions/App/Http/Controllers/CheckoutController';
@@ -134,15 +136,16 @@ async function proceedToCheckout() {
 </script>
 
 <template>
-    <Head title="Your Shopping Bag | Green Veil" />
+    <Head title="Your Shopping Bag" />
 
-    <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
+    <Container class="flex flex-col gap-8 py-8 lg:gap-12 lg:py-12">
+        <PageHeader eyebrow="Your bag" title="Shopping bag" />
+
         <div
             v-if="!cart.isEmpty.value"
             class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12"
         >
-            <!-- Cart Items List (8 cols) -->
-            <div class="space-y-6 lg:col-span-8">
+            <div class="flex min-w-0 flex-col gap-12 lg:col-span-8">
                 <CartItemList
                     :items="cart.items.value"
                     :warnings="cart.syncWarnings.value"
@@ -162,8 +165,9 @@ async function proceedToCheckout() {
                 />
             </div>
 
-            <!-- Order Summary Sidebar (4 cols) -->
-            <div class="space-y-6 lg:sticky lg:top-32 lg:col-span-4">
+            <div
+                class="flex flex-col gap-6 lg:sticky lg:top-sticky lg:col-span-4"
+            >
                 <CartSummaryCard
                     :item-count="cart.count.value"
                     :subtotal="cart.subtotal.value"
@@ -189,43 +193,32 @@ async function proceedToCheckout() {
                     @remove="handleRemovePromo"
                 />
 
-                <!-- Trust Signals -->
-                <div
-                    class="text-charcoal-600 space-y-2 rounded-xl border border-cream-200 bg-cream-100/60 p-4 text-xs"
-                >
-                    <div class="flex items-center gap-2">
+                <ul class="flex flex-col gap-3 px-2 text-sm text-ink-muted">
+                    <li class="flex items-center gap-3">
                         <ShieldCheckIcon
-                            class="h-4 w-4 shrink-0 text-sage-700"
-                            :stroke-width="1.5"
+                            class="size-4 text-sage-700"
                             aria-hidden="true"
                         />
-                        <span>Encrypted 256-bit secure checkout</span>
-                    </div>
-                    <div class="flex items-center gap-2">
+                        Secure, encrypted checkout
+                    </li>
+                    <li class="flex items-center gap-3">
                         <RefreshCwIcon
-                            class="h-4 w-4 shrink-0 text-sage-700"
-                            :stroke-width="1.5"
+                            class="size-4 text-sage-700"
                             aria-hidden="true"
                         />
-                        <span>30-day conscious returns & exchanges</span>
-                    </div>
-                </div>
+                        30-day returns and exchanges
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <!-- Empty Cart State -->
-        <div v-else class="space-y-10">
+        <div v-else class="flex flex-col gap-12">
             <CartEmptyState />
-            <div
-                v-if="cart.savedItems.value.length > 0"
-                class="mx-auto max-w-4xl"
-            >
-                <SavedForLaterList
-                    :items="cart.savedItems.value"
-                    @move-to-cart="cart.moveToCart"
-                    @remove-item="cart.removeSavedItem"
-                />
-            </div>
+            <SavedForLaterList
+                :items="cart.savedItems.value"
+                @move-to-cart="cart.moveToCart"
+                @remove-item="cart.removeSavedItem"
+            />
         </div>
-    </section>
+    </Container>
 </template>

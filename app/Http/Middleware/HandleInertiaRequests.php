@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Cache\AppCache;
 use App\Services\CartService;
 use App\Services\FavouriteService;
+use App\Services\StorageImageService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -47,9 +48,11 @@ class HandleInertiaRequests extends Middleware
         $cartCount = $cartSummary['count'];
         $cartSubtotal = $cartSummary['subtotal'];
 
+        $storageImageService = app(StorageImageService::class);
+
         $navigation = AppCache::remember(
             CacheKey::StorefrontNavigation,
-            function () {
+            function () use ($storageImageService) {
                 try {
                     return Category::query()
                         ->where('is_active', true)
@@ -58,11 +61,12 @@ class HandleInertiaRequests extends Middleware
                         ->with([
                             'children' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order'),
                         ])
-                        ->get(['id', 'slug', 'name', 'parent_id'])
+                        ->get(['id', 'slug', 'name', 'image', 'parent_id'])
                         ->map(fn (Category $cat) => [
                             'id' => $cat->id,
                             'slug' => $cat->slug,
                             'name' => $cat->name,
+                            'image' => $storageImageService->getImage($cat->image, false),
                             'children' => $cat->children->map(fn (Category $child) => [
                                 'id' => $child->id,
                                 'slug' => $child->slug,

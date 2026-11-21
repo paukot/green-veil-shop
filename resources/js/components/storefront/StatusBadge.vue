@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import Badge from '@/components/ui/Badge.vue';
 import {
     formatStatusLabel,
-    getOrderStatusClass,
-    getPaymentStatusClass,
+    getOrderStatusTone,
+    getPaymentStatusTone,
 } from '@/lib/formatters';
-import { cn } from '@/lib/utils';
 
 const props = withDefaults(
     defineProps<{
@@ -21,24 +21,16 @@ const props = withDefaults(
 );
 
 const label = computed(() => formatStatusLabel(props.status));
-const colorClasses = computed(() =>
+const tone = computed(() =>
     props.type === 'payment'
-        ? getPaymentStatusClass(props.status)
-        : getOrderStatusClass(props.status),
+        ? getPaymentStatusTone(props.status)
+        : getOrderStatusTone(props.status),
 );
 </script>
 
 <template>
-    <span
-        :class="
-            cn(
-                'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium select-none',
-                colorClasses,
-                props.class,
-            )
-        "
-    >
-        <span v-if="prefix" class="mr-1">{{ prefix }}</span>
+    <Badge :tone="tone" :class="props.class">
+        <span v-if="prefix">{{ prefix }}</span>
         <span>{{ label }}</span>
-    </span>
+    </Badge>
 </template>

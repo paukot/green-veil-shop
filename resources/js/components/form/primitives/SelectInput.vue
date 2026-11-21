@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
 import { ChevronDownIcon } from '@lucide/vue';
+import {
+    fieldSizeClasses,
+    fieldStateClasses,
+    fieldSurfaceClasses,
+} from '@/lib/fieldStyles';
+import { cn } from '@/lib/utils';
 
 export interface SelectOption {
     value: string | number;
@@ -17,13 +22,14 @@ interface Props {
     placeholder?: string | null;
     hasError?: boolean;
     size?: 'sm' | 'md';
+    /** Kept for API compatibility; all selects use the shared field radius. */
     rounded?: 'md' | 'lg' | 'xl';
     class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     size: 'md',
-    rounded: 'xl',
+    rounded: 'lg',
 });
 
 const model = defineModel<string | number | null>();
@@ -36,17 +42,11 @@ const model = defineModel<string | number | null>();
             v-model="model"
             :class="
                 cn(
-                    'block w-full appearance-none border bg-cream-50/50 text-charcoal-900 transition-colors focus:bg-white focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
-                    rounded === 'md' && 'rounded-md',
-                    rounded === 'lg' && 'rounded-lg',
-                    rounded === 'xl' && 'rounded-xl',
-                    size === 'sm' &&
-                        'min-h-[44px] py-2 pr-8 pl-3 text-base sm:min-h-0 sm:py-1.5 sm:text-xs',
-                    size === 'md' &&
-                        'min-h-[44px] py-2.5 pr-10 pl-4 text-base sm:min-h-0 sm:text-sm',
-                    hasError
-                        ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
-                        : 'border-cream-300 focus:border-sage-600 focus:ring-1 focus:ring-sage-600',
+                    fieldSurfaceClasses,
+                    fieldSizeClasses[size],
+                    'appearance-none',
+                    size === 'sm' ? 'pr-8' : 'pr-12',
+                    fieldStateClasses(hasError),
                     props.class,
                 )
             "
@@ -68,10 +68,15 @@ const model = defineModel<string | number | null>();
         </select>
 
         <div
-            class="text-charcoal-500 pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5"
+            :class="
+                cn(
+                    'pointer-events-none absolute inset-y-0 right-0 flex items-center text-ink-subtle',
+                    size === 'sm' ? 'pr-2' : 'pr-4',
+                )
+            "
             aria-hidden="true"
         >
-            <ChevronDownIcon class="h-4 w-4" aria-hidden="true" />
+            <ChevronDownIcon class="size-4" aria-hidden="true" />
         </div>
     </div>
 </template>

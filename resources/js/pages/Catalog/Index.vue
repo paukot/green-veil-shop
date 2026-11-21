@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import Section from '@/components/ui/Section.vue';
 import CatalogListingLayout from '@/components/storefront/CatalogListingLayout.vue';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import { index as productsIndex } from '@/routes/products';
@@ -34,36 +36,17 @@ const pageTitle = computed(() => {
         <meta property="og:type" content="website" />
     </Head>
 
-    <!-- Page Header -->
-    <section
-        class="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50 py-10 sm:py-12"
-    >
-        <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-            <span
-                class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
-            >
-                Botanical Formulations
-            </span>
-            <h1
-                class="mt-2 font-serif text-3xl tracking-tight text-charcoal-900 sm:text-4xl md:text-5xl"
-            >
-                {{
-                    filters.q
-                        ? `Search: "${filters.q}"`
-                        : 'All Botanical Products'
-                }}
-            </h1>
-            <p
-                class="text-charcoal-600 mx-auto mt-3 max-w-xl text-sm leading-relaxed font-light"
-            >
-                {{
-                    filters.q
-                        ? 'Showing conscious products matching your botanical search query.'
-                        : 'Consciously crafted skin and body care rooted in pure botanical ingredients and restorative rituals.'
-                }}
-            </p>
-        </div>
-    </section>
+    <Section spacing="sm" class="border-b border-border">
+        <PageHeader
+            :eyebrow="filters.q ? 'Search results' : 'The apothecary'"
+            :title="filters.q ? `“${filters.q}”` : 'All products'"
+            :description="
+                filters.q
+                    ? 'Products matching your search.'
+                    : 'Consciously crafted skin and body care rooted in pure botanical ingredients.'
+            "
+        />
+    </Section>
 
     <!-- Main Catalog Content -->
     <CatalogListingLayout

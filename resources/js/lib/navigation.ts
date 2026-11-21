@@ -2,79 +2,41 @@ import type { CategoryNavigationItem } from '@/types/storefront';
 
 export type NavigationLayout = {
     columnCount: number;
-    isMegaMenu: boolean;
-    containerWidthClass: string;
-    innerCardClass: string;
     gridColsClass: string;
     columns: CategoryNavigationItem[][];
 };
 
+/** Column count by number of subcategories, so long departments stay short. */
 const LAYOUT_TIERS = [
-    {
-        minCount: 25,
-        columnCount: 4,
-        isMegaMenu: true,
-        containerWidthClass: 'left-0 right-0 w-full',
-        innerCardClass: 'mx-auto max-w-5xl',
-        gridColsClass: 'grid-cols-4',
-    },
-    {
-        minCount: 15,
-        columnCount: 3,
-        isMegaMenu: true,
-        containerWidthClass: 'left-0 right-0 w-full',
-        innerCardClass: 'mx-auto max-w-3xl',
-        gridColsClass: 'grid-cols-3',
-    },
-    {
-        minCount: 7,
-        columnCount: 2,
-        isMegaMenu: false,
-        containerWidthClass: 'w-96 left-1/2 -translate-x-1/2',
-        innerCardClass: 'w-full',
-        gridColsClass: 'grid-cols-2',
-    },
+    { minCount: 25, columnCount: 4, gridColsClass: 'grid-cols-4' },
+    { minCount: 15, columnCount: 3, gridColsClass: 'grid-cols-3' },
+    { minCount: 7, columnCount: 2, gridColsClass: 'grid-cols-2' },
+    { minCount: 0, columnCount: 1, gridColsClass: 'grid-cols-1' },
 ] as const;
 
-const DEFAULT_LAYOUT = {
-    columnCount: 1,
-    isMegaMenu: false,
-    containerWidthClass: 'w-56 left-1/2 -translate-x-1/2',
-    innerCardClass: 'w-full',
-    gridColsClass: 'grid-cols-1',
-};
-
 /**
- * Dynamically determine navigation layout and column distribution strictly
- * based on the number of child categories.
+ * Split a department's subcategories into evenly filled columns for the mega menu.
  */
 export function getNavigationLayout(
     cat: CategoryNavigationItem,
 ): NavigationLayout {
     const children = cat.children ?? [];
-    const count = children.length;
-
-    if (count === 0) {
-        return {
-            ...DEFAULT_LAYOUT,
-            columns: [],
-        };
-    }
-
     const tier =
-        LAYOUT_TIERS.find((t) => count >= t.minCount) ?? DEFAULT_LAYOUT;
-    const itemsPerCol = Math.ceil(count / tier.columnCount);
+        LAYOUT_TIERS.find((t) => children.length >= t.minCount) ??
+        LAYOUT_TIERS[LAYOUT_TIERS.length - 1];
+    const itemsPerCol = Math.max(
+        1,
+        Math.ceil(children.length / tier.columnCount),
+    );
 
     const columns: CategoryNavigationItem[][] = [];
-    for (let col = 0; col < tier.columnCount; col++) {
-        const start = col * itemsPerCol;
-        if (start >= count) break;
-        const end = Math.min(start + itemsPerCol, count);
-        columns.push(children.slice(start, end));
+    for (let start = 0; start < children.length; start += itemsPerCol) {
+        columns.push(children.slice(start, start + itemsPerCol));
     }
 
     return {
-        ...tier,
+        columnCount: tier.columnCount,
+        gridColsClass: tier.gridColsClass,
         columns,
     };
 }

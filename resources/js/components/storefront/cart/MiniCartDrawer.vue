@@ -1,381 +1,192 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { ShoppingBagIcon, Trash2Icon } from '@lucide/vue';
+import { QuantityInput } from '@/components/form';
+import FreeShippingProgress from '@/components/storefront/cart/FreeShippingProgress.vue';
+import CartItemSkeleton from '@/components/storefront/skeletons/CartItemSkeleton.vue';
+import Badge from '@/components/ui/Badge.vue';
+import Button from '@/components/ui/Button.vue';
+import Drawer from '@/components/ui/Drawer.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
+import IconButton from '@/components/ui/IconButton.vue';
 import { useCart } from '@/composables/useCart';
-import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
+import {
+    formatCurrency,
+    resolveStorageUrl,
+    showPlaceholderOnError,
+} from '@/lib/utils';
 import { index as cartIndex } from '@/routes/cart';
 import { show as checkoutShow } from '@/actions/App/Http/Controllers/CheckoutController';
 import { index as productsIndex } from '@/routes/products';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
-import CartItemSkeleton from '@/components/storefront/skeletons/CartItemSkeleton.vue';
-import { Trash2Icon, XIcon } from '@lucide/vue';
 
 const cart = useCart();
 
 const FREE_SHIPPING_THRESHOLD = 50;
 
-const freeShippingProgress = computed(() => {
-    return cart.freeShippingProgress(FREE_SHIPPING_THRESHOLD);
-});
+const freeShippingProgress = computed(() =>
+    cart.freeShippingProgress(FREE_SHIPPING_THRESHOLD),
+);
+const qualifiesForFreeShipping = computed(() =>
+    cart.qualifiesForFreeShipping(FREE_SHIPPING_THRESHOLD),
+);
+const amountUntilFreeShipping = computed(() =>
+    cart.amountUntilFreeShipping(FREE_SHIPPING_THRESHOLD),
+);
 
-const qualifiesForFreeShipping = computed(() => {
-    return cart.qualifiesForFreeShipping(FREE_SHIPPING_THRESHOLD);
-});
+const page = usePage();
 
-const amountUntilFreeShipping = computed(() => {
-    return cart.amountUntilFreeShipping(FREE_SHIPPING_THRESHOLD);
-});
+const isLoading = computed(
+    () => !cart.isInitialized.value && cart.isEmpty.value,
+);
 
-watch(cart.isDrawerOpen, (isOpen) => {
-    if (typeof document !== 'undefined') {
-        document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-});
+/** Items saved to the account on another device that this browser has not loaded yet. */
+const serverOnlyCount = computed(() =>
+    cart.isEmpty.value ? (page.props.cart?.count ?? 0) : 0,
+);
 
-function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && cart.isDrawerOpen.value) {
-        cart.closeDrawer();
-    }
-}
-
-onMounted(() => {
-    window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown);
-    if (typeof document !== 'undefined') {
-        document.body.style.overflow = '';
-    }
-});
-
-function navigateToCheckout() {
+function visit(url: string) {
     cart.closeDrawer();
-    router.visit(checkoutShow.url());
-}
-
-function navigateToCart() {
-    cart.closeDrawer();
-    router.visit(cartIndex.url());
-}
-
-function navigateToProducts() {
-    cart.closeDrawer();
-    router.visit(productsIndex.url());
+    router.visit(url);
 }
 </script>
 
 <template>
-    <Teleport to="body">
-        <div>
-            <!-- Backdrop -->
-            <Transition
-                enter-active-class="transition-opacity duration-300 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-opacity duration-200 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div
-                    v-if="cart.isDrawerOpen.value"
-                    class="fixed inset-0 z-50 bg-charcoal-900/50 backdrop-blur-xs"
-                    @click="cart.closeDrawer"
-                    aria-hidden="true"
-                />
-            </Transition>
+    <Drawer
+        :open="cart.isDrawerOpen.value"
+        title="Your bag"
+        @close="cart.closeDrawer()"
+    >
+        <template #title-extra>
+            <Badge v-if="cart.count.value > 0">{{ cart.count.value }}</Badge>
+        </template>
 
-            <!-- Slideover Panel -->
-            <Transition
-                enter-active-class="transform transition duration-300 ease-out"
-                enter-from-class="translate-x-full"
-                enter-to-class="translate-x-0"
-                leave-active-class="transform transition duration-200 ease-in"
-                leave-from-class="translate-x-0"
-                leave-to-class="translate-x-full"
-            >
-                <aside
-                    v-if="cart.isDrawerOpen.value"
-                    class="fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Shopping Bag Slideout"
-                >
-                    <!-- Header -->
-                    <div
-                        class="flex items-center justify-between border-b border-cream-200 px-6 py-4"
-                    >
-                        <div class="flex items-center gap-2">
-                            <h2 class="font-serif text-lg text-sage-900">
-                                Your Shopping Bag
-                            </h2>
-                            <span
-                                v-if="cart.count.value > 0"
-                                class="flex h-5 items-center justify-center rounded-full bg-sage-100 px-2 text-xs font-semibold text-sage-800"
-                            >
-                                {{ cart.count.value }}
-                            </span>
-                        </div>
-
-                        <button
-                            type="button"
-                            @click="cart.closeDrawer"
-                            class="text-charcoal-500 -mr-2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 hover:bg-cream-100 hover:text-charcoal-900 focus:outline-none"
-                            aria-label="Close bag drawer"
-                        >
-                            <XIcon
-                                class="h-5 w-5"
-                                :stroke-width="1.5"
-                                aria-hidden="true"
-                            />
-                        </button>
-                    </div>
-
-                    <!-- Free Delivery Progress Bar -->
-                    <div
-                        class="border-b border-cream-100 bg-cream-50/70 px-6 py-3"
-                    >
-                        <div class="flex items-center justify-between text-xs">
-                            <span
-                                v-if="qualifiesForFreeShipping"
-                                class="font-medium text-emerald-800"
-                            >
-                                🌿 Free Botanical Delivery unlocked!
-                            </span>
-                            <span v-else class="text-charcoal-700">
-                                Add
-                                <strong class="font-semibold text-sage-900">
-                                    {{
-                                        formatCurrency(amountUntilFreeShipping)
-                                    }}
-                                </strong>
-                                for complimentary delivery
-                            </span>
-                            <span
-                                class="text-charcoal-500 font-mono text-[11px]"
-                            >
-                                {{ freeShippingProgress }}%
-                            </span>
-                        </div>
-                        <div
-                            class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-cream-200"
-                        >
-                            <div
-                                class="h-full rounded-full transition-all duration-500 ease-out"
-                                :class="
-                                    qualifiesForFreeShipping
-                                        ? 'bg-emerald-600'
-                                        : 'bg-sage-600'
-                                "
-                                :style="{ width: `${freeShippingProgress}%` }"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Body: Items List, Skeleton, or Empty State -->
-                    <div class="flex-1 overflow-y-auto p-6">
-                        <!-- Skeleton Loading State -->
-                        <div
-                            v-if="
-                                !cart.isInitialized.value ||
-                                (cart.isSyncing.value && cart.isEmpty.value)
-                            "
-                        >
-                            <CartItemSkeleton :count="3" />
-                        </div>
-
-                        <!-- Empty State -->
-                        <div
-                            v-else-if="cart.isEmpty.value"
-                            class="flex h-full flex-col items-center justify-center text-center"
-                        >
-                            <div
-                                class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sage-50 text-2xl"
-                            >
-                                🍃
-                            </div>
-                            <h3 class="font-serif text-lg text-charcoal-900">
-                                Your bag is currently empty
-                            </h3>
-                            <p class="text-charcoal-500 mt-1 max-w-xs text-xs">
-                                Discover conscious botanical care handcrafted
-                                for your daily ritual.
-                            </p>
-                            <button
-                                type="button"
-                                @click="navigateToProducts"
-                                class="mt-6 rounded-full bg-sage-800 px-6 py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900"
-                            >
-                                Explore Formulas
-                            </button>
-                        </div>
-
-                        <!-- Items List -->
-                        <div v-else class="divide-y divide-cream-100">
-                            <div
-                                v-for="item in cart.items.value"
-                                :key="item.product_id"
-                                class="flex gap-4 py-4 first:pt-0 last:pb-0"
-                            >
-                                <!-- Thumbnail -->
-                                <div
-                                    class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-cream-200 bg-cream-50"
-                                >
-                                    <img
-                                        v-if="item.main_image"
-                                        :src="
-                                            resolveStorageUrl(item.main_image)
-                                        "
-                                        :alt="item.name"
-                                        class="h-full w-full object-cover"
-                                    />
-                                    <div
-                                        v-else
-                                        class="text-charcoal-400 flex h-full w-full items-center justify-center text-xl"
-                                    >
-                                        🌿
-                                    </div>
-                                </div>
-
-                                <!-- Details -->
-                                <div
-                                    class="flex flex-1 flex-col justify-between"
-                                >
-                                    <div>
-                                        <div
-                                            class="flex items-start justify-between gap-2"
-                                        >
-                                            <Link
-                                                :href="
-                                                    productShow.url(item.slug)
-                                                "
-                                                @click="cart.closeDrawer"
-                                                class="font-serif text-sm font-normal text-charcoal-900 hover:text-sage-800"
-                                            >
-                                                {{ item.name }}
-                                            </Link>
-                                            <span
-                                                class="text-xs font-semibold text-charcoal-900"
-                                            >
-                                                {{
-                                                    formatCurrency(
-                                                        item.price *
-                                                            item.quantity,
-                                                    )
-                                                }}
-                                            </span>
-                                        </div>
-                                        <p
-                                            v-if="item.volume"
-                                            class="text-charcoal-500 text-[11px]"
-                                        >
-                                            {{ item.volume }}
-                                            {{ item.unit || 'ml' }}
-                                        </p>
-                                    </div>
-
-                                    <!-- Stepper and Actions -->
-                                    <div
-                                        class="mt-2 flex items-center justify-between"
-                                    >
-                                        <!-- Quantity Stepper -->
-                                        <div
-                                            class="inline-flex items-center rounded-lg border border-cream-200 bg-cream-50/80 p-0.5"
-                                        >
-                                            <button
-                                                type="button"
-                                                @click="
-                                                    cart.updateQuantity(
-                                                        item.product_id,
-                                                        item.quantity - 1,
-                                                    )
-                                                "
-                                                class="flex h-6 w-6 items-center justify-center rounded text-charcoal-700 hover:bg-white"
-                                                aria-label="Decrease quantity"
-                                            >
-                                                -
-                                            </button>
-                                            <span
-                                                class="w-6 text-center text-xs font-medium text-charcoal-900"
-                                            >
-                                                {{ item.quantity }}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                @click="
-                                                    cart.updateQuantity(
-                                                        item.product_id,
-                                                        item.quantity + 1,
-                                                    )
-                                                "
-                                                class="flex h-6 w-6 items-center justify-center rounded text-charcoal-700 hover:bg-white"
-                                                aria-label="Increase quantity"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-
-                                        <!-- Remove button -->
-                                        <button
-                                            type="button"
-                                            @click="
-                                                cart.removeItem(item.product_id)
-                                            "
-                                            class="text-charcoal-400 hover:text-red-700"
-                                            aria-label="Remove item"
-                                        >
-                                            <Trash2Icon
-                                                class="h-4 w-4"
-                                                :stroke-width="1.5"
-                                                aria-hidden="true"
-                                            />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer: Summary & Checkout CTA -->
-                    <div
-                        v-if="!cart.isEmpty.value"
-                        class="space-y-3 border-t border-cream-200 bg-cream-50/60 p-6"
-                    >
-                        <!-- Subtotal -->
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-charcoal-600">Subtotal</span>
-                            <span
-                                class="font-serif text-lg font-semibold text-charcoal-900"
-                            >
-                                {{ formatCurrency(cart.subtotal.value) }}
-                            </span>
-                        </div>
-                        <p class="text-charcoal-500 text-[11px]">
-                            Shipping and taxes calculated at checkout.
-                        </p>
-
-                        <!-- Primary Checkout Button -->
-                        <button
-                            type="button"
-                            @click="navigateToCheckout"
-                            class="flex min-h-[48px] w-full items-center justify-center rounded-full bg-sage-800 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                        >
-                            Proceed to Checkout →
-                        </button>
-
-                        <!-- Secondary View Bag Link -->
-                        <div class="text-center">
-                            <button
-                                type="button"
-                                @click="navigateToCart"
-                                class="text-xs font-medium text-sage-800 hover:underline"
-                            >
-                                View full bag & promotions
-                            </button>
-                        </div>
-                    </div>
-                </aside>
-            </Transition>
+        <div
+            v-if="!cart.isEmpty.value"
+            class="border-b border-border px-6 py-4"
+        >
+            <FreeShippingProgress
+                :progress="freeShippingProgress"
+                :qualifies="qualifiesForFreeShipping"
+                :amount-remaining="amountUntilFreeShipping"
+            />
         </div>
-    </Teleport>
+
+        <div v-if="isLoading" class="p-6">
+            <CartItemSkeleton :count="3" />
+        </div>
+
+        <div v-else-if="serverOnlyCount > 0" class="p-6">
+            <EmptyState
+                :title="`You have ${serverOnlyCount} ${serverOnlyCount === 1 ? 'item' : 'items'} in your bag`"
+                description="Your bag was saved to your account. Open it to see everything."
+                class="border-0 px-0"
+            >
+                <template #icon>
+                    <ShoppingBagIcon aria-hidden="true" />
+                </template>
+                <template #actions>
+                    <Button @click="visit(cartIndex.url())">View bag</Button>
+                </template>
+            </EmptyState>
+        </div>
+
+        <div v-else-if="cart.isEmpty.value" class="p-6">
+            <EmptyState
+                title="Your bag is empty"
+                description="Add a few botanical favourites to get started."
+                class="border-0 px-0"
+            >
+                <template #icon>
+                    <ShoppingBagIcon aria-hidden="true" />
+                </template>
+                <template #actions>
+                    <Button @click="visit(productsIndex.url())">
+                        Start shopping
+                    </Button>
+                </template>
+            </EmptyState>
+        </div>
+
+        <ul v-else class="flex flex-col divide-y divide-border px-6">
+            <li
+                v-for="item in cart.items.value"
+                :key="item.product_id"
+                class="flex gap-4 py-4"
+            >
+                <Link
+                    :href="productShow.url(item.slug)"
+                    class="size-16 shrink-0 overflow-hidden rounded-lg bg-surface-sunken"
+                    @click="cart.closeDrawer()"
+                >
+                    <img
+                        v-if="item.main_image"
+                        :src="resolveStorageUrl(item.main_image)"
+                        :alt="item.name"
+                        class="size-full object-cover"
+                        loading="lazy"
+                        @error="showPlaceholderOnError"
+                    />
+                </Link>
+
+                <div class="flex min-w-0 flex-1 flex-col gap-2">
+                    <div class="flex items-start justify-between gap-2">
+                        <Link
+                            :href="productShow.url(item.slug)"
+                            class="line-clamp-2 text-sm font-medium text-ink hover:text-sage-800"
+                            @click="cart.closeDrawer()"
+                        >
+                            {{ item.name }}
+                        </Link>
+                        <p class="text-sm font-semibold text-ink tabular-nums">
+                            {{ formatCurrency(item.price * item.quantity) }}
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <QuantityInput
+                            size="sm"
+                            :model-value="item.quantity"
+                            :min="1"
+                            :max="
+                                item.track_inventory ? item.stock_quantity : 99
+                            "
+                            @change="
+                                (qty) =>
+                                    cart.updateQuantity(item.product_id, qty)
+                            "
+                        />
+                        <IconButton
+                            :label="`Remove ${item.name}`"
+                            size="sm"
+                            class="hover:text-danger-600"
+                            @click="cart.removeItem(item.product_id)"
+                        >
+                            <Trash2Icon class="size-4" aria-hidden="true" />
+                        </IconButton>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <template v-if="!cart.isEmpty.value" #footer>
+            <div class="flex flex-col gap-4">
+                <div class="flex items-baseline justify-between gap-4">
+                    <p class="font-serif text-xl text-ink">Subtotal</p>
+                    <p class="text-xl font-semibold text-ink tabular-nums">
+                        {{ formatCurrency(cart.subtotal.value) }}
+                    </p>
+                </div>
+                <p class="text-xs text-ink-subtle">
+                    Delivery and offers are applied at checkout.
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <Button variant="outline" @click="visit(cartIndex.url())">
+                        View bag
+                    </Button>
+                    <Button @click="visit(checkoutShow.url())">Checkout</Button>
+                </div>
+            </div>
+        </template>
+    </Drawer>
 </template>

@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, WhenVisible } from '@inertiajs/vue3';
-import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
-import HeroSlider from '@/components/storefront/HeroSlider.vue';
-import PromoBanner from '@/components/storefront/PromoBanner.vue';
-import ProductGrid from '@/components/storefront/ProductGrid.vue';
-import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSkeleton.vue';
-import CategoryCard from '@/components/storefront/CategoryCard.vue';
-import type { HomePageProps } from '@/types/storefront';
-import { index as productsIndex } from '@/routes/products';
+import { computed } from 'vue';
+import { Head, WhenVisible } from '@inertiajs/vue3';
 import {
     ArrowRightIcon,
     LeafIcon,
@@ -15,16 +8,59 @@ import {
     RecycleIcon,
     TruckIcon,
 } from '@lucide/vue';
+import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
+import CategoryCard from '@/components/storefront/CategoryCard.vue';
+import HeroSlider from '@/components/storefront/HeroSlider.vue';
+import ProductGrid from '@/components/storefront/ProductGrid.vue';
+import PromoBanner from '@/components/storefront/PromoBanner.vue';
+import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSkeleton.vue';
+import Button from '@/components/ui/Button.vue';
+import Container from '@/components/ui/Container.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import Section from '@/components/ui/Section.vue';
+import type { HomePageProps } from '@/types/storefront';
+import { index as productsIndex } from '@/routes/products';
+import { resolveStorageUrl, showPlaceholderOnError } from '@/lib/utils';
 
 defineOptions({
     layout: StorefrontLayout,
 });
 
-defineProps<HomePageProps>();
+const props = defineProps<HomePageProps>();
+
+const pillars = [
+    {
+        icon: LeafIcon,
+        title: 'Pure botanicals',
+        description: 'Active plant extracts and cold-pressed oils',
+    },
+    {
+        icon: RabbitIcon,
+        title: 'Cruelty free',
+        description: 'Never tested on animals, ever',
+    },
+    {
+        icon: RecycleIcon,
+        title: 'Sustainably made',
+        description: 'Recyclable glass and refillable jars',
+    },
+    {
+        icon: TruckIcon,
+        title: 'Free delivery',
+        description: 'On every order over €50',
+    },
+];
+
+/** The brand story borrows a department photo so it always has a local image. */
+const storyImage = computed(() =>
+    resolveStorageUrl(
+        props.featuredCategories.find((category) => category.image)?.image,
+    ),
+);
 </script>
 
 <template>
-    <Head title="Botanical Skincare & Conscious Beauty — Green Veil">
+    <Head title="Botanical Skincare & Conscious Beauty">
         <meta
             name="description"
             content="Discover pure botanical skincare and artisan cosmetics formulated with active herbal extracts and sustainable apothecary rituals."
@@ -40,225 +76,146 @@ defineProps<HomePageProps>();
         <meta property="og:type" content="website" />
     </Head>
 
-    <!-- Hero Slider Section -->
     <HeroSlider :slides="heroSlides" />
 
-    <!-- Brand Values / Trust Points -->
-    <section
-        aria-label="Brand Pillars"
-        class="border-b border-cream-200 bg-cream-100/50 py-8"
-    >
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-4">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
+    <!-- Pillars -->
+    <section aria-label="Our promise" class="border-y border-border">
+        <Container>
+            <ul
+                class="grid grid-cols-1 gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8"
+            >
+                <li
+                    v-for="pillar in pillars"
+                    :key="pillar.title"
+                    class="flex items-center gap-4"
+                >
+                    <span
+                        class="flex size-12 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-800"
                     >
-                        <LeafIcon
-                            class="h-5 w-5"
-                            :stroke-width="1.5"
+                        <component
+                            :is="pillar.icon"
+                            class="size-6"
                             aria-hidden="true"
                         />
-                    </div>
-                    <div>
-                        <h4
-                            class="text-xs font-semibold tracking-wider text-charcoal-900 uppercase"
-                        >
-                            Pure Botanicals
-                        </h4>
-                        <p class="text-charcoal-600 text-[11px]">
-                            Active plant extracts & oils
+                    </span>
+                    <div class="flex flex-col gap-1">
+                        <p class="text-sm font-semibold text-ink">
+                            {{ pillar.title }}
+                        </p>
+                        <p class="text-xs text-ink-muted">
+                            {{ pillar.description }}
                         </p>
                     </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
-                    >
-                        <RabbitIcon
-                            class="h-5 w-5"
-                            :stroke-width="1.5"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <div>
-                        <h4
-                            class="text-xs font-semibold tracking-wider text-charcoal-900 uppercase"
-                        >
-                            Cruelty Free
-                        </h4>
-                        <p class="text-charcoal-600 text-[11px]">
-                            Never tested on animals
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
-                    >
-                        <RecycleIcon
-                            class="h-5 w-5"
-                            :stroke-width="1.5"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <div>
-                        <h4
-                            class="text-xs font-semibold tracking-wider text-charcoal-900 uppercase"
-                        >
-                            Sustainably Made
-                        </h4>
-                        <p class="text-charcoal-600 text-[11px]">
-                            Recyclable packaging & jars
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-700"
-                    >
-                        <TruckIcon
-                            class="h-5 w-5"
-                            :stroke-width="1.5"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <div>
-                        <h4
-                            class="text-xs font-semibold tracking-wider text-charcoal-900 uppercase"
-                        >
-                            Free Delivery
-                        </h4>
-                        <p class="text-charcoal-600 text-[11px]">
-                            On all orders over €50
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+                </li>
+            </ul>
+        </Container>
     </section>
 
-    <!-- Active Promotions -->
+    <!-- Departments -->
+    <Section v-if="featuredCategories.length > 0">
+        <div class="flex flex-col gap-8 lg:gap-12">
+            <PageHeader
+                level="section"
+                eyebrow="Departments"
+                title="Shop by ritual"
+                description="From morning cleansers to evening fragrance, find the step your routine is missing."
+            >
+                <template #actions>
+                    <Button :href="productsIndex.url()" variant="link">
+                        View all
+                        <template #trailing>
+                            <ArrowRightIcon class="size-4" aria-hidden="true" />
+                        </template>
+                    </Button>
+                </template>
+            </PageHeader>
+            <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-6">
+                <CategoryCard
+                    v-for="category in featuredCategories"
+                    :key="category.id"
+                    :category="category"
+                />
+            </div>
+        </div>
+    </Section>
+
     <PromoBanner :promotions="promotions" />
 
-    <!-- Featured Categories Section -->
-    <section
-        v-if="featuredCategories.length > 0"
-        class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8"
-    >
-        <div
-            class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
-        >
-            <div>
-                <span
-                    class="mb-1 block text-xs font-semibold tracking-widest text-sage-600 uppercase"
-                >
-                    Curated Collections
-                </span>
-                <h2
-                    class="font-serif text-2xl font-normal text-charcoal-900 sm:text-3xl"
-                >
-                    Botanical Rituals
-                </h2>
-            </div>
-            <Link
-                :href="productsIndex.url()"
-                class="group inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-sage-700 uppercase hover:text-sage-900"
+    <!-- Bestsellers -->
+    <Section>
+        <div class="flex flex-col gap-8 lg:gap-12">
+            <PageHeader
+                level="section"
+                eyebrow="Bestsellers"
+                title="Loved by our community"
+                description="The formulas customers come back for, season after season."
             >
-                <span>View All Collections</span>
-                <ArrowRightIcon
-                    class="h-4 w-4 transition-transform group-hover:translate-x-1"
-                    aria-hidden="true"
-                />
-            </Link>
-        </div>
-
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <CategoryCard
-                v-for="category in featuredCategories"
-                :key="category.id"
-                :category="category"
-            />
-        </div>
-    </section>
-
-    <!-- Featured Formulations Section -->
-    <section
-        v-if="!featuredProducts || featuredProducts.length > 0"
-        class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8"
-    >
-        <div
-            class="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
-        >
-            <div>
-                <span
-                    class="mb-1 block text-xs font-semibold tracking-widest text-sage-600 uppercase"
-                >
-                    Most Loved
-                </span>
-                <h2
-                    class="font-serif text-2xl font-normal text-charcoal-900 sm:text-3xl"
-                >
-                    Signature Formulations
-                </h2>
-            </div>
-            <Link
-                :href="productsIndex.url()"
-                class="group inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-sage-700 uppercase hover:text-sage-900"
-            >
-                <span>Explore Catalog</span>
-                <ArrowRightIcon
-                    class="h-4 w-4 transition-transform group-hover:translate-x-1"
-                    aria-hidden="true"
-                />
-            </Link>
-        </div>
-
-        <WhenVisible data="featuredProducts">
-            <template #fallback>
-                <ProductGridSkeleton :count="8" />
-            </template>
-            <template #default>
+                <template #actions>
+                    <Button :href="productsIndex.url()" variant="link">
+                        Shop all
+                        <template #trailing>
+                            <ArrowRightIcon class="size-4" aria-hidden="true" />
+                        </template>
+                    </Button>
+                </template>
+            </PageHeader>
+            <WhenVisible data="featuredProducts">
+                <template #fallback>
+                    <ProductGridSkeleton :count="8" />
+                </template>
                 <ProductGrid
-                    v-if="featuredProducts && featuredProducts.length > 0"
+                    v-if="featuredProducts"
                     :products="featuredProducts"
                 />
-            </template>
-        </WhenVisible>
-    </section>
+            </WhenVisible>
+        </div>
+    </Section>
 
-    <!-- Brand Story / Philosophy Section -->
-    <section class="mt-12 bg-sage-900 py-20 text-cream-50">
-        <div class="mx-auto max-w-4xl space-y-6 px-6 text-center sm:px-8">
-            <span
-                class="block text-xs font-semibold tracking-widest text-sage-300 uppercase"
+    <!-- Brand story -->
+    <Section tone="dark" spacing="none">
+        <div
+            class="grid items-center gap-8 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24"
+        >
+            <div
+                class="aspect-[4/3] overflow-hidden rounded-2xl bg-sage-900 lg:aspect-square"
             >
-                Our Philosophy
-            </span>
-            <h2
-                class="font-serif text-3xl leading-tight font-normal text-cream-50 sm:text-4xl md:text-5xl"
-            >
-                Simplicity. Patience. Plant Alchemy.
-            </h2>
-            <p
-                class="mx-auto max-w-2xl text-sm leading-relaxed font-light text-cream-200/90 sm:text-base"
-            >
-                Every Green Veil creation is grounded in the rhythm of nature.
-                We combine cold-pressed botanical oils, healing herbal extracts,
-                and therapeutic floral waters to support your skin's innate
-                vitality without synthetic fillers.
-            </p>
-            <div class="pt-4">
-                <Link
-                    :href="productsIndex.url()"
-                    class="inline-block rounded-full bg-cream-50 px-8 py-3.5 text-xs font-semibold tracking-widest text-sage-900 uppercase shadow-md transition-colors hover:bg-cream-100"
+                <img
+                    v-if="storyImage"
+                    :src="storyImage"
+                    alt=""
+                    class="size-full object-cover"
+                    loading="lazy"
+                    @error="showPlaceholderOnError"
+                />
+            </div>
+            <div class="flex flex-col gap-6">
+                <p
+                    class="text-xs font-semibold tracking-widest text-sage-300 uppercase"
                 >
-                    Explore The Collection
-                </Link>
+                    Our philosophy
+                </p>
+                <h2
+                    class="font-serif text-4xl tracking-tight text-balance text-cream-50 lg:text-6xl"
+                >
+                    Simplicity. Patience.
+                    <em class="text-sage-300">Plant alchemy.</em>
+                </h2>
+                <p class="max-w-lg text-base text-cream-200">
+                    Every Green Veil creation follows the rhythm of nature. We
+                    combine cold-pressed botanical oils, healing herbal extracts
+                    and floral waters to support your skin's own vitality,
+                    without synthetic fillers.
+                </p>
+                <div>
+                    <Button
+                        :href="productsIndex.url()"
+                        variant="secondary"
+                        size="lg"
+                    >
+                        Explore the collection
+                    </Button>
+                </div>
             </div>
         </div>
-    </section>
+    </Section>
 </template>

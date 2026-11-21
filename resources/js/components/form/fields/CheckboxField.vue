@@ -28,9 +28,9 @@ const errorId = computed(() => `${inputId.value}-error`);
     <div :class="cn('w-full', wrapperClass)">
         <label
             :for="inputId"
-            class="flex cursor-pointer items-start gap-2.5 select-none"
+            class="flex cursor-pointer items-start gap-3 select-none"
         >
-            <div class="flex h-5 items-center">
+            <div class="flex h-6 items-center">
                 <CheckboxInput
                     :id="inputId"
                     v-bind="$attrs"
@@ -42,15 +42,15 @@ const errorId = computed(() => `${inputId.value}-error`);
                 />
             </div>
             <div>
-                <span class="block text-xs font-medium text-charcoal-700">
+                <span class="block text-sm leading-6 font-medium text-ink">
                     <slot>{{ label }}</slot>
                 </span>
-                <p v-if="description" class="text-charcoal-500 mt-0.5 text-xs">
+                <p v-if="description" class="text-xs text-ink-subtle">
                     {{ description }}
                 </p>
             </div>
         </label>
 
-        <InputError :id="errorId" :message="error" class="ml-6.5" />
+        <InputError :id="errorId" :message="error" class="ml-8" />
     </div>
 </template>

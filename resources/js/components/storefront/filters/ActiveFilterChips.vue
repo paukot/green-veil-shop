@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Chip from '@/components/ui/Chip.vue';
 import { computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import type { CatalogFilters, FilterFacets } from '@/types/storefront';
@@ -162,37 +163,23 @@ function clearAllFilters() {
 <template>
     <div
         v-if="activeChips.length > 0"
-        class="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-cream-200 bg-white p-3.5 shadow-2xs"
+        class="flex flex-wrap items-center gap-2"
         aria-label="Active filters"
     >
-        <span
-            class="text-charcoal-500 text-[11px] font-semibold tracking-wider uppercase"
+        <Chip
+            v-for="chip in activeChips"
+            :key="`${chip.key}_${chip.value}`"
+            static
+            removable
+            :remove-label="`Remove filter ${chip.label}`"
+            @remove="removeChip(chip)"
         >
-            Active Filters ({{ activeChips.length }}):
-        </span>
-
-        <div class="flex flex-wrap items-center gap-1.5">
-            <button
-                v-for="chip in activeChips"
-                :key="`${chip.key}_${chip.value}`"
-                type="button"
-                @click="removeChip(chip)"
-                class="group inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-cream-50 px-3 py-1 text-xs text-charcoal-800 transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-900"
-                :title="`Remove filter ${chip.label}`"
-            >
-                <span>{{ chip.label }}</span>
-                <span
-                    class="text-charcoal-400 flex h-3.5 w-3.5 items-center justify-center rounded-full group-hover:bg-rose-200 group-hover:text-rose-800"
-                >
-                    ✕
-                </span>
-            </button>
-        </div>
-
+            {{ chip.label }}
+        </Chip>
         <button
             type="button"
+            class="ml-2 text-sm font-medium text-sage-800 underline-offset-4 hover:underline"
             @click="clearAllFilters"
-            class="ml-auto text-xs font-semibold text-rose-700 hover:text-rose-900 hover:underline"
         >
             Clear all
         </button>

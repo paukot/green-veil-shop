@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { XIcon } from '@lucide/vue';
+import {
+    fieldSizeClasses,
+    fieldStateClasses,
+    fieldSurfaceClasses,
+} from '@/lib/fieldStyles';
 import { cn } from '@/lib/utils';
 
 defineOptions({
@@ -36,10 +42,10 @@ function onClear() {
             :placeholder="placeholder"
             :class="
                 cn(
-                    'block w-full rounded-full border border-cream-300 bg-white text-charcoal-900 transition-colors focus:border-sage-500 focus:outline-hidden',
-                    size === 'sm'
-                        ? 'min-h-[44px] py-2 pr-9 pl-3.5 text-base focus:ring-1 focus:ring-sage-500 sm:min-h-0 sm:text-xs'
-                        : 'min-h-[44px] py-2.5 pr-10 pl-4 text-base focus:ring-2 focus:ring-sage-500 sm:min-h-0 sm:py-2 sm:text-sm',
+                    fieldSurfaceClasses,
+                    fieldSizeClasses[size],
+                    fieldStateClasses(false),
+                    'rounded-full pr-12 [&::-webkit-search-cancel-button]:hidden',
                     props.class,
                 )
             "
@@ -49,10 +55,15 @@ function onClear() {
             v-if="model"
             type="button"
             @click="onClear"
-            class="text-charcoal-400 absolute top-1/2 right-3 -translate-y-1/2 hover:text-charcoal-700"
+            :class="
+                cn(
+                    'absolute top-1/2 right-2 flex -translate-y-1/2 items-center justify-center rounded-full text-ink-subtle transition-colors hover:bg-surface-sunken hover:text-ink',
+                    size === 'sm' ? 'size-6' : 'size-8',
+                )
+            "
             aria-label="Clear search"
         >
-            &times;
+            <XIcon class="size-4" aria-hidden="true" />
         </button>
     </div>
 </template>

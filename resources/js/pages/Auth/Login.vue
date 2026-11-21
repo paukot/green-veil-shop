@@ -25,7 +25,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Sign In — Green Veil" />
+    <Head title="Sign In" />
 
     <div class="px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div class="mx-auto max-w-md">
@@ -40,7 +40,7 @@ const submit = () => {
                 >
                     Sign In to Your Account
                 </h1>
-                <p class="text-charcoal-600 text-sm">
+                <p class="text-sm text-charcoal-600">
                     Access your botanical rituals, saved bag, and order history.
                 </p>
             </div>
@@ -48,11 +48,11 @@ const submit = () => {
             <div
                 class="rounded-2xl border border-cream-200 bg-white p-6 shadow-sm sm:p-8"
             >
-                <form @submit.prevent="submit" class="space-y-5">
+                <form @submit.prevent="submit" class="flex flex-col gap-4">
                     <!-- General / throttled error -->
                     <div
                         v-if="form.errors.email && !form.email"
-                        class="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+                        class="rounded-lg bg-danger-50 p-4 text-sm text-danger-700"
                         role="alert"
                     >
                         {{ form.errors.email }}
@@ -98,19 +98,19 @@ const submit = () => {
                         type="submit"
                         :loading="form.processing"
                         size="md"
-                        class="w-full py-3"
+                        block
                     >
                         {{ form.processing ? 'Signing In...' : 'Sign In' }}
                     </Button>
                 </form>
 
                 <div
-                    class="text-charcoal-600 mt-6 border-t border-cream-200 pt-6 text-center text-xs"
+                    class="mt-6 border-t border-cream-200 pt-6 text-center text-xs text-charcoal-600"
                 >
                     <span>New to Green Veil?</span>
                     <Link
                         :href="register.url()"
-                        class="ml-1.5 font-semibold text-sage-800 underline underline-offset-2 hover:text-sage-900"
+                        class="ml-2 font-semibold text-sage-800 underline underline-offset-2 hover:text-sage-900"
                     >
                         Create an account
                     </Link>

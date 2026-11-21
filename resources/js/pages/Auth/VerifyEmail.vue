@@ -21,17 +21,17 @@ const resend = () => {
 </script>
 
 <template>
-    <Head title="Confirm Your Email — Green Veil" />
+    <Head title="Confirm Your Email" />
 
     <div class="px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div class="mx-auto max-w-md">
             <div
-                class="space-y-5 rounded-2xl border border-cream-200 bg-white p-6 text-center shadow-sm sm:p-8"
+                class="flex flex-col gap-4 rounded-2xl border border-cream-200 bg-white p-6 text-center shadow-sm sm:p-8"
             >
                 <div
-                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sage-100 text-sage-700"
+                    class="mx-auto flex size-16 items-center justify-center rounded-full bg-sage-100 text-sage-700"
                 >
-                    <MailCheckIcon class="h-7 w-7" aria-hidden="true" />
+                    <MailCheckIcon class="size-6" aria-hidden="true" />
                 </div>
 
                 <div class="space-y-2">
@@ -40,7 +40,7 @@ const resend = () => {
                     >
                         Confirm Your Email
                     </h1>
-                    <p class="text-charcoal-600 text-sm">
+                    <p class="text-sm text-charcoal-600">
                         We sent a confirmation link to
                         <span class="font-semibold text-charcoal-900">{{
                             email

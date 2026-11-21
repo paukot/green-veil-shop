@@ -35,34 +35,23 @@ function toggle() {
     favourites.toggle(props.productId);
 }
 
-const iconSizeClasses = computed(() => {
-    switch (props.size) {
-        case 'sm':
-            return 'w-3.5 h-3.5';
-        case 'lg':
-            return 'w-5 h-5';
-        default:
-            return 'w-4 h-4';
-    }
-});
+/** Every variant is a 3rem target (2rem for `sm`); the icon is 1rem, or 1.5rem for `lg`. */
+const iconSizeClasses = computed(() =>
+    props.size === 'lg' ? 'size-6' : 'size-4',
+);
 
 const wrapperClasses = computed(() => {
     if (props.variant === 'pill') {
-        return 'px-4 py-2 rounded-full border border-cream-300 bg-white hover:border-sage-500 hover:bg-cream-100 flex items-center gap-2 text-xs font-medium text-charcoal-700 transition-colors shadow-xs';
+        return 'h-12 gap-2 rounded-full border border-border-strong bg-surface-raised px-6 text-xs font-semibold tracking-wider uppercase hover:border-ink';
     }
+
+    const size = props.size === 'sm' ? 'size-8' : 'size-12';
 
     if (props.variant === 'icon') {
-        return 'p-1 text-charcoal-500 hover:text-rose-600 transition-colors';
+        return `${size} rounded-full hover:bg-surface-sunken`;
     }
 
-    // Default circle
-    const sizeMap = {
-        sm: 'p-1.5',
-        md: 'p-2',
-        lg: 'p-3',
-    };
-
-    return `${sizeMap[props.size]} rounded-full bg-cream-50/90 hover:bg-white text-charcoal-700 shadow-xs hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-sage-500`;
+    return `${size} rounded-full bg-surface-raised/90 shadow-sm backdrop-blur hover:bg-surface-raised`;
 });
 </script>
 
@@ -72,39 +61,26 @@ const wrapperClasses = computed(() => {
         @click.stop="toggle"
         :class="[
             wrapperClasses,
-            'flex min-h-[44px] min-w-[44px] items-center justify-center',
-            isFavourited
-                ? 'text-rose-500 hover:text-rose-600'
-                : 'text-charcoal-600 hover:text-rose-500',
+            'inline-flex shrink-0 items-center justify-center transition-colors',
+            isFavourited ? 'text-clay-600' : 'text-ink hover:text-clay-600',
         ]"
+        :aria-pressed="isFavourited"
         :aria-label="
             isFavourited
                 ? `Remove ${productName || 'product'} from favourites`
                 : `Save ${productName || 'product'} to favourites`
         "
     >
-        <!-- Solid Heart when favourited -->
         <HeartIcon
-            v-if="isFavourited"
             :class="[
                 iconSizeClasses,
-                'fill-current text-rose-500 transition-transform active:scale-125',
+                'transition-transform active:scale-125',
+                isFavourited && 'fill-current',
             ]"
             aria-hidden="true"
-        />
-
-        <!-- Outline Heart when not favourited -->
-        <HeartIcon
-            v-else
-            :class="[
-                iconSizeClasses,
-                'fill-none stroke-current text-current transition-transform active:scale-125',
-            ]"
-            aria-hidden="true"
-            :stroke-width="1.75"
         />
         <span v-if="variant === 'pill'" class="select-none">
-            {{ isFavourited ? 'Saved to Wishlist' : 'Add to Wishlist' }}
+            {{ isFavourited ? 'Saved' : 'Save to wishlist' }}
         </span>
     </button>
 </template>

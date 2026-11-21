@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import Container from '@/components/ui/Container.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import Section from '@/components/ui/Section.vue';
 import { computed, onMounted } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import AccountLayout from '@/layouts/AccountLayout.vue';
@@ -35,76 +38,42 @@ const displayedProducts = computed(() => {
 </script>
 
 <template>
-    <!-- Authenticated View: rendered inside AccountLayout (User Settings Layout) -->
     <template v-if="user">
-        <Head title="Wishlist | Green Veil" />
+        <Head title="Wishlist" />
 
-        <div class="space-y-6">
-            <!-- Section Header -->
-            <div
-                class="rounded-2xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
-            >
-                <div
-                    class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-                >
-                    <div>
-                        <h2
-                            class="font-serif text-2xl text-sage-900 sm:text-3xl"
-                        >
-                            Saved Botanicals
-                        </h2>
-                        <p class="text-charcoal-600 mt-1 text-xs sm:text-sm">
-                            A conscious curation of your favourite botanical
-                            formulations, gentle mists, and daily rituals.
-                        </p>
-                    </div>
-                </div>
+        <section class="flex flex-col gap-6">
+            <div class="flex flex-col gap-2">
+                <h2 class="font-serif text-3xl text-ink">Saved</h2>
+                <p class="text-sm text-ink-muted">
+                    Your favourite formulas, in one place.
+                </p>
             </div>
-
             <WishlistContent
                 :products="displayedProducts"
                 :loading="isLoading"
-                empty-title="Your ritual list is empty"
+                empty-title="Nothing saved yet"
             />
-        </div>
+        </section>
     </template>
 
-    <!-- Guest View: rendered inside StorefrontLayout -->
     <template v-else>
-        <Head title="Your Wishlist | Saved Botanicals | Green Veil" />
+        <Head title="Your Wishlist" />
 
-        <!-- Header Banner -->
-        <section
-            class="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50 py-10 sm:py-14"
-        >
-            <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-                <span
-                    class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
-                >
-                    Your Personal Wishlist
-                </span>
-                <h1
-                    class="mt-2 font-serif text-3xl tracking-tight text-charcoal-900 sm:text-4xl"
-                >
-                    Saved Botanicals
-                </h1>
-                <p
-                    class="text-charcoal-600 mt-3 text-sm leading-relaxed font-light"
-                >
-                    A conscious curation of your favourite botanical
-                    formulations, gentle mists, and daily self-care rituals.
-                </p>
-            </div>
-        </section>
+        <Section spacing="sm" class="border-b border-border">
+            <PageHeader
+                eyebrow="Wishlist"
+                title="Saved for later"
+                description="Your favourite formulas, in one place. Sign in to keep them across devices."
+            />
+        </Section>
 
-        <!-- Main Favourites Content -->
-        <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
+        <Container class="py-8 lg:py-12">
             <WishlistContent
                 :products="displayedProducts"
                 :loading="isLoading"
                 :show-browse-link="true"
                 empty-title="Your wishlist is empty"
             />
-        </section>
+        </Container>
     </template>
 </template>

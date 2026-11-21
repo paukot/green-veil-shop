@@ -12,23 +12,25 @@ withDefaults(
 </script>
 
 <template>
-    <div class="space-y-3" role="status" aria-label="Loading shopping bag">
-        <div
+    <ul
+        class="flex flex-col divide-y divide-border"
+        role="status"
+        aria-label="Loading bag"
+    >
+        <li
             v-for="i in count"
             :key="i"
-            class="flex items-start gap-4 rounded-2xl border border-cream-200 bg-white p-3.5"
+            class="flex gap-4 py-4"
             aria-hidden="true"
         >
-            <Skeleton class="h-16 w-16 shrink-0 bg-cream-100" rounded="xl" />
-            <div class="flex-1 space-y-2">
-                <Skeleton class="h-3.5 w-4/5" rounded="sm" />
-                <Skeleton class="h-3 w-1/3" rounded="sm" />
-                <div class="flex items-center justify-between pt-1">
-                    <Skeleton class="h-7 w-20" rounded="full" />
-                    <Skeleton class="h-4 w-14" rounded="sm" />
+            <Skeleton class="size-16 shrink-0" />
+            <div class="flex flex-1 flex-col gap-2">
+                <div class="flex justify-between gap-4">
+                    <Skeleton class="h-4 w-3/5" />
+                    <Skeleton class="h-4 w-12" />
                 </div>
+                <Skeleton rounded="full" class="h-8 w-24" />
             </div>
-        </div>
-        <span class="sr-only">Updating shopping bag items...</span>
-    </div>
+        </li>
+    </ul>
 </template>

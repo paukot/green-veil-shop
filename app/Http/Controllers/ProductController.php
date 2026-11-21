@@ -36,25 +36,28 @@ class ProductController extends Controller
             ->paginate(self::DEFAULT_PAGINATION)
             ->withQueryString();
 
-        $facets = $this->catalogService->getFilterFacets();
-
-        $categories = AppCache::remember(
-            CacheKey::CatalogCategoriesList,
-            fn (): array => SimpleCategoryResource::collection(
-                Category::query()
-                    ->where('is_active', true)
-                    ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
-                    ->orderBy('sort_order')
-                    ->get(['id', 'slug', 'name'])
-            )->resolve(),
-            [CacheTag::Categories, CacheTag::Catalog],
-        );
+        // Everything except the product page itself is lazy, so pagination (a partial reload
+        // of `products`) skips the facet and category queries entirely.
+        $facets = null;
+        $resolveFacets = function () use (&$facets): array {
+            return $facets ??= $this->catalogService->getFilterFacets();
+        };
 
         return Inertia::render('Catalog/Index', [
             'products' => ProductResource::collection($products)->additional(['total' => $products->total()]),
-            'categories' => $categories,
-            'facets' => $facets,
-            'priceRange' => $facets['price_bounds'],
+            'categories' => fn (): array => AppCache::remember(
+                CacheKey::CatalogCategoriesList,
+                fn (): array => SimpleCategoryResource::collection(
+                    Category::query()
+                        ->where('is_active', true)
+                        ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
+                        ->orderBy('sort_order')
+                        ->get(['id', 'slug', 'name'])
+                )->resolve(),
+                [CacheTag::Categories, CacheTag::Catalog],
+            ),
+            'facets' => $resolveFacets,
+            'priceRange' => fn (): array => $resolveFacets()['price_bounds'],
             'filters' => $request->toInertiaFilters(includeCategory: true),
         ]);
     }
