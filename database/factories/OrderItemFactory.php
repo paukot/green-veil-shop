@@ -24,7 +24,7 @@ class OrderItemFactory extends Factory
             'product_id' => Product::factory(),
             'product_name' => $this->faker->words(3, true),
             'product_sku' => 'GV-'.strtoupper($this->faker->bothify('??-####')),
-            'product_image' => 'products/main/'.fake()->uuid().'.jpg',
+            'product_image' => 'products/'.fake()->uuid().'.jpg',
             'unit_price' => 25.00,
             'quantity' => 2,
             'subtotal' => 50.00,

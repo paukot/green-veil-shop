@@ -10,6 +10,7 @@ use App\Models\Ingredient;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\SkinType;
+use Database\Seeders\Support\SeedImages;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -22,6 +23,7 @@ class CosmeticProductEnrichmentSeeder extends Seeder
     public function run(): void
     {
         $now = Carbon::now();
+        $seedImages = SeedImages::make();
 
         // 1. Ensure Brand exists
         $brand = Brand::firstOrCreate(
@@ -31,7 +33,7 @@ class CosmeticProductEnrichmentSeeder extends Seeder
                 'country_of_origin' => 'US',
                 'website_url' => 'https://www.maybelline.com',
                 'description' => 'Maybelline New York is the world\'s leading cosmetics brand, available in over 129 countries.',
-                'logo_path' => 'brands/maybelline-new-york.png',
+                'logo_path' => $seedImages->brandLogo('Maybelline New York'),
                 'is_active' => true,
                 'sort_order' => 1,
             ]
@@ -86,7 +88,7 @@ class CosmeticProductEnrichmentSeeder extends Seeder
                 'is_active' => true,
                 'is_featured' => true,
                 'sort_order' => 1,
-                'main_image' => 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=600&q=80',
+                'main_image' => $seedImages->productImage('makeup', 'MAY-SKYHIGH'),
                 'meta_title' => 'Maybelline Lash Sensational Sky High Mascara | Green Veil',
                 'meta_description' => 'Kup Maybelline Lash Sensational Sky High. Wydłużający i pogrubiający tusz do rzęs z ekstraktem z bambusa.',
             ]
@@ -164,6 +166,7 @@ class CosmeticProductEnrichmentSeeder extends Seeder
                     'track_inventory' => true,
                     'is_active' => true,
                     'is_default' => $v['is_default'],
+                    'image' => $seedImages->shadeSwatch($v['name'], $v['color_hex']),
                     'sort_order' => $v['sort_order'],
                 ]
             );

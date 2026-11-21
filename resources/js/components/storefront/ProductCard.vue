@@ -4,7 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import FavouriteButton from '@/components/storefront/FavouriteButton.vue';
 import type { ProductCardData } from '@/types/storefront';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, showPlaceholderOnError } from '@/lib/utils';
 import { useCart } from '@/composables/useCart';
 import { CheckIcon, MinusIcon, PlusIcon, Trash2Icon } from '@lucide/vue';
 
@@ -75,6 +75,7 @@ const formattedComparePrice = computed(() => {
                     :alt="product.name"
                     class="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
                     loading="lazy"
+                    @error="showPlaceholderOnError"
                 />
             </Link>
 

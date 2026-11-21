@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use Database\Seeders\Support\SeedImages;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -13,12 +14,13 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
+        $seedImages = SeedImages::make();
+
         $departments = [
             [
                 'slug' => 'perfumes',
                 'name' => 'Perfumes',
                 'description' => 'Luxury fragrances, eau de parfum, eau de toilette, and artisanal scents.',
-                'image' => 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 1,
                 'children' => [
                     ['slug' => 'womens-perfumes', 'name' => "Women's Perfumes", 'description' => 'Floral, oriental, and fresh fragrances designed for women.'],
@@ -33,7 +35,6 @@ class CategorySeeder extends Seeder
                 'slug' => 'makeup',
                 'name' => 'Makeup',
                 'description' => 'Cosmetics for eyes, lips, face, brows, and nails.',
-                'image' => 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 2,
                 'children' => [
                     // Eyes
@@ -93,7 +94,6 @@ class CategorySeeder extends Seeder
                 'slug' => 'hair',
                 'name' => 'Hair Care',
                 'description' => 'Nourishing shampoos, conditioners, masks, and styling formulas.',
-                'image' => 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 3,
                 'children' => [
                     ['slug' => 'shampoos', 'name' => 'Shampoos', 'description' => 'Sulfate-free cleansing formulas for volume, moisture, and repair.'],
@@ -109,7 +109,6 @@ class CategorySeeder extends Seeder
                 'slug' => 'skincare',
                 'name' => 'Skincare',
                 'description' => 'Targeted cleansers, toners, serums, and barrier moisturizers.',
-                'image' => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 4,
                 'children' => [
                     ['slug' => 'cleansers', 'name' => 'Cleansers & Washes', 'description' => 'Gentle foaming, gel, and cream daily facial cleansers.'],
@@ -126,7 +125,6 @@ class CategorySeeder extends Seeder
                 'slug' => 'body-care',
                 'name' => 'Body',
                 'description' => 'Aromatherapeutic shower gels, body butters, and scrubs.',
-                'image' => 'https://images.unsplash.com/photo-1599817878414-43ef36677cf0?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 5,
                 'children' => [
                     ['slug' => 'shower-gels', 'name' => 'Shower Gels & Body Washes', 'description' => 'Botanical body washes with essential oil scents.'],
@@ -142,7 +140,6 @@ class CategorySeeder extends Seeder
                 'slug' => 'men',
                 'name' => 'Men',
                 'description' => 'Targeted grooming, beard care, shaving, and skincare for men.',
-                'image' => 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 6,
                 'children' => [
                     ['slug' => 'shaving-beard', 'name' => 'Shaving & Beard Care', 'description' => 'Shave creams, aftershave balms, and softening beard oils.'],
@@ -153,7 +150,7 @@ class CategorySeeder extends Seeder
             ],
         ];
 
-        DB::transaction(function () use ($departments) {
+        DB::transaction(function () use ($departments, $seedImages) {
             foreach ($departments as $dept) {
                 $parent = Category::updateOrCreate(
                     ['slug' => $dept['slug']],
@@ -161,7 +158,7 @@ class CategorySeeder extends Seeder
                         'parent_id' => null,
                         'name' => $dept['name'],
                         'description' => $dept['description'],
-                        'image' => $dept['image'],
+                        'image' => $seedImages->productImage($dept['slug'], $dept['slug']),
                         'sort_order' => $dept['sort_order'],
                         'is_active' => true,
                     ]
@@ -175,7 +172,7 @@ class CategorySeeder extends Seeder
                             'parent_id' => $parent->id,
                             'name' => $child['name'],
                             'description' => $child['description'],
-                            'image' => $this->resolveChildImage($child['slug'], $dept['slug']),
+                            'image' => $seedImages->productImage($this->resolveChildDomain($child['slug'], $dept['slug']), $child['slug']),
                             'sort_order' => $childSort++,
                             'is_active' => true,
                         ]
@@ -186,34 +183,21 @@ class CategorySeeder extends Seeder
     }
 
     /**
-     * Resolve child category photo based on slug keywords.
+     * Pick the photo domain for a child category from its slug, defaulting to its department.
      */
-    protected function resolveChildImage(string $slug, string $departmentSlug): string
+    protected function resolveChildDomain(string $slug, string $departmentSlug): string
     {
         return match (true) {
-            str_contains($slug, 'mascara') || str_contains($slug, 'eye') || str_contains($slug, 'lash') => 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'palette') || str_contains($slug, 'shadow') => 'https://images.unsplash.com/photo-1583241800698-e8ab01c85b27?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'lip') => 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'brow') => 'https://images.unsplash.com/photo-1503236823255-94609f598e71?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'nail') => 'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'brush') || str_contains($slug, 'sponge') || str_contains($slug, 'tool') => 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'remover') || str_contains($slug, 'wipe') || str_contains($slug, 'cleans') => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'foundation') || str_contains($slug, 'powder') || str_contains($slug, 'blush') || str_contains($slug, 'concealer') => 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'serum') || str_contains($slug, 'oil') => 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'cream') || str_contains($slug, 'moisturiz') => 'https://images.unsplash.com/photo-1608248597359-0a6723c34898?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'shampoo') => 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'conditioner') || str_contains($slug, 'hair') => 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'perfume') || str_contains($slug, 'fragrance') || str_contains($slug, 'mist') => 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'body') || str_contains($slug, 'bath') || str_contains($slug, 'scrub') => 'https://images.unsplash.com/photo-1556228722-d0b713912975?auto=format&fit=crop&w=600&q=80',
-            str_contains($slug, 'shav') || str_contains($slug, 'beard') || str_contains($slug, 'men') => 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=600&q=80',
-            default => match ($departmentSlug) {
-                'perfumes' => 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=600&q=80',
-                'makeup' => 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
-                'hair' => 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=600&q=80',
-                'body-care' => 'https://images.unsplash.com/photo-1556228722-d0b713912975?auto=format&fit=crop&w=600&q=80',
-                'men' => 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=600&q=80',
-                default => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80',
-            },
+            str_contains($slug, 'brush') || str_contains($slug, 'sponge') || str_contains($slug, 'tool') => 'accessories',
+            str_contains($slug, 'perfume') || str_contains($slug, 'fragrance') || str_contains($slug, 'mist') => 'perfumes',
+            str_contains($slug, 'shav') || str_contains($slug, 'beard') || str_contains($slug, 'mens') => 'men',
+            str_contains($slug, 'shampoo') || str_contains($slug, 'conditioner') || str_contains($slug, 'hair') => 'hair',
+            str_contains($slug, 'body') || str_contains($slug, 'bath') || str_contains($slug, 'scrub') => 'body-care',
+            str_contains($slug, 'serum') || str_contains($slug, 'cream') || str_contains($slug, 'moistur')
+                || str_contains($slug, 'cleans') || str_contains($slug, 'remover') || str_contains($slug, 'wipe') => 'skincare',
+            str_contains($slug, 'lip') || str_contains($slug, 'eye') || str_contains($slug, 'lash') || str_contains($slug, 'brow')
+                || str_contains($slug, 'nail') || str_contains($slug, 'palette') || str_contains($slug, 'mascara') => 'makeup',
+            default => $departmentSlug,
         };
     }
 }

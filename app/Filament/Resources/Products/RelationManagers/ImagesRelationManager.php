@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Products\RelationManagers;
 
 use App\Models\Product;
+use App\Models\ProductImage;
+use App\Services\StorageImageService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -50,6 +52,7 @@ class ImagesRelationManager extends RelationManager
             ->columns([
                 ImageColumn::make('path')
                     ->label('Image')
+                    ->getStateUsing(fn (ProductImage $record): ?string => app(StorageImageService::class)->getImage($record->path))
                     ->square(),
                 IconColumn::make('is_primary')
                     ->label('Primary')

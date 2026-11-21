@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import type { CategoryCardData } from '@/types/storefront';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
-import { resolveStorageUrl } from '@/lib/utils';
+import { resolveStorageUrl, showPlaceholderOnError } from '@/lib/utils';
 import { ArrowRightIcon } from '@lucide/vue';
 
 const props = defineProps<{
@@ -26,6 +26,7 @@ const imageUrl = computed(() => resolveStorageUrl(props.category.image));
                 :alt="category.name"
                 class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 loading="lazy"
+                @error="showPlaceholderOnError"
             />
             <!-- Darkening overlay like slider to make text crisp and legible -->
             <div

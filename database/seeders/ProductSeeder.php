@@ -9,6 +9,7 @@ use App\Models\Effect;
 use App\Models\HairType;
 use App\Models\Ingredient;
 use App\Models\SkinType;
+use Database\Seeders\Support\SeedImages;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -16,71 +17,6 @@ use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
 {
-    /**
-     * Curated royalty-free beauty photography (Unsplash License / CC0).
-     * Categorized by cosmetic domain for hyper-realistic visual presentation.
-     *
-     * @var array<string, list<string>>
-     */
-    protected const CATEGORY_IMAGE_POOLS = [
-        'perfumes' => [
-            'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?auto=format&fit=crop&w=600&q=80',
-        ],
-        'makeup' => [
-            'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1625093742435-6fa192b6fb10?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1503236823255-94609f598e71?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=600&q=80',
-        ],
-        'skincare' => [
-            'https://images.unsplash.com/photo-1608248597359-0a6723c34898?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1556228722-d0b713912975?auto=format&fit=crop&w=600&q=80',
-        ],
-        'hair' => [
-            'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=600&q=80',
-        ],
-        'body-care' => [
-            'https://images.unsplash.com/photo-1556228722-d0b713912975?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1519735777090-ec97162dc266?auto=format&fit=crop&w=600&q=80',
-        ],
-        'men' => [
-            'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1621607512022-6aecc4fed814?auto=format&fit=crop&w=600&q=80',
-        ],
-        'accessories' => [
-            'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=600&q=80',
-        ],
-        'health-care' => [
-            'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80',
-        ],
-        'gifts' => [
-            'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1513201099705-a9742e15a5bb?auto=format&fit=crop&w=600&q=80',
-            'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=600&q=80',
-        ],
-    ];
-
     /**
      * Product Series per Brand for cosmetic lines.
      *
@@ -216,6 +152,8 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        $seedImages = SeedImages::make();
+
         // 1. Fetch all child/leaf categories and all curated brands
         $categories = Category::query()->whereNotNull('parent_id')->with('parent')->get();
         if ($categories->isEmpty()) {
@@ -266,7 +204,7 @@ class ProductSeeder extends Seeder
                 $category = $categoryList[$catIndex];
 
                 // Resolve domain category key for imagery, volume, and INCI
-                $domainKey = $this->resolveDomainKey($category);
+                $domainKey = self::resolveDomainKey($category);
 
                 /** @var Brand $brandObj */
                 $brandObj = $brandList[$i % $brandCount];
@@ -297,8 +235,7 @@ class ProductSeeder extends Seeder
                 $stockQuantity = ($i % 15 === 0) ? 0 : (($i * 11) % 180 + 5);
 
                 // Images
-                $imagePool = self::CATEGORY_IMAGE_POOLS[$domainKey] ?? self::CATEGORY_IMAGE_POOLS['skincare'];
-                $mainImage = $imagePool[($i * 3) % count($imagePool)];
+                $mainImage = $seedImages->productImage($domainKey, $sku);
 
                 // Featured flag for the first 150 items
                 $isFeatured = ($i <= 150);
@@ -459,7 +396,7 @@ class ProductSeeder extends Seeder
         }
 
         // 2. Add extra gallery images for the top 150 featured products
-        $featuredProducts = DB::table('products')->where('is_featured', true)->take(150)->get(['id', 'category_id', 'name']);
+        $featuredProducts = DB::table('products')->where('is_featured', true)->take(150)->get(['id', 'category_id', 'name', 'sku']);
         $categoriesById = Category::with('parent')->get()->keyBy('id');
         $existingGalleryPairs = DB::table('product_images')->select('product_id', 'path')->get()
             ->mapWithKeys(fn ($row) => ["{$row->product_id}:{$row->path}" => true])
@@ -468,13 +405,11 @@ class ProductSeeder extends Seeder
         $imageBatches = [];
         foreach ($featuredProducts as $product) {
             $cat = $categoriesById->get($product->category_id);
-            $domainKey = $cat ? $this->resolveDomainKey($cat) : 'skincare';
-            $imagePool = self::CATEGORY_IMAGE_POOLS[$domainKey] ?? self::CATEGORY_IMAGE_POOLS['skincare'];
-            $poolCount = count($imagePool);
+            $domainKey = $cat ? self::resolveDomainKey($cat) : 'skincare';
 
-            // 1) Alternate formula & texture shot
-            $path1 = $imagePool[($product->id + 1) % $poolCount];
-            if (! isset($existingGalleryPairs["{$product->id}:{$path1}"])) {
+            // 1) Alternate formula & texture shot (offsets 1 and 2 never repeat the main image)
+            $path1 = $seedImages->productImage($domainKey, $product->sku, 1);
+            if ($path1 !== null && ! isset($existingGalleryPairs["{$product->id}:{$path1}"])) {
                 $imageBatches[] = [
                     'product_id' => $product->id,
                     'path' => $path1,
@@ -488,8 +423,8 @@ class ProductSeeder extends Seeder
             }
 
             // 2) Botanical packaging & ritual shot
-            $path2 = $imagePool[($product->id + 2) % $poolCount];
-            if (! isset($existingGalleryPairs["{$product->id}:{$path2}"])) {
+            $path2 = $seedImages->productImage($domainKey, $product->sku, 2);
+            if ($path2 !== null && ! isset($existingGalleryPairs["{$product->id}:{$path2}"])) {
                 $imageBatches[] = [
                     'product_id' => $product->id,
                     'path' => $path2,
@@ -541,7 +476,7 @@ class ProductSeeder extends Seeder
                             'track_inventory' => true,
                             'is_active' => true,
                             'is_default' => $idx === 0,
-                            'image' => null,
+                            'image' => $seedImages->shadeSwatch($shade['name'], $shade['hex']),
                             'sort_order' => $idx + 1,
                             'created_at' => $now,
                             'updated_at' => $now,
@@ -591,7 +526,7 @@ class ProductSeeder extends Seeder
     /**
      * Map category to functional domain key.
      */
-    protected function resolveDomainKey(Category $category): string
+    public static function resolveDomainKey(Category $category): string
     {
         $parentSlug = $category->parent->slug ?? '';
         $slug = $category->slug;
