@@ -109,8 +109,11 @@ class StripeGateway implements PaymentGateway
                 ];
             }
 
+            // Stripe rejects a reused key whose parameters differ, and `expires_at` changes on
+            // every attempt, so the key follows the parameters: an identical double submit is
+            // de-duplicated while a later retry creates a fresh session.
             $session = $this->client->checkout->sessions->create($params, [
-                'idempotency_key' => "order_{$order->public_id}",
+                'idempotency_key' => "order_{$order->public_id}_".hash('sha256', (string) json_encode($params)),
             ]);
 
             return CheckoutResult::success(
@@ -166,7 +169,13 @@ class StripeGateway implements PaymentGateway
                 ];
             }
 
-            $refund = $this->client->refunds->create($params);
+            // Keyed on the balance already refunded, so a retried request for the same refund
+            // is de-duplicated by Stripe while the next, separate refund gets a new key.
+            $options = $order
+                ? ['idempotency_key' => "refund_{$order->public_id}_".(int) round((float) $order->refunded_amount * 100).'_'.($amountInCents ?? 'full')]
+                : [];
+
+            $refund = $this->client->refunds->create($params, $options);
 
             return RefundResult::success($refund->id);
         } catch (ApiErrorException $e) {

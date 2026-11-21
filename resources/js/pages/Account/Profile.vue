@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { TextField } from '@/components/form';
 import Button from '@/components/ui/Button.vue';
 import AccountLayout from '@/layouts/AccountLayout.vue';
@@ -7,6 +8,7 @@ import {
     updateProfile as updateProfileRoute,
     updatePassword as updatePasswordRoute,
 } from '@/actions/App/Http/Controllers/AccountController';
+import { notice as verificationNotice } from '@/routes/verification';
 
 defineOptions({
     layout: AccountLayout,
@@ -21,6 +23,11 @@ interface ProfileProps {
 }
 
 const props = defineProps<ProfileProps>();
+
+const page = usePage();
+const isEmailUnverified = computed(
+    () => !!page.props.auth.user && !page.props.auth.user.email_verified_at,
+);
 
 const profileForm = useForm({
     name: props.profile.name,
@@ -53,6 +60,23 @@ const updatePassword = () => {
     <Head title="Account Profile & Security — Green Veil" />
 
     <div class="space-y-8">
+        <div
+            v-if="isEmailUnverified"
+            class="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between"
+            role="status"
+        >
+            <p>
+                Please confirm your email address to link earlier guest orders
+                to your account.
+            </p>
+            <Link
+                :href="verificationNotice.url()"
+                class="shrink-0 font-semibold underline underline-offset-2"
+            >
+                Confirm email
+            </Link>
+        </div>
+
         <!-- Personal Details Section -->
         <section
             class="rounded-2xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"

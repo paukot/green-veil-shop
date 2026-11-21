@@ -127,6 +127,14 @@ class OrderFactory extends Factory
         ]);
     }
 
+    /** An order whose reserved stock and promotion usage were already given back. */
+    public function reservationsReleased(): static
+    {
+        return $this->state(fn () => [
+            'reservations_released_at' => now(),
+        ]);
+    }
+
     public function shipped(): static
     {
         return $this->state(fn () => [

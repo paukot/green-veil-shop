@@ -2,7 +2,7 @@
 
 use App\Actions\Checkout\CheckoutData;
 use App\Actions\Checkout\PlaceOrder;
-use App\Actions\Checkout\ReleaseOrderStock;
+use App\Actions\Checkout\ReleaseOrderReservations;
 use App\Enums\DiscountType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
@@ -40,6 +40,20 @@ function makeCheckoutData(DeliveryOption $delivery, PaymentOption $payment, ?Use
         notes: 'Please leave at front porch.',
         user: $user,
     );
+}
+
+/**
+ * A checkout request carrying a guest cart of one product.
+ */
+function guestCheckoutRequest(Product $product, int $quantity = 1): Request
+{
+    $request = Request::create('/checkout', 'POST');
+    $request->setLaravelSession(app('session.store'));
+    $request->session()->put('cart', [
+        $product->id => ['id' => $product->id, 'product_id' => $product->id, 'quantity' => $quantity],
+    ]);
+
+    return $request;
 }
 
 describe('PlaceOrder Action & Schema', function () {
@@ -166,7 +180,7 @@ describe('PlaceOrder Action & Schema', function () {
         expect($product->fresh()->stock_quantity)->toBe(2);
     });
 
-    it('applies active promotion and ignores expired promotion', function () {
+    it('applies the automatic promotion and ignores expired ones', function () {
         $delivery = DeliveryOption::factory()->create(['price' => 0.00]);
         $payment = PaymentOption::factory()->stripe()->create();
         $product = Product::factory()->create([
@@ -176,6 +190,7 @@ describe('PlaceOrder Action & Schema', function () {
         ]);
 
         Promotion::factory()->create([
+            'code' => null,
             'applies_to_all_products' => true,
             'is_active' => true,
             'discount_type' => DiscountType::Percentage,
@@ -184,6 +199,7 @@ describe('PlaceOrder Action & Schema', function () {
         ]);
 
         $activePromo = Promotion::factory()->create([
+            'code' => null,
             'applies_to_all_products' => true,
             'is_active' => true,
             'discount_type' => DiscountType::Percentage,
@@ -225,7 +241,48 @@ describe('PlaceOrder Action & Schema', function () {
         $order = app(PlaceOrder::class)->execute($request, makeCheckoutData($delivery, $payment));
         expect($product->fresh()->stock_quantity)->toBe(3);
 
-        app(ReleaseOrderStock::class)->execute($order);
+        app(ReleaseOrderReservations::class)->execute($order);
         expect($product->fresh()->stock_quantity)->toBe(5);
+    });
+
+    it('does not apply a coded promotion the shopper never entered', function () {
+        $delivery = DeliveryOption::factory()->create(['price' => 0.00]);
+        $payment = PaymentOption::factory()->stripe()->create();
+        $product = Product::factory()->create(['price' => 100.00, 'track_inventory' => false]);
+        Promotion::factory()->percentage(50)->create(['applies_to_all_products' => true]);
+
+        $order = app(PlaceOrder::class)->execute(guestCheckoutRequest($product), makeCheckoutData($delivery, $payment));
+
+        expect($order->promotion_id)->toBeNull();
+        expect((float) $order->total)->toBe(100.00);
+    });
+
+    it('applies the automatic promotion with the largest discount and counts its use', function () {
+        $delivery = DeliveryOption::factory()->create(['price' => 0.00]);
+        $payment = PaymentOption::factory()->stripe()->create();
+        $product = Product::factory()->create(['price' => 100.00, 'track_inventory' => false]);
+        Promotion::factory()->automatic()->percentage(10)->create(['applies_to_all_products' => true]);
+        $bestPromotion = Promotion::factory()->automatic()->fixed(25.00)->create(['applies_to_all_products' => true, 'times_used' => 0]);
+
+        $order = app(PlaceOrder::class)->execute(guestCheckoutRequest($product), makeCheckoutData($delivery, $payment));
+
+        expect($order->promotion_id)->toBe($bestPromotion->id);
+        expect((float) $order->total)->toBe(75.00);
+        expect($bestPromotion->fresh()->times_used)->toBe(1);
+    });
+
+    it('stops applying an automatic promotion once its usage limit is reached', function () {
+        $delivery = DeliveryOption::factory()->create(['price' => 0.00]);
+        $payment = PaymentOption::factory()->stripe()->create();
+        $product = Product::factory()->create(['price' => 100.00, 'track_inventory' => false]);
+        Promotion::factory()->automatic()->percentage(10)->create([
+            'applies_to_all_products' => true,
+            'usage_limit' => 1,
+            'times_used' => 1,
+        ]);
+
+        $order = app(PlaceOrder::class)->execute(guestCheckoutRequest($product), makeCheckoutData($delivery, $payment));
+
+        expect($order->promotion_id)->toBeNull();
     });
 });

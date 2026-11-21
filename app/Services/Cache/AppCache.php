@@ -224,7 +224,6 @@ class AppCache
     {
         return self::chain()
             ->tags([CacheTag::Catalog, CacheTag::Products])
-            ->patterns(['catalog.*'])
             ->keys([CacheKey::CatalogFacetsGlobal]);
     }
 
@@ -235,7 +234,6 @@ class AppCache
     {
         return self::chain()
             ->tags([CacheTag::Home])
-            ->patterns(['home.*'])
             ->keys([
                 CacheKey::HomeHeroSlides,
                 CacheKey::HomePromotions,
@@ -281,7 +279,6 @@ class AppCache
     {
         return self::chain()
             ->tags([CacheTag::Categories, CacheTag::Catalog, CacheTag::Home])
-            ->patterns(['storefront.*'])
             ->keys([
                 CacheKey::StorefrontNavigation,
                 CacheKey::HomeFeaturedCategories,
@@ -307,7 +304,6 @@ class AppCache
     {
         self::chain()
             ->tags(CacheTag::cases())
-            ->patterns(['catalog.*', 'home.*', 'countries.*', 'shipping.*', 'settings.*', 'storefront.*'])
             ->keys([
                 CacheKey::CountriesOptions,
                 CacheKey::CountriesShipping,

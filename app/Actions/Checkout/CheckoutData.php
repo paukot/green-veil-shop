@@ -20,7 +20,6 @@ class CheckoutData
         public readonly array $billingAddress,
         public readonly ?string $notes = null,
         public readonly ?User $user = null,
-        public readonly ?int $promotionId = null,
         public readonly bool $saveAddressToProfile = false,
         public readonly ?string $addressLabel = null,
     ) {}

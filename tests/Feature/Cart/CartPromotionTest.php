@@ -263,3 +263,13 @@ test('checkout page renders applied promotion and reflects discount in summary',
             ->has('availablePromotions')
         );
 });
+
+test('promotion code attempts are throttled after ten per minute', function () {
+    foreach (range(1, 10) as $attempt) {
+        $this->postJson(route('cart.promotion.apply'), ['code' => "GUESS{$attempt}"]);
+    }
+
+    $response = $this->postJson(route('cart.promotion.apply'), ['code' => 'GUESS11']);
+
+    $response->assertTooManyRequests();
+});

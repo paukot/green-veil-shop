@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Claim;
 use App\Models\Country;
+use App\Models\CustomerAddress;
 use App\Models\DeliveryOption;
 use App\Models\Effect;
 use App\Models\HairType;
@@ -34,6 +35,7 @@ use App\Policies\AdminRolePolicy;
 use App\Policies\AdminUserPolicy;
 use App\Policies\CategoryPolicy;
 use App\Policies\CountryPolicy;
+use App\Policies\CustomerAddressPolicy;
 use App\Policies\DeliveryOptionPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\PaymentOptionPolicy;
@@ -44,11 +46,14 @@ use App\Policies\SliderItemPolicy;
 use App\Policies\StripeEventPolicy;
 use App\Policies\UserPolicy;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Stripe\StripeClient;
@@ -77,6 +82,27 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureAuthorization();
         $this->configureModelObservers();
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Named rate limiters for storefront endpoints that are cheap to hammer.
+     */
+    protected function configureRateLimiting(): void
+    {
+        $byUserOrIp = fn (Request $request): string => (string) ($request->user()?->getAuthIdentifier() ?? $request->ip());
+
+        // Tight, because each attempt probes a promotion code.
+        RateLimiter::for('promotions', fn (Request $request): Limit => Limit::perMinute(10)->by($byUserOrIp($request)));
+
+        RateLimiter::for('search', fn (Request $request): Limit => Limit::perMinute(60)->by($byUserOrIp($request)));
+
+        // Cart and favourites sync on every change, so these stay generous.
+        RateLimiter::for('cart', fn (Request $request): Limit => Limit::perMinute(120)->by($byUserOrIp($request)));
+        RateLimiter::for('favourites', fn (Request $request): Limit => Limit::perMinute(60)->by($byUserOrIp($request)));
+
+        RateLimiter::for('register', fn (Request $request): Limit => Limit::perMinute(5)->by((string) $request->ip()));
+        RateLimiter::for('checkout-retry', fn (Request $request): Limit => Limit::perMinute(10)->by($byUserOrIp($request)));
     }
 
     /**
@@ -113,6 +139,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(CustomerAddress::class, CustomerAddressPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Promotion::class, PromotionPolicy::class);

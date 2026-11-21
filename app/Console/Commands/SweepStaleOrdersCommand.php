@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Actions\Checkout\ReleaseOrderStock;
+use App\Actions\Checkout\ReleaseOrderReservations;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
@@ -29,14 +29,14 @@ class SweepStaleOrdersCommand extends Command
      */
     protected $description = 'Cancel stale unpaid orders and release reserved inventory back to stock';
 
-    public function handle(ReleaseOrderStock $releaseOrderStock): int
+    public function handle(ReleaseOrderReservations $releaseOrderReservations): int
     {
         $minutes = max(15, (int) $this->option('minutes'));
         $stripeCutoff = now()->subMinutes($minutes);
 
         $staleStripeOrders = Order::query()
             ->where('status', OrderStatus::PendingPayment)
-            ->where('payment_status', PaymentStatus::Unpaid)
+            ->whereIn('payment_status', [PaymentStatus::Unpaid, PaymentStatus::Failed])
             ->where('placed_at', '<', $stripeCutoff)
             ->where(function ($query) {
                 $query->whereHas('paymentOption', fn ($q) => $q->where('driver', 'stripe'))
@@ -50,7 +50,7 @@ class SweepStaleOrdersCommand extends Command
 
         $staleBankOrders = Order::query()
             ->where('status', OrderStatus::PendingPayment)
-            ->where('payment_status', PaymentStatus::Unpaid)
+            ->whereIn('payment_status', [PaymentStatus::Unpaid, PaymentStatus::Failed])
             ->where('placed_at', '<', $bankCutoff)
             ->whereHas('paymentOption', fn ($q) => $q->where('driver', 'bank_transfer'))
             ->with(['items', 'paymentOption'])
@@ -67,7 +67,7 @@ class SweepStaleOrdersCommand extends Command
         $count = 0;
 
         foreach ($staleOrders as $order) {
-            DB::transaction(function () use ($order, $releaseOrderStock): void {
+            DB::transaction(function () use ($order, $releaseOrderReservations): void {
                 /** @var Order|null $lockedOrder */
                 $lockedOrder = Order::query()->where('id', $order->id)->lockForUpdate()->first();
 
@@ -92,7 +92,7 @@ class SweepStaleOrdersCommand extends Command
                     ]
                 );
 
-                $releaseOrderStock->execute($lockedOrder);
+                $releaseOrderReservations->execute($lockedOrder);
 
                 Log::info("Order {$lockedOrder->number} ({$lockedOrder->id}) cancelled by sweep-stale. Reserved inventory released.");
             });

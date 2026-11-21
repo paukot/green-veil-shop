@@ -117,6 +117,14 @@ describe('CheckoutResultController', function () {
     });
 
     describe('cancel', function () {
+        it('forbids another customer from viewing the cancel page of an order', function () {
+            $order = Order::factory()->forUser(User::factory()->create())->pendingPayment()->create();
+
+            $response = actingAsCustomer()->get(route('checkout.cancel', ['order' => $order->public_id]));
+
+            $response->assertForbidden();
+        });
+
         it('redirects to cart if order query parameter is missing on cancel', function () {
             $response = $this->get(route('checkout.cancel'));
 
@@ -149,6 +157,18 @@ describe('CheckoutResultController', function () {
             $response = actingAsCustomer($stranger)->post(route('checkout.retry', ['order' => $order->public_id]));
 
             $response->assertForbidden();
+        });
+
+        it('refuses to retry an order whose stock was already released', function () {
+            $order = Order::factory()->pendingPayment()->reservationsReleased()->create([
+                'payment_option_id' => PaymentOption::factory()->stripe()->create()->id,
+                'payment_status' => PaymentStatus::Failed,
+            ]);
+
+            $response = $this->post(route('checkout.retry', ['order' => $order->public_id]));
+
+            $response->assertRedirect(route('checkout.show'));
+            $response->assertSessionHasErrors(['payment' => 'This order is not eligible for payment retry.']);
         });
 
         it('initiates retry payment flow for unpaid order and returns redirect', function () {

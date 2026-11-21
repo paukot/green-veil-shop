@@ -42,6 +42,14 @@ class PromotionFactory extends Factory
         ]);
     }
 
+    /** A promotion without a code, applied to qualifying carts automatically. */
+    public function automatic(): static
+    {
+        return $this->state(fn () => [
+            'code' => null,
+        ]);
+    }
+
     public function expired(): static
     {
         return $this->state(fn () => [

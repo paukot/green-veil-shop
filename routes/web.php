@@ -8,6 +8,7 @@ use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CheckoutResultController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
@@ -18,42 +19,55 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web'])->group(function () {
     Route::get('/', HomeController::class)->name('home');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-    Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
+    Route::get('/products/search', [ProductController::class, 'search'])->name('products.search')->middleware('throttle:search');
     Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
     Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 
     // Cart routes
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/sync', [CartController::class, 'sync'])->name('cart.sync');
-    Route::post('/cart/promotion', [CartController::class, 'applyPromotion'])->name('cart.promotion.apply');
-    Route::delete('/cart/promotion', [CartController::class, 'removePromotion'])->name('cart.promotion.remove');
-    Route::post('/cart/items', [CartItemController::class, 'store'])->name('cart.items.store');
-    Route::patch('/cart/items/{item}', [CartItemController::class, 'update'])->name('cart.items.update');
-    Route::delete('/cart/items/{item}', [CartItemController::class, 'destroy'])->name('cart.items.destroy');
+    Route::post('/cart/promotion', [CartController::class, 'applyPromotion'])->name('cart.promotion.apply')->middleware('throttle:promotions');
+    Route::middleware('throttle:cart')->group(function () {
+        Route::post('/cart/sync', [CartController::class, 'sync'])->name('cart.sync');
+        Route::delete('/cart/promotion', [CartController::class, 'removePromotion'])->name('cart.promotion.remove');
+        Route::post('/cart/items', [CartItemController::class, 'store'])->name('cart.items.store');
+        Route::patch('/cart/items/{item}', [CartItemController::class, 'update'])->name('cart.items.update');
+        Route::delete('/cart/items/{item}', [CartItemController::class, 'destroy'])->name('cart.items.destroy');
+    });
 
     // Checkout routes
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store')->middleware('throttle:10,1');
     Route::get('/checkout/success', [CheckoutResultController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/cancel', [CheckoutResultController::class, 'cancel'])->name('checkout.cancel');
-    Route::post('/checkout/retry/{order:public_id}', [CheckoutResultController::class, 'retry'])->name('checkout.retry');
+    Route::post('/checkout/retry/{order:public_id}', [CheckoutResultController::class, 'retry'])->name('checkout.retry')->middleware('throttle:checkout-retry');
     Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
     // Favourites routes
     Route::get('/favourites', [FavouriteController::class, 'index'])->name('favourites.index');
-    Route::post('/favourites/sync', [FavouriteController::class, 'sync'])->name('favourites.sync');
-    Route::post('/favourites/{product}', [FavouriteController::class, 'toggle'])->name('favourites.toggle');
+    Route::middleware('throttle:favourites')->group(function () {
+        Route::post('/favourites/sync', [FavouriteController::class, 'sync'])->name('favourites.sync');
+        Route::post('/favourites/{product}', [FavouriteController::class, 'toggle'])->name('favourites.toggle');
+    });
 
     // Customer Authentication routes
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'createLogin'])->name('login');
         Route::post('/login', [AuthController::class, 'storeLogin']);
         Route::get('/register', [AuthController::class, 'createRegister'])->name('register');
-        Route::post('/register', [AuthController::class, 'storeRegister']);
+        Route::post('/register', [AuthController::class, 'storeRegister'])->middleware('throttle:register');
     });
 
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+
+        // Email verification
+        Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+        Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+            ->middleware(['signed', 'throttle:6,1'])
+            ->name('verification.verify');
+        Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+            ->middleware('throttle:6,1')
+            ->name('verification.send');
 
         // Customer Account routes
         Route::get('/account/profile', [AccountController::class, 'edit'])->name('account.profile');

@@ -6,6 +6,7 @@ use App\Actions\Auth\MigrateGuestSessionData;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -68,12 +69,14 @@ class AuthController extends Controller
             'password' => Hash::make($request->string('password')->value()),
         ]);
 
+        event(new Registered($user));
+
         Auth::login($user);
         $request->session()->regenerate();
 
         $migrateGuestData->execute($user, $guestCart, $guestFavourites, $request);
 
-        return redirect()->intended(route('home'))->with('success', 'Account created successfully! Welcome to Green Veil.');
+        return redirect()->intended(route('home'))->with('success', 'Account created! Please check your inbox to confirm your email address.');
     }
 
     /**

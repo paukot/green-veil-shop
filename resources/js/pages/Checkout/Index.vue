@@ -77,7 +77,6 @@ const form = useForm({
         country: defaultSavedAddress.value?.country ?? defaultCountry,
     },
     notes: '',
-    promotion_id: props.appliedPromotion?.id ?? null,
     selected_address_id: defaultSavedAddress.value?.id ?? null,
     save_address_to_profile: false,
     address_label: '',
@@ -190,7 +189,6 @@ async function handleApplyPromo(code: string) {
     if (res.success) {
         promoSuccess.value = res.message || 'Promotion applied!';
         mobilePromoCode.value = '';
-        form.promotion_id = cart.appliedPromotion.value?.id ?? null;
         setTimeout(() => {
             promoSuccess.value = null;
         }, 3500);
@@ -210,7 +208,6 @@ async function handleApplyPromoOffer(promoId: number) {
 
     if (res.success) {
         promoSuccess.value = res.message || 'Promotion applied!';
-        form.promotion_id = cart.appliedPromotion.value?.id ?? null;
         setTimeout(() => {
             promoSuccess.value = null;
         }, 3500);
@@ -227,7 +224,6 @@ async function handleRemovePromo() {
 
     await cart.removePromotion();
     isApplyingPromo.value = false;
-    form.promotion_id = null;
 }
 
 const removeLocationListener = router.on('location', () => {

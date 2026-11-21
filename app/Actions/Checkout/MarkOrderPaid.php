@@ -52,8 +52,16 @@ class MarkOrderPaid
                 return false;
             }
 
+            if ($amountTotal === null) {
+                Log::alert("Stripe payment for order {$lockedOrder->id} carried no amount; refusing to mark it paid.", [
+                    'order_id' => $lockedOrder->id,
+                ]);
+
+                return false;
+            }
+
             // Assert amount matches
-            if (! empty($amountTotal) && (int) $amountTotal !== $expectedAmount) {
+            if ((int) $amountTotal !== $expectedAmount) {
                 Log::alert("Stripe payment amount mismatch for order {$lockedOrder->id}", [
                     'expected_cents' => $expectedAmount,
                     'received_cents' => $amountTotal,
@@ -76,10 +84,13 @@ class MarkOrderPaid
                 ? $rawId
                 : ($sessionData['latest_charge'] ?? $sessionData['charge'] ?? $lockedOrder->stripe_charge_id);
 
-            // Connect guest order to registered user account if matching email exists
+            // Connect a guest order to the account that has verified ownership of its email
             $userId = $lockedOrder->user_id;
             if ($userId === null && ! empty($lockedOrder->customer_email)) {
-                $existingUser = User::where('email', $lockedOrder->customer_email)->first();
+                $existingUser = User::query()
+                    ->where('email', $lockedOrder->customer_email)
+                    ->whereNotNull('email_verified_at')
+                    ->first();
                 if ($existingUser) {
                     $userId = $existingUser->id;
                 }
@@ -100,9 +111,14 @@ class MarkOrderPaid
                 $customerPhone = (string) $customerDetails['phone'];
             }
 
+            // Money arrived for an order whose stock and promotion were already given back
+            // (expired, swept, failed or cancelled). Record the payment truthfully, but do not
+            // fulfil it: the reserved items may already be sold to someone else.
+            $paidAfterRelease = $lockedOrder->reservations_released_at !== null;
+
             $orderUpdates = [
                 'payment_status' => PaymentStatus::Paid,
-                'status' => OrderStatus::Processing,
+                'status' => $paidAfterRelease ? $lockedOrder->status : OrderStatus::Processing,
                 'paid_at' => now(),
                 'stripe_payment_intent_id' => $paymentIntentId,
                 'stripe_session_id' => $sessionId,
@@ -138,6 +154,15 @@ class MarkOrderPaid
                 ['order_id' => $lockedOrder->id, 'driver' => 'stripe'],
                 $paymentUpdates
             );
+
+            if ($paidAfterRelease) {
+                Log::alert("Order {$lockedOrder->number} ({$lockedOrder->id}) was paid after its reservations were released. It needs manual review (refund or re-fulfilment).", [
+                    'order_id' => $lockedOrder->id,
+                    'status' => $lockedOrder->status->value,
+                ]);
+
+                return true;
+            }
 
             Log::info("Order {$lockedOrder->number} ({$lockedOrder->id}) marked as paid via Stripe.");
 
