@@ -90,6 +90,7 @@ const allImages = computed(() => {
     const list: Array<{
         id: number | string;
         path: string;
+        srcset?: string | null;
         alt_text?: string | null;
     }> = [];
 
@@ -97,6 +98,7 @@ const allImages = computed(() => {
         list.push({
             id: 'main',
             path: props.product.main_image,
+            srcset: props.product.main_image_srcset,
             alt_text: props.product.name,
         });
     }

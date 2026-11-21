@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Images\Contracts\ImageVariantOwner;
+use App\Traits\HasImageVariants;
 use Database\Factories\SliderItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,10 +33,13 @@ use Illuminate\Support\Carbon;
     'image', 'url', 'url_opens_in_new_tab', 'is_active', 'sort_order',
     'starts_at', 'ends_at', 'title', 'subtitle', 'alt_text', 'button_label',
 ])]
-class SliderItem extends Model
+class SliderItem extends Model implements ImageVariantOwner
 {
     /** @use HasFactory<SliderItemFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasImageVariants, SoftDeletes;
+
+    /** @var array<string, string> */
+    protected array $imageVariants = ['image' => 'slider'];
 
     protected function casts(): array
     {

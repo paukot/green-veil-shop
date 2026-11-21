@@ -15,6 +15,7 @@ import { cn, resolveStorageUrl, showPlaceholderOnError } from '@/lib/utils';
 export type GalleryImageItem = {
     id: number | string;
     path: string;
+    srcset?: string | null;
     alt_text?: string | null;
 };
 
@@ -90,6 +91,8 @@ onUnmounted(() => {
             <img
                 v-if="activeImage"
                 :src="resolveStorageUrl(activeImage.path)"
+                :srcset="activeImage.srcset ?? undefined"
+                sizes="(min-width: 1024px) 50vw, 100vw"
                 :alt="activeImage.alt_text || productName"
                 fetchpriority="high"
                 class="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -134,6 +137,8 @@ onUnmounted(() => {
             >
                 <img
                     :src="resolveStorageUrl(img.path)"
+                    :srcset="img.srcset ?? undefined"
+                    sizes="4rem"
                     alt=""
                     loading="lazy"
                     class="size-full object-cover"

@@ -87,6 +87,8 @@ const counter = (index: number) => String(index + 1).padStart(2, '0');
                     v-for="(slide, index) in slides"
                     :key="slide.id"
                     :src="resolveStorageUrl(slide.image)"
+                    :srcset="slide.image_srcset ?? undefined"
+                    sizes="(min-width: 1024px) 60vw, 100vw"
                     :alt="slide.alt_text || slide.title || ''"
                     :loading="index === 0 ? 'eager' : 'lazy'"
                     :fetchpriority="index === 0 ? 'high' : 'auto'"

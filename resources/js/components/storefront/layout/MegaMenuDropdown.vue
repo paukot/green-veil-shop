@@ -75,6 +75,8 @@ const layout = computed(() => getNavigationLayout(props.category));
                 <img
                     v-if="category.image"
                     :src="resolveStorageUrl(category.image)"
+                    :srcset="category.image_srcset ?? undefined"
+                    sizes="20rem"
                     alt=""
                     class="size-full object-cover transition-transform duration-700 group-hover/tile:scale-105"
                     loading="lazy"

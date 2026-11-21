@@ -70,5 +70,7 @@ export function showPlaceholderOnError(event: Event): void {
     }
 
     image.dataset.fallback = 'true';
+    // srcset takes precedence over src, so it must go for the placeholder to show.
+    image.removeAttribute('srcset');
     image.src = PLACEHOLDER_IMAGE_URL;
 }

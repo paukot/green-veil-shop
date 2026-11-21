@@ -11,7 +11,7 @@ USER root
 # redis           -> Redis driver (phpredis)
 # pdo_sqlite      -> SQLite driver (only installed if the base image does not already ship it)
 # sqlite, mariadb-client, redis -> CLI tools for debugging, database dumps, and cache checks
-RUN install-php-extensions intl pdo_mysql redis \
+RUN install-php-extensions intl pdo_mysql redis gd \
     && (php -m | grep -qi '^pdo_sqlite$' || install-php-extensions pdo_sqlite) \
     && apk add --no-cache sqlite mariadb-client redis
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

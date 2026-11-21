@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Images\Contracts\ImageVariantOwner;
+use App\Traits\HasImageVariants;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,10 +50,13 @@ use Illuminate\Support\Carbon;
     'image',
     'sort_order',
 ])]
-class ProductVariant extends Model
+class ProductVariant extends Model implements ImageVariantOwner
 {
     /** @use HasFactory<ProductVariantFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasImageVariants, SoftDeletes;
+
+    /** @var array<string, string> */
+    protected array $imageVariants = ['image' => 'product'];
 
     /**
      * @return array<string, string>

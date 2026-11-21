@@ -28,6 +28,7 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'short_description' => $this->short_description,
             'main_image' => $imageService->getImage($this->main_image),
+            'main_image_srcset' => $imageService->getSrcset($this->main_image, 'product'),
 
             'price' => (float) $this->price,
             'compare_at_price' => $this->compare_at_price ? (float) $this->compare_at_price : null,

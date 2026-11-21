@@ -6,7 +6,7 @@
  * Green Veil design tokens.
  *
  * Spacing uses Tailwind's 0.25rem unit restricted to clean steps
- * (1, 2, 3, 4, 6, 8, 12, 16, 24, 32 …), enforced by scripts/check-design-tokens.mjs.
+ * (1, 2, 3, 4, 6, 8, 12, 16, 24, 32 …).
  * Type, radius and shadow scales below are re-tokenised to clean rem values.
  */
 @theme inline {

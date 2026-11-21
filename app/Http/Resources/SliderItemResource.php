@@ -20,6 +20,7 @@ class SliderItemResource extends JsonResource
             'title' => $this->title,
             'subtitle' => $this->subtitle,
             'image' => (new StorageImageService)->getImage($this->image, false),
+            'image_srcset' => (new StorageImageService)->getSrcset($this->image, 'slider'),
             'url' => $this->url,
             'url_opens_in_new_tab' => $this->url_opens_in_new_tab,
             'alt_text' => $this->alt_text,

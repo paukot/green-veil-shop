@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Images\Contracts\ImageVariantOwner;
+use App\Traits\HasImageVariants;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -97,10 +99,13 @@ use Illuminate\Support\Carbon;
     'meta_title',
     'meta_description',
 ])]
-class Product extends Model
+class Product extends Model implements ImageVariantOwner
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasImageVariants, SoftDeletes;
+
+    /** @var array<string, string> */
+    protected array $imageVariants = ['main_image' => 'product'];
 
     /**
      * @return array<string, string>

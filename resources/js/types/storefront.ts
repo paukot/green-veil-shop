@@ -4,6 +4,7 @@ export type CategoryNavigationItem = {
     name: string;
     /** Only departments (top level) carry an image, for the mega menu feature tile. */
     image?: string | null;
+    image_srcset?: string | null;
     children?: CategoryNavigationItem[];
 };
 
@@ -45,6 +46,7 @@ export type SharedProps = {
 export type HeroSlide = {
     id: number;
     image: string;
+    image_srcset?: string | null;
     url?: string | null;
     url_opens_in_new_tab: boolean;
     title?: string | null;
@@ -73,6 +75,7 @@ export type ProductCardData = {
     compare_at_price?: number | null;
     discount_percentage?: number | null;
     main_image: string;
+    main_image_srcset?: string | null;
     category?: {
         id: number;
         slug: string;
@@ -98,6 +101,7 @@ export type CategoryCardData = {
     name: string;
     description?: string | null;
     image?: string | null;
+    image_srcset?: string | null;
 };
 
 export type HomePageProps = {
@@ -257,6 +261,7 @@ export type CatalogIndexProps = {
 export type ProductImageDetail = {
     id: number;
     path: string;
+    srcset?: string | null;
     alt_text?: string | null;
     is_primary: boolean;
 };
@@ -276,6 +281,7 @@ export type ProductDetail = {
     track_inventory: boolean;
     is_in_stock: boolean;
     main_image?: string | null;
+    main_image_srcset?: string | null;
     images: ProductImageDetail[];
     category?: {
         id: number;

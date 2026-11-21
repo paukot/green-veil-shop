@@ -76,6 +76,8 @@ function decrementFromBag() {
             >
                 <img
                     :src="product.main_image"
+                    :srcset="product.main_image_srcset ?? undefined"
+                    sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 50vw"
                     :alt="product.name"
                     class="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     loading="lazy"

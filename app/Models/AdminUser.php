@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Images\Contracts\ImageVariantOwner;
+use App\Traits\HasImageVariants;
 use Database\Factories\AdminUserFactory;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
@@ -56,10 +58,13 @@ use Illuminate\Support\Str;
     'app_authentication_secret',
     'app_authentication_recovery_codes',
 ])]
-class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasAvatar, HasEmailAuthentication
+class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasAvatar, HasEmailAuthentication, ImageVariantOwner
 {
     /** @use HasFactory<AdminUserFactory> */
-    use HasFactory;
+    use HasFactory, HasImageVariants;
+
+    /** @var array<string, string> */
+    protected array $imageVariants = ['avatar_url' => 'avatar'];
 
     use InteractsWithAppAuthentication;
     use InteractsWithAppAuthenticationRecovery;
