@@ -1,161 +1,131 @@
-# Green Veil Cosmetic Shop
+# Green Veil
 
-A full-stack e-commerce platform for cosmetics and skincare, built with **Laravel 13**, **Vue 3**, **Inertia.js**, and **Filament 5**.
+Green Veil is an e-commerce shop: browse a product catalogue, filter it every which way, fill a bag, apply promo codes and pay with Stripe. Behind it sits a Filament admin for running the store, managing orders, refunds and stock, and the whole thing ships as one Laravel app.
 
----
+The application will process everything as it should, however seeding will prepare database ready for demo purposes.
 
-## System Architecture & Infrastructure
-
-Green Veil is built around a practical, production-ready architecture designed for high performance, low maintenance, and cost efficiency on a single server.
-
-```
-[ Visitor ] ──HTTPS──> [ Host Proxy (Nginx/Caddy) ] ──Port 8080──> [ FrankenPHP App Container ]
-                                                                       ├── MySQL 8.4 (Database)
-                                                                       └── Redis (Cache & Sessions)
-```
-
-### Key Infrastructure Decisions
-
-- **FrankenPHP over Nginx + PHP-FPM:** Instead of coordinating two separate containers (a web server and a PHP worker), FrankenPHP embeds PHP directly into the Go-based Caddy web server. This runs as a single lightweight container, halves memory overhead, enables OPcache pre-compilation, and delivers faster response times.
-- **Lean Multi-Stage Docker Builds:** The Dockerfile builds dependencies, compiles frontend assets with Node/Vite, and copies only the finished build into a minimal Alpine production image. Build tools and heavy `node_modules` are completely excluded from production.
-- **Host Reverse Proxy (Port 8080):** The app container runs on port `8080` rather than taking over ports `80` and `443`. A host-level reverse proxy (Nginx or Caddy) manages SSL certificates and forwards traffic, making it easy to run multiple independent web apps on a single VPS without port conflicts.
-- **MySQL 8.4 & Redis Separation:** MySQL manages relational e-commerce data (orders, variants, stock, transactions) with container healthchecks, while Redis handles in-memory sessions and hot caching to protect database performance.
-- **Intelligent Storefront Caching & Database Indexing:** Production Redis caching (`AppCache`) with a 5-minute bounded TTL, native Redis domain tags, typed `CacheKey`/`CacheTag` enums, and composite SQL indexes (`products_active_featured_sort_idx`, `products_active_price_idx`, `products_cat_active_sort_idx`). Reactive Eloquent observers automatically flush targeted cache tags when products, taxonomies, promotions, or settings change.
-- **Automated CI/CD Pipeline:** GitHub Actions automatically runs code style checks (Pint), static analysis (PHPStan), TypeScript validation (`vue-tsc`), and automated tests (Pest) on every push. When tests pass on `master`, it executes a zero-downtime deployment script over SSH.
-- **Monolith with Inertia.js:** Instead of maintaining disconnected frontend and API repositories, Inertia pairs Vue 3 directly with Laravel. This gives users a smooth Single Page Application experience without the added burden of API versioning, CORS configuration, or token syncing.
+**Stack:** Laravel 13 · PHP 8.5 · Vue 3 + TypeScript · Inertia.js v3 · Tailwind CSS v4 · Filament 5 · Stripe · MySQL 8.4 · Redis · FrankenPHP · Docker · Pest
 
 ---
 
-## Tech Stack
+## Why it's built the way it is
 
-| Layer                | Technology                            | Purpose                                                       |
-| :------------------- | :------------------------------------ | :------------------------------------------------------------ |
-| **Backend**          | Laravel 13 & PHP 8.5                  | Application logic, database ORM, and background workers       |
-| **Frontend**         | Vue 3, Inertia.js v3, Tailwind CSS v4 | Reactive client interface with fast page transitions          |
-| **Admin Panel**      | Filament 5                            | Back-office management for catalog, orders, and content       |
-| **Payments**         | Stripe API & Webhooks                 | Secure checkout and event-driven payment handling             |
-| **Database & Cache** | MySQL 8.4 & Redis                     | Relational data persistence and fast in-memory caching        |
-| **Runtime & Infra**  | Docker, FrankenPHP, GitHub Actions    | Multi-stage container builds, web server, and automated CI/CD |
+### One app, no separate API: Inertia + Vue
+
+The storefront is a Vue SPA, but Laravel still owns routing, auth, validation and data. Inertia passes props straight from controllers to Vue pages, so there's no REST layer to version, no CORS, no token juggling, and no duplicated validation. [Wayfinder](https://github.com/laravel/wayfinder) generates typed TypeScript helpers for every route, so the frontend never hardcodes a URL.
+
+It still behaves like an API where that matters. Pagination is a _partial reload_: it asks only for the `products` prop, and the facet and category props are lazy closures the server skips entirely. Bestsellers and related products are deferred props, and product links prefetch on hover.
+
+### Actions for things that _happen_, services for things that _are_
+
+- **Actions** (`app/Actions`) are single-purpose classes with one `execute()` method: `PlaceOrder`, `MarkOrderPaid`, `RefundOrder`, `ReleaseOrderReservations`… Each one is a business event that owns its own transaction and row locks. The reason: the same event gets triggered from very different places. Releasing an order's stock happens on a gateway failure, a failed or expired payment, the stale-order sweep, an admin refund, an admin cancel and Stripe's refund webhook. With one action, that logic lives in exactly one place. Controllers, queued jobs, Filament buttons and Artisan commands all call the same class.
+- **Services** (`app/Services`) wrap ongoing state or read models that need many related methods. `CartService` hides whether a cart lives in the session (guest) or the database (signed in). `ProductCatalogService` builds filter queries and facet counts.
+- **Controllers stay thin:** validate with a Form Request, call an action or service, return a page.
+
+I skipped a full repository layer or DDD-style modules on purpose. For a shop this size, Eloquent plus actions keeps things readable without extra indirection.
+
+### Payments behind a contract
+
+`PaymentGateway` is an interface. `PaymentManager` picks Stripe or an offline driver (bank transfer, cash on delivery) per order. Checkout and refunds never `if`/`else` on the provider, so adding a new one means adding one class.
+
+### Money correctness over convenience
+
+- **Stock is reserved when the order is placed, not when it's paid.** Two people can't buy the last item at the same time, because rows are locked in ID order to avoid deadlocks.
+- **Reservations are released exactly once.** A `reservations_released_at` stamp makes it idempotent, so a refund followed by Stripe's refund webhook can't restock twice.
+- **Webhooks are stored first, then processed by a queued job** under a row lock. Stripe retries are free and duplicates are no-ops.
+- **Promotions are resolved server-side by one resolver** shared by the cart page and order placement, so the total you see is the total you're charged. The browser never decides which discount applies.
+
+### Guest-first cart
+
+The bag lives in `localStorage` and syncs to the server in the background (debounced), so the UI never waits on a request. When a guest signs in, their bag and wishlist merge into the account. Earlier guest orders attach only after the email is verified, so nobody can claim someone else's order history by registering with their address.
+
+### Caching that actually invalidates
+
+`AppCache` wraps Redis with typed `CacheKey` / `CacheTag` enums, so there are no magic strings. Model observers flush the right tags when products, categories, promotions or settings change. Short TTLs act as a safety net, not the main mechanism.
+
+### A design system instead of one-off styling
+
+- **Design tokens:** colours, type scale, radii and shadows live in one place, `resources/css/app.css`.
+- **Shared UI:** `Button`, `Card`, `Drawer`, `Modal`, `Badge` and friends live in `resources/js/components/ui`.
+- **A spacing rule:** only clean rem steps (0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4…).
+
+### Filament for the back office
+
+The admin side (catalogue, orders, refunds, promotions, roles) is Filament instead of a hand-built dashboard. It's internal tooling, and Filament gets it to production quality with a fraction of the code, leaving the custom work for the customer-facing storefront.
+
+### Boring, cheap infrastructure
+
+One FrankenPHP container (PHP embedded in Caddy, no separate FPM), plus MySQL and Redis. It uses a multi-stage Docker build and sits behind a host reverse proxy on port 8080, so several apps can share one VPS. GitHub Actions runs every check and deploys over SSH when `master` is green.
 
 ---
 
-## Core Features
+## Features
 
-### Storefront & Customer Experience (Vue 3 & Inertia.js)
+**Storefront:** catalogue with multi-facet filters (brand, skin type, ingredients, claims…), live search, product variants and shade swatches, bag and wishlist that work for guests, Stripe Checkout or offline payment, promo codes with automatic offers, order tracking, saved addresses and email verification.
 
-- **Product Discovery & Filtering:** Browse the cosmetics catalog with multi-attribute filtering (category, skin type, hair type, active ingredients, claims), real-time search, and optimized cached facet aggregations.
-- **Dynamic Product Variants:** Seamless variant switching (sizes, scents, formulations) with instant price, imagery, and stock status updates.
-- **Cart & Wishlist Synchronization:** Real-time cart state, persistent guest sessions, and automatic wishlist reconciliation upon login/registration.
-- **Frictionless Stripe Checkout:** End-to-end checkout flow supporting country-specific shipping options, delivery threshold calculations, and automated order creation powered by Stripe webhooks.
-- **Promotions & Discounts:** Flexible discount code engine with cart minimums, usage caps, expiration windows, and instant promotion breakdown in checkout.
-- **Customer Account Portal:** Self-service profile to inspect past orders, fulfillment statuses, personal details, and manage up to 3 saved shipping addresses with default address designations and direct checkout integration.
-
-### Back-Office Administration (Filament 5)
-
-- **Catalog & Inventory Control:** Full CRUD management for products, brands, categories, variants, and gallery media with real-time stock tracking.
-- **Customer 360 & Order Fulfillment:** Inspect incoming orders, customer details, payment states, active carts, wishlists, and read-only saved shipping addresses.
-- **Marketing & Promotions:** Create and schedule coupon codes, homepage slider banners, and promotional campaigns.
-- **Granular Cache Management:** Reactive cache invalidation across all models plus a dedicated artisan CLI command (`php artisan app:cache-flush`) for tag- or key-based maintenance.
-- **Role-Based Access Control (RBAC):** Granular administrative role and user management separating store staff from regular customers.
-- **Dashboard Analytics:** Overview widgets tracking key business metrics, recent order volumes, and inventory alerts.
+**Admin (Filament):** products, variants and media; categories and brands; orders with refunds (partial or full) and cancellations; promotions; homepage slider; countries and delivery and payment options; Stripe event log; role-based staff access; dashboard metrics.
 
 ---
 
-## Local Development
+## Running it locally
 
-> **Note:** The included `compose.yaml` and `Dockerfile` are strictly for **production**. For local development, use either Lerd or native host tools.
-
-### Option 1: Lerd (Recommended)
-
-Spins up PHP 8.5, MySQL, Redis, Mailpit, and background workers automatically:
+With Lerd (PHP, MySQL, Redis, Mailpit and workers handled for you):
 
 ```bash
 lerd start
 composer setup
 ```
 
-App is live at: `https://green-veil-cosmetic-shop.test`
-
-### Option 2: Host Environment (PHP 8.5 & Node.js)
+Or on your own PHP 8.5 + Node setup:
 
 ```bash
 cp .env.example .env
 composer install && npm install
 php artisan key:generate
-php artisan migrate --seed
+php artisan migrate --seed   # also downloads the seed product photos once
 composer run dev
 ```
 
----
+Seeded logins (password `password` for both): `customer@example.com` for the storefront, `admin@example.com` for `/admin`.
 
-## Production Deployment
+> `compose.yaml` and the `Dockerfile` are for production only.
 
-The project deploys with a simple script that pulls changes, rebuilds containers, runs pending migrations, and restarts services:
+## Quality checks
 
 ```bash
-# Initial clone and environment
+composer test          # Pint, PHPStan and Pest
+npm run check          # lint and format (Vite+)
+npm run types:check    # vue-tsc
+```
+
+## Deploying
+
+```bash
 git clone <REPO_URL> /var/www/green-veil-cosmetic-shop
 cd /var/www/green-veil-cosmetic-shop
 cp .env.docker.example .env
-
-# Deploy containers
-chmod +x deploy.sh
-./deploy.sh
+./deploy.sh            # pull, rebuild, migrate, restart
 ```
 
-### Host Nginx Proxy Example
+Point a host Nginx or Caddy at `127.0.0.1:8080` for TLS.
 
-```nginx
-server {
-    server_name shop.yourdomain.com;
-    client_max_body_size 100M;
-
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
----
-
-## Testing & Code Quality
-
-Run all quality checks and automated tests with a single command:
-
-```bash
-composer test               # Runs Pint, PHPStan, and Pest test suite in parallel
-composer lint               # Automatically format code with Laravel Pint
-composer types:check        # PHP static analysis (PHPStan / Larastan)
-npm run check:fix           # Format and lint frontend code (Biome / Vite)
-npm run types:check         # Vue/TypeScript type verification
-php artisan app:cache-flush # Flush managed Redis storefront cache by tag or key
-```
-
----
-
-## Project Structure
+## Where things live
 
 ```
-├── app/
-│   ├── Enums/           # Domain enums (CacheKey, CacheTag, OrderStatus, etc.)
-│   ├── Filament/        # Admin resources, relations, and dashboard widgets
-│   ├── Http/Controllers# Storefront and checkout controllers (Cart, Stripe, etc.)
-│   ├── Models/          # Database models (Products, Variants, Orders, Promotions)
-│   ├── Observers/       # Reactive cache invalidation observers
-│   └── Services/        # Domain services & caching layer (AppCache, CartService)
-├── resources/js/        # Vue 3 pages, components, and layouts
-├── docker/              # Container boot scripts and configurations
-├── tests/               # Pest feature and unit tests
-├── compose.yaml         # Production Docker services (App, MySQL, Redis)
-└── deploy.sh            # Automated server deployment script
+app/
+├── Actions/      # Business events: PlaceOrder, MarkOrderPaid, RefundOrder…
+├── Services/     # Cart, catalogue queries, cache layer
+├── Payments/     # Gateway contract + Stripe and offline drivers
+├── Jobs/         # Queued Stripe webhook processing
+├── Http/         # Thin controllers, Form Requests, API Resources
+├── Filament/     # Admin panel
+└── Observers/    # Cache invalidation
+resources/
+├── css/app.css   # Design tokens
+└── js/           # Vue pages, components/ui primitives, composables
+tests/            # Pest feature and unit tests
 ```
-
----
 
 ## License
 
-This project is open-source and licensed under the [MIT License](LICENSE).
+MIT
