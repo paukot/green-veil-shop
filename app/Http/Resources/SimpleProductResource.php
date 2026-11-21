@@ -27,6 +27,7 @@ class SimpleProductResource extends JsonResource
                 : null,
             'discount_percentage' => $this->discountPercentage(),
             'main_image' => (new StorageImageService)->getImage($this->main_image),
+            'main_image_srcset' => (new StorageImageService)->getSrcset($this->main_image, 'product'),
             'category' => SimpleCategoryResource::make($this->whenLoaded('category')),
             'is_in_stock' => $this->isInStock(),
 

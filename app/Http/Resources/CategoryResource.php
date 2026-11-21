@@ -21,6 +21,7 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'image' => (new StorageImageService)->getImage($this->image),
+            'image_srcset' => (new StorageImageService)->getSrcset($this->image, 'category'),
 
             'children' => SimpleCategoryResource::collection($this->whenLoaded('children')),
             'parent' => SimpleCategoryResource::make($this->whenLoaded('parent')),

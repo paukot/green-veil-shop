@@ -18,6 +18,7 @@ class ProductImageResource extends JsonResource
         return [
             'id' => $this->id,
             'path' => (new StorageImageService)->getImage($this->path),
+            'srcset' => (new StorageImageService)->getSrcset($this->path, 'product'),
             'alt_text' => $this->alt_text,
             'is_primary' => $this->is_primary,
         ];

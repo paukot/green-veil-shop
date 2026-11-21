@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Images\Contracts\ImageVariantOwner;
+use App\Traits\HasImageVariants;
 use Database\Factories\ProductImageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,10 +22,13 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['product_id', 'path', 'alt_text', 'sort_order', 'is_primary'])]
-class ProductImage extends Model
+class ProductImage extends Model implements ImageVariantOwner
 {
     /** @use HasFactory<ProductImageFactory> */
-    use HasFactory;
+    use HasFactory, HasImageVariants;
+
+    /** @var array<string, string> */
+    protected array $imageVariants = ['path' => 'product'];
 
     protected function casts(): array
     {

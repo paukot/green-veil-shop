@@ -19,6 +19,7 @@ class SimpleCategoryResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'image' => (new StorageImageService)->getImage($this->image, false),
+            'image_srcset' => (new StorageImageService)->getSrcset($this->image, 'category'),
             'name' => $this->name,
             'description' => $this->description,
 

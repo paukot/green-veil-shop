@@ -67,6 +67,7 @@ class HandleInertiaRequests extends Middleware
                             'slug' => $cat->slug,
                             'name' => $cat->name,
                             'image' => $storageImageService->getImage($cat->image, false),
+                            'image_srcset' => $storageImageService->getSrcset($cat->image, 'category'),
                             'children' => $cat->children->map(fn (Category $child) => [
                                 'id' => $child->id,
                                 'slug' => $child->slug,

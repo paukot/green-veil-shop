@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Images\Contracts\ImageVariantOwner;
+use App\Traits\HasImageVariants;
 use Database\Factories\BrandFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,10 +37,13 @@ use Illuminate\Support\Carbon;
     'is_active',
     'sort_order',
 ])]
-class Brand extends Model
+class Brand extends Model implements ImageVariantOwner
 {
     /** @use HasFactory<BrandFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasImageVariants, SoftDeletes;
+
+    /** @var array<string, string> */
+    protected array $imageVariants = ['logo_path' => 'brand'];
 
     /**
      * @return array<string, string>

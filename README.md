@@ -43,6 +43,10 @@ The bag lives in `localStorage` and syncs to the server in the background (debou
 
 `AppCache` wraps Redis with typed `CacheKey` / `CacheTag` enums, so there are no magic strings. Model observers flush the right tags when products, categories, promotions or settings change. Short TTLs act as a safety net, not the main mechanism.
 
+### Images: resized once, at upload
+
+When a model with an image column is saved, a queued job (Intervention Image) caps the original at 2000px and writes compressed WebP variants beside it, such as `products/variants/abc-400.webp`. The variant names derive from the path, so the database doesn't change. The storefront gets a `srcset` and the browser picks the right size: a product card downloads a ~25 KB WebP instead of the full photo. Pre-generating beats on-the-fly resizing here because images change rarely, and static files are the fastest thing a server can send. `php artisan app:images:process` backfills anything inserted in bulk.
+
 ### A design system instead of one-off styling
 
 - **Design tokens:** colours, type scale, radii and shadows live in one place, `resources/css/app.css`.

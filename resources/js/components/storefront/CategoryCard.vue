@@ -22,6 +22,8 @@ const imageUrl = computed(() => resolveStorageUrl(props.category.image));
         <img
             v-if="imageUrl"
             :src="imageUrl"
+            :srcset="category.image_srcset ?? undefined"
+            sizes="(min-width: 1024px) 33vw, 50vw"
             :alt="category.name"
             class="absolute inset-0 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             loading="lazy"

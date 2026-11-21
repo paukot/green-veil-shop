@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\Images\Contracts\ImageVariantOwner;
+use App\Traits\HasImageVariants;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,10 +29,13 @@ use Illuminate\Support\Carbon;
  * @property-read Category|null $parent
  */
 #[Fillable(['parent_id', 'slug', 'image', 'is_active', 'sort_order', 'name', 'description'])]
-class Category extends Model
+class Category extends Model implements ImageVariantOwner
 {
     /** @use HasFactory<CategoryFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasImageVariants, SoftDeletes;
+
+    /** @var array<string, string> */
+    protected array $imageVariants = ['image' => 'category'];
 
     protected function casts(): array
     {

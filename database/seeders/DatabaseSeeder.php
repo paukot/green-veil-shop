@@ -37,5 +37,8 @@ class DatabaseSeeder extends Seeder
             OrderSeeder::class,
             OrderItemSeeder::class,
         ]);
+
+        // Seeders insert rows in bulk (no model events), so build the web image variants once here.
+        Artisan::call('app:images:process');
     }
 }
