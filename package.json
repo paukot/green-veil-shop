@@ -6,13 +6,15 @@
         "build": "vp build",
         "build:ssr": "vp build && vp build --ssr",
         "dev": "vp dev",
-        "check": "vp check",
+        "check": "vp check && node scripts/check-design-tokens.mjs --strict",
         "check:fix": "vp check --fix",
-        "types:check": "vue-tsc --noEmit"
+        "types:check": "vue-tsc --noEmit",
+        "check:design": "node scripts/check-design-tokens.mjs --strict"
     },
     "dependencies": {
         "@inertiajs/vite": "^3.0.0",
         "@inertiajs/vue3": "^3.0.0",
+        "@lucide/vue": "^1.77.0",
         "@tailwindcss/vite": "^4.1.11",
         "@vitejs/plugin-vue": "^6.0.0",
         "clsx": "^2.1.1",

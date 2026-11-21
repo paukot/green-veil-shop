@@ -70,7 +70,6 @@ class CheckoutRequest extends FormRequest
                     ->whereNull('deleted_at'),
             ],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'promotion_id' => ['nullable', 'integer', 'exists:promotions,id'],
             'selected_address_id' => [
                 'nullable',
                 'integer',
@@ -90,11 +89,6 @@ class CheckoutRequest extends FormRequest
             ? $shipping
             : ($this->validated('billing_address') ?? $shipping);
 
-        $sessionPromoId = $this->hasSession() ? $this->session()->get('applied_promotion_id') : null;
-        $promotionId = $this->filled('promotion_id')
-            ? (int) $this->validated('promotion_id')
-            : ($sessionPromoId ? (int) $sessionPromoId : null);
-
         $user = $this->user();
 
         return new CheckoutData(
@@ -107,7 +101,6 @@ class CheckoutRequest extends FormRequest
             billingAddress: $billing,
             notes: $this->validated('notes'),
             user: $user instanceof User ? $user : null,
-            promotionId: $promotionId,
             saveAddressToProfile: ! $this->filled('selected_address_id') && $this->boolean('save_address_to_profile'),
             addressLabel: $this->filled('address_label') ? (string) $this->validated('address_label') : null,
         );

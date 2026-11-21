@@ -13,11 +13,10 @@ withDefaults(
 
 <template>
     <div
-        class="grid grid-cols-2 gap-3.5 sm:gap-6 md:grid-cols-3 xl:grid-cols-4"
+        class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:gap-x-6 lg:gap-y-12 xl:grid-cols-4"
         role="status"
-        aria-label="Loading botanical products"
+        aria-label="Loading products"
     >
         <ProductCardSkeleton v-for="i in count" :key="i" />
-        <span class="sr-only">Loading botanical products, please wait...</span>
     </div>
 </template>

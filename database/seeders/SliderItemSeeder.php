@@ -3,18 +3,21 @@
 namespace Database\Seeders;
 
 use App\Models\SliderItem;
+use Database\Seeders\Support\SeedImages;
 use Illuminate\Database\Seeder;
 
 class SliderItemSeeder extends Seeder
 {
     public function run(): void
     {
+        $seedImages = SeedImages::make();
+
         $slides = [
             [
                 'title' => 'Botanical care, simply made',
                 'subtitle' => 'Thoughtful formulas for your daily ritual.',
-                'image' => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1920&q=80',
-                'url' => '/shop',
+                'image' => $seedImages->slideImage('skincare'),
+                'url' => '/products',
                 'sort_order' => 0,
                 'is_active' => true,
                 'alt_text' => 'Green Veil botanical skincare collection',
@@ -23,8 +26,8 @@ class SliderItemSeeder extends Seeder
             [
                 'title' => 'A slower approach to beauty',
                 'subtitle' => 'Small rituals, considered ingredients, visible results.',
-                'image' => 'https://images.unsplash.com/photo-1608248597359-0a6723c34898?auto=format&fit=crop&w=1920&q=80',
-                'url' => '/shop?featured=1',
+                'image' => $seedImages->slideImage('favourites'),
+                'url' => '/products',
                 'sort_order' => 1,
                 'is_active' => true,
                 'alt_text' => 'Green Veil featured products',
@@ -33,7 +36,7 @@ class SliderItemSeeder extends Seeder
             [
                 'title' => 'Artisanal Perfumes & Botanical Scents',
                 'subtitle' => 'Rare botanicals, distilled into timeless essences.',
-                'image' => 'https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?auto=format&fit=crop&w=1920&q=80',
+                'image' => $seedImages->slideImage('perfumes'),
                 'url' => '/categories/perfumes',
                 'sort_order' => 2,
                 'is_active' => true,
@@ -43,7 +46,7 @@ class SliderItemSeeder extends Seeder
             [
                 'title' => 'Luminous Clean Makeup',
                 'subtitle' => 'Breathable mineral formulas that enhance your natural glow.',
-                'image' => 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1920&q=80',
+                'image' => $seedImages->slideImage('makeup'),
                 'url' => '/categories/makeup',
                 'sort_order' => 3,
                 'is_active' => true,
@@ -52,10 +55,18 @@ class SliderItemSeeder extends Seeder
             ],
         ];
 
-        // Clean up legacy non-existent relative image paths
-        SliderItem::query()->where('image', 'like', 'sliders/%')->delete();
+        // Drop slides left over from older seeds that pointed at missing files or dead external links.
+        SliderItem::query()
+            ->where(fn ($query) => $query->where('image', 'like', 'sliders/%')->orWhere('image', 'like', 'http%'))
+            ->delete();
 
         foreach ($slides as $slide) {
+            if ($slide['image'] === null) {
+                $this->command?->warn("Skipped slide '{$slide['title']}': its image was not downloaded (run app:fetch-seed-images).");
+
+                continue;
+            }
+
             SliderItem::updateOrCreate(['title' => $slide['title']], $slide);
         }
     }

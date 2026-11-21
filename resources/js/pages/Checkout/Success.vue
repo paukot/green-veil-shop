@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { Head, Link, usePoll } from '@inertiajs/vue3';
+import { Head, usePoll } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import OrderTrackingStepper from '@/components/storefront/OrderTrackingStepper.vue';
 import type { OrderDetailData } from '@/types/storefront';
 import { index as productsIndex } from '@/routes/products';
-import { formatCurrency } from '@/lib/utils';
+import PriceBreakdown from '@/components/storefront/checkout/PriceBreakdown.vue';
+import Badge from '@/components/ui/Badge.vue';
+import Button from '@/components/ui/Button.vue';
+import Card from '@/components/ui/Card.vue';
+import Container from '@/components/ui/Container.vue';
+import {
+    formatCurrency,
+    resolveStorageUrl,
+    showPlaceholderOnError,
+} from '@/lib/utils';
 import { useCart } from '@/composables/useCart';
+import { CheckIcon, ClockIcon, InfoIcon, PrinterIcon } from '@lucide/vue';
 
 defineOptions({
     layout: StorefrontLayout,
@@ -58,336 +68,214 @@ const { stop } = usePoll(
 </script>
 
 <template>
-    <Head :title="`Order ${order.number} Confirmed | Green Veil`" />
+    <Head :title="`Order ${order.number} Confirmed`" />
 
-    <section class="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <!-- Confirmation Card -->
-        <div
-            class="rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-10"
-        >
-            <!-- Header Icon & Title -->
-            <div class="text-center">
-                <div
-                    v-if="isPaid"
-                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-700"
+    <Container size="narrow" class="py-12 lg:py-16">
+        <Card padding="lg" class="flex flex-col gap-8">
+            <header class="flex flex-col items-center gap-4 text-center">
+                <span
+                    :class="[
+                        'flex size-16 items-center justify-center rounded-full',
+                        isPaid
+                            ? 'bg-success-50 text-success-700'
+                            : isPendingPayment
+                              ? 'bg-sage-50 text-sage-700'
+                              : 'bg-warning-50 text-warning-700',
+                    ]"
                 >
-                    <svg
-                        class="h-8 w-8"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                        />
-                    </svg>
-                </div>
-                <div
-                    v-else-if="isPendingPayment"
-                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sage-50 text-sage-700"
-                >
-                    <LoadingSpinner size="lg" class="text-sage-600" />
-                </div>
-                <div
-                    v-else
-                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-700"
-                >
-                    <svg
-                        class="h-8 w-8"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                    </svg>
-                </div>
-
-                <div
-                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wider uppercase"
-                >
-                    <span
+                    <CheckIcon
                         v-if="isPaid"
-                        class="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800"
-                    >
-                        Payment Confirmed
-                    </span>
-                    <span
-                        v-else-if="isPendingPayment"
-                        class="rounded-full bg-sage-100 px-3 py-1 text-sage-800"
-                    >
-                        Confirming Payment with Stripe...
-                    </span>
-                    <span
-                        v-else-if="
-                            order.paymentOption?.driver === 'bank_transfer'
-                        "
-                        class="rounded-full bg-amber-100 px-3 py-1 text-amber-800"
-                    >
-                        Awaiting Bank Transfer
-                    </span>
-                    <span
-                        v-else
-                        class="rounded-full bg-sage-100 px-3 py-1 text-sage-800"
-                    >
-                        Order Placed (Payment on Delivery)
-                    </span>
-                </div>
+                        class="size-6"
+                        aria-hidden="true"
+                    />
+                    <LoadingSpinner v-else-if="isPendingPayment" size="lg" />
+                    <ClockIcon v-else class="size-6" aria-hidden="true" />
+                </span>
+
+                <Badge v-if="isPaid" tone="success">Payment confirmed</Badge>
+                <Badge v-else-if="isPendingPayment" tone="brand">
+                    Confirming payment
+                </Badge>
+                <Badge
+                    v-else-if="order.paymentOption?.driver === 'bank_transfer'"
+                    tone="warning"
+                >
+                    Awaiting bank transfer
+                </Badge>
+                <Badge v-else tone="brand">Pay on delivery</Badge>
 
                 <h1
-                    class="mt-3 font-serif text-3xl text-charcoal-900 sm:text-4xl"
+                    class="font-serif text-4xl tracking-tight text-ink lg:text-5xl"
                 >
-                    Thank You, {{ order.customer_name }}
+                    Thank you, {{ order.customer_name }}
                 </h1>
-                <p class="text-charcoal-500 mt-2 text-xs sm:text-sm">
-                    Order reference:
-                    <span class="font-mono font-semibold text-charcoal-900">{{
-                        order.number
-                    }}</span>
+                <p class="flex flex-col gap-1 text-sm text-ink-muted">
+                    <span>
+                        Order
+                        <span class="font-mono font-semibold text-ink">{{
+                            order.number
+                        }}</span>
+                    </span>
+                    <span>
+                        A receipt is on its way to
+                        <span class="font-medium text-ink">{{
+                            order.customer_email
+                        }}</span>
+                    </span>
                 </p>
-                <p class="text-charcoal-400 mt-1 text-xs">
-                    A confirmation receipt will be sent to
-                    <span class="font-medium text-charcoal-700">{{
-                        order.customer_email
-                    }}</span>
-                </p>
-            </div>
+            </header>
 
-            <!-- Async Stripe Confirmation Banner -->
-            <div
+            <p
                 v-if="isPendingPayment"
-                class="mt-6 rounded-2xl border border-sage-200 bg-sage-50/60 p-4 text-center text-xs text-sage-800"
+                class="rounded-lg bg-sage-50 p-4 text-center text-sm text-sage-800"
+                role="status"
             >
-                <p v-if="pollCount < maxPolls">
-                    We are waiting for payment confirmation from the payment
-                    processor.
-                </p>
-                <p v-else>
-                    Your payment is being verified in the background. A formal
-                    receipt will be emailed to
-                    {{ order.customer_email }} as soon as Stripe completes
-                    processing.
-                </p>
-            </div>
+                <template v-if="pollCount < maxPolls">
+                    Waiting for confirmation from the payment processor…
+                </template>
+                <template v-else>
+                    Your payment is still being verified. We'll email
+                    {{ order.customer_email }} as soon as it completes.
+                </template>
+            </p>
 
-            <!-- Order Timeline Stepper -->
-            <div class="mt-8">
-                <OrderTrackingStepper
-                    :status="order.status"
-                    :payment-status="order.payment_status"
-                    :placed-at="order.placed_at"
-                    :paid-at="order.paid_at"
-                />
-            </div>
+            <OrderTrackingStepper
+                :status="order.status"
+                :payment-status="order.payment_status"
+                :placed-at="order.placed_at"
+                :paid-at="order.paid_at"
+            />
 
-            <!-- Payment Instructions for Offline Drivers -->
             <div
                 v-if="order.paymentOption?.instructions"
-                class="mt-8 rounded-2xl border border-sage-200 bg-sage-50/70 p-5 text-xs text-charcoal-800"
+                class="flex items-start gap-3 rounded-lg bg-surface-sunken p-4"
             >
-                <div class="flex items-start gap-3">
-                    <span class="text-lg">🌿</span>
-                    <div>
-                        <h3 class="font-semibold text-sage-900">
-                            {{ order.paymentOption.name }} Instructions
-                        </h3>
-                        <p class="mt-1 whitespace-pre-line text-charcoal-700">
-                            {{ order.paymentOption.instructions }}
-                        </p>
-                    </div>
+                <InfoIcon
+                    class="mt-1 size-4 shrink-0 text-sage-700"
+                    aria-hidden="true"
+                />
+                <div class="flex flex-col gap-1 text-sm">
+                    <h2 class="font-medium text-ink">
+                        {{ order.paymentOption.name }} instructions
+                    </h2>
+                    <p class="whitespace-pre-line text-ink-muted">
+                        {{ order.paymentOption.instructions }}
+                    </p>
                 </div>
             </div>
 
-            <!-- Order Details & Breakdown -->
-            <div class="mt-8 border-t border-cream-100 pt-8">
-                <h2 class="mb-4 font-serif text-lg text-charcoal-900">
-                    Items in Your Order
-                </h2>
-
-                <div class="divide-y divide-cream-100">
-                    <div
+            <section class="flex flex-col gap-4 border-t border-border pt-8">
+                <h2 class="font-serif text-2xl text-ink">Your order</h2>
+                <ul class="flex flex-col divide-y divide-border">
+                    <li
                         v-for="item in order.items"
                         :key="item.id"
-                        class="flex items-center justify-between py-3.5 text-xs"
+                        class="flex items-center gap-4 py-4"
                     >
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-cream-200 bg-cream-50"
-                            >
-                                <img
-                                    v-if="item.product_image"
-                                    :src="item.product_image"
-                                    :alt="item.product_name"
-                                    class="h-full w-full object-cover"
-                                />
-                                <div
-                                    v-else
-                                    class="text-charcoal-300 flex h-full w-full items-center justify-center"
-                                >
-                                    🍃
-                                </div>
-                            </div>
-                            <div>
-                                <p class="font-medium text-charcoal-900">
-                                    {{ item.product_name }}
-                                </p>
-                                <p class="text-charcoal-400">
-                                    Qty: {{ item.quantity }} &times;
-                                    {{ formatCurrency(item.unit_price) }}
-                                </p>
-                            </div>
+                        <div
+                            class="size-16 shrink-0 overflow-hidden rounded-lg bg-surface-sunken"
+                        >
+                            <img
+                                v-if="item.product_image"
+                                :src="resolveStorageUrl(item.product_image)"
+                                :alt="item.product_name"
+                                class="size-full object-cover"
+                                @error="showPlaceholderOnError"
+                            />
                         </div>
-                        <span class="font-semibold text-charcoal-900">
+                        <div class="flex min-w-0 flex-1 flex-col gap-1">
+                            <p class="truncate text-sm font-medium text-ink">
+                                {{ item.product_name }}
+                            </p>
+                            <p class="text-xs text-ink-subtle tabular-nums">
+                                {{ item.quantity }} ×
+                                {{ formatCurrency(item.unit_price) }}
+                            </p>
+                        </div>
+                        <p class="text-sm font-semibold text-ink tabular-nums">
                             {{ formatCurrency(item.subtotal) }}
-                        </span>
-                    </div>
-                </div>
+                        </p>
+                    </li>
+                </ul>
+                <PriceBreakdown
+                    :subtotal="order.subtotal"
+                    :discount-amount="order.discount_amount"
+                    :shipping="order.delivery_amount"
+                    :total="order.total"
+                    :total-label="isPaid ? 'Total paid' : 'Total due'"
+                    :note="order.deliveryOption?.name"
+                />
+            </section>
 
-                <!-- Totals summary -->
-                <div
-                    class="mt-6 space-y-2 border-t border-cream-100 pt-4 text-xs"
-                >
-                    <div class="text-charcoal-600 flex justify-between">
-                        <span>Subtotal</span>
-                        <span class="font-medium text-charcoal-900">{{
-                            formatCurrency(order.subtotal)
-                        }}</span>
-                    </div>
-                    <div
-                        v-if="order.discount_amount > 0"
-                        class="flex justify-between font-medium text-emerald-700"
+            <section
+                class="grid grid-cols-1 gap-6 border-t border-border pt-8 text-sm sm:grid-cols-2"
+            >
+                <div class="flex flex-col gap-2">
+                    <h3
+                        class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
                     >
-                        <span>Botanical Promotion Discount</span>
-                        <span
-                            >-{{ formatCurrency(order.discount_amount) }}</span
-                        >
-                    </div>
-                    <div class="text-charcoal-600 flex justify-between">
-                        <span
-                            >Delivery ({{
+                        Shipping to
+                    </h3>
+                    <address
+                        class="flex flex-col gap-1 text-ink-muted not-italic"
+                    >
+                        <span class="font-medium text-ink">{{
+                            order.customer_name
+                        }}</span>
+                        <span>{{ order.shipping_address.line1 }}</span>
+                        <span v-if="order.shipping_address.line2">
+                            {{ order.shipping_address.line2 }}
+                        </span>
+                        <span>
+                            {{ order.shipping_address.city }},
+                            {{ order.shipping_address.postal_code }}
+                        </span>
+                        <span>{{ order.shipping_address.country }}</span>
+                    </address>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <h3
+                        class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
+                    >
+                        Payment & delivery
+                    </h3>
+                    <p class="flex flex-col gap-1 text-ink-muted">
+                        <span class="font-medium text-ink">
+                            {{ order.paymentOption?.name ?? 'Direct payment' }}
+                        </span>
+                        <span>
+                            {{
                                 order.deliveryOption?.name ??
-                                'Standard Delivery'
-                            }})</span
-                        >
-                        <span
-                            v-if="order.delivery_amount === 0"
-                            class="font-semibold text-emerald-800"
-                            >FREE</span
-                        >
-                        <span v-else class="font-medium text-charcoal-900">{{
-                            formatCurrency(order.delivery_amount)
-                        }}</span>
-                    </div>
-                    <div
-                        class="flex items-baseline justify-between border-t border-cream-200 pt-4"
-                    >
-                        <span class="font-serif text-base text-charcoal-900"
-                            >Total Paid / Due</span
-                        >
-                        <span class="text-2xl font-semibold text-charcoal-900">
-                            {{ formatCurrency(order.total) }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Shipping & Payment Method Grid -->
-            <div
-                class="mt-8 grid grid-cols-1 gap-6 border-t border-cream-100 pt-8 text-xs sm:grid-cols-2"
-            >
-                <div>
-                    <h3
-                        class="text-charcoal-500 mb-2 font-semibold tracking-wider uppercase"
-                    >
-                        Shipping Destination
-                    </h3>
-                    <p class="font-medium text-charcoal-900">
-                        {{ order.customer_name }}
-                    </p>
-                    <p class="text-charcoal-600">
-                        {{ order.shipping_address.line1 }}
-                    </p>
-                    <p
-                        v-if="order.shipping_address.line2"
-                        class="text-charcoal-600"
-                    >
-                        {{ order.shipping_address.line2 }}
-                    </p>
-                    <p class="text-charcoal-600">
-                        {{ order.shipping_address.city }},
-                        {{ order.shipping_address.postal_code }}
-                    </p>
-                    <p class="text-charcoal-600">
-                        {{ order.shipping_address.country }}
-                    </p>
-                </div>
-
-                <div>
-                    <h3
-                        class="text-charcoal-500 mb-2 font-semibold tracking-wider uppercase"
-                    >
-                        Payment & Delivery Option
-                    </h3>
-                    <p class="font-medium text-charcoal-900">
-                        Payment:
-                        {{ order.paymentOption?.name ?? 'Direct Payment' }}
-                    </p>
-                    <p class="text-charcoal-600 mt-1">
-                        Delivery:
-                        {{ order.deliveryOption?.name ?? 'Standard' }}
-                        <span
-                            v-if="
-                                order.deliveryOption?.estimated_delivery_label
-                            "
-                            class="text-charcoal-400"
-                        >
-                            ({{
-                                order.deliveryOption.estimated_delivery_label
-                            }})
+                                'Standard delivery'
+                            }}
+                            <template
+                                v-if="
+                                    order.deliveryOption
+                                        ?.estimated_delivery_label
+                                "
+                            >
+                                ·
+                                {{
+                                    order.deliveryOption
+                                        .estimated_delivery_label
+                                }}
+                            </template>
                         </span>
                     </p>
                 </div>
-            </div>
+            </section>
 
-            <!-- CTAs -->
             <div
-                class="mt-10 flex flex-wrap items-center justify-center gap-3 print:hidden"
+                class="flex flex-col-reverse justify-center gap-3 border-t border-border pt-8 sm:flex-row print:hidden"
             >
-                <button
-                    type="button"
-                    @click="handlePrint"
-                    class="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-cream-300 bg-white px-6 py-3.5 text-xs font-semibold tracking-wider text-charcoal-700 uppercase shadow-xs transition-colors hover:bg-cream-100 hover:text-sage-900"
-                >
-                    <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.75"
-                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                        />
-                    </svg>
-                    <span>Print Receipt</span>
-                </button>
-
-                <Link
-                    :href="productsIndex.url()"
-                    class="inline-block rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md"
-                >
-                    Continue Exploring Botanicals
-                </Link>
+                <Button variant="outline" @click="handlePrint">
+                    <template #icon>
+                        <PrinterIcon class="size-4" aria-hidden="true" />
+                    </template>
+                    Print receipt
+                </Button>
+                <Button :href="productsIndex.url()">Continue shopping</Button>
             </div>
-        </div>
-    </section>
+        </Card>
+    </Container>
 </template>

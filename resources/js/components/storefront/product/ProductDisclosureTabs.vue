@@ -1,216 +1,266 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, useId } from 'vue';
+import { TriangleAlertIcon } from '@lucide/vue';
 import type {
     ProductDetailPageProps,
     ProductVariantItem,
 } from '@/types/storefront';
+import { cn } from '@/lib/utils';
+
+type TabKey = 'description' | 'inci' | 'usage' | 'warnings' | 'specs';
 
 const props = defineProps<{
     product: ProductDetailPageProps['product'];
     selectedVariant: ProductVariantItem | null;
 }>();
 
-const activeTab = ref<'description' | 'inci' | 'usage' | 'warnings' | 'specs'>(
-    'description',
+const baseId = useId();
+const activeTab = ref<TabKey>('description');
+const tabRefs = ref<HTMLButtonElement[]>([]);
+
+const tabs = computed(() =>
+    (
+        [
+            { key: 'description', label: 'Description', show: true },
+            {
+                key: 'inci',
+                label: 'Ingredients',
+                show: Boolean(props.product.inci_list),
+            },
+            {
+                key: 'usage',
+                label: 'How to use',
+                show: Boolean(props.product.how_to_use),
+            },
+            {
+                key: 'warnings',
+                label: 'Safety',
+                show: Boolean(
+                    props.product.warnings || props.product.responsible_person,
+                ),
+            },
+            { key: 'specs', label: 'Specifications', show: true },
+        ] as Array<{ key: TabKey; label: string; show: boolean }>
+    ).filter((tab) => tab.show),
 );
 
-const manufacturedCountryName = computed(() => {
-    return (
+/** Arrow keys move between tabs, as the WAI-ARIA tabs pattern expects. */
+async function onTabKeydown(event: KeyboardEvent, index: number) {
+    const delta =
+        event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (delta === 0) return;
+
+    event.preventDefault();
+    const nextIndex = (index + delta + tabs.value.length) % tabs.value.length;
+    activeTab.value = tabs.value[nextIndex].key;
+    await nextTick();
+    tabRefs.value[nextIndex]?.focus();
+}
+
+const manufacturedCountryName = computed(
+    () =>
         props.product.manufactured_in_name ||
         props.product.manufactured_in ||
-        null
+        null,
+);
+
+const capitalise = (value: string) =>
+    value.charAt(0).toUpperCase() + value.slice(1);
+
+const specifications = computed(() => {
+    const product = props.product;
+    const rows: Array<{
+        label: string;
+        value: string | number | null | undefined;
+        mono?: boolean;
+    }> = [
+        { label: 'Brand', value: product.brand?.name },
+        { label: 'Series', value: product.series },
+        { label: 'Category', value: product.category?.name },
+        {
+            label: 'Net content',
+            value: product.volume
+                ? `${product.volume} ${product.unit || 'ml'}`
+                : null,
+        },
+        { label: 'Unit price', value: product.formatted_unit_price },
+        {
+            label: 'Classification',
+            value: product.classification
+                ? capitalise(product.classification)
+                : null,
+        },
+        {
+            label: 'Formula',
+            value: product.formula_type
+                ? capitalise(product.formula_type)
+                : null,
+        },
+        {
+            label: 'For',
+            value: product.gender ? capitalise(product.gender) : null,
+        },
+        { label: 'SPF', value: product.spf },
+        {
+            label: 'After opening',
+            value: product.pao_months ? `${product.pao_months} months` : null,
+        },
+        { label: 'Country of origin', value: manufacturedCountryName.value },
+        { label: 'Barcode', value: product.barcode, mono: true },
+        {
+            label: 'SKU',
+            value: props.selectedVariant?.sku || product.sku,
+            mono: true,
+        },
+        ...Object.entries(product.custom_characteristics ?? {}).map(
+            ([label, value]) => ({
+                label,
+                value: String(value),
+            }),
+        ),
+    ];
+
+    return rows.filter(
+        (row) =>
+            row.value !== null && row.value !== undefined && row.value !== '',
     );
 });
 </script>
 
 <template>
-    <div class="mt-16 border-t border-cream-200 pt-10">
-        <!-- Tabs Navigation -->
+    <section
+        class="mt-16 flex flex-col gap-8 border-t border-border pt-12 lg:mt-24"
+    >
         <div
-            class="-mx-4 flex scrollbar-none flex-nowrap gap-2 overflow-x-auto border-b border-cream-200 px-4 pb-px sm:mx-0 sm:px-0"
+            role="tablist"
+            aria-label="Product information"
+            class="-mx-4 scrollbar-none flex gap-8 overflow-x-auto border-b border-border px-4 sm:mx-0 sm:px-0"
         >
             <button
+                v-for="(tab, index) in tabs"
+                :id="`${baseId}-tab-${tab.key}`"
+                :key="tab.key"
+                ref="tabRefs"
                 type="button"
-                @click="activeTab = 'description'"
-                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
+                role="tab"
+                :aria-selected="activeTab === tab.key"
+                :aria-controls="`${baseId}-panel-${tab.key}`"
+                :tabindex="activeTab === tab.key ? 0 : -1"
                 :class="
-                    activeTab === 'description'
-                        ? 'border-sage-800 text-sage-900'
-                        : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
+                    cn(
+                        '-mb-px flex h-12 shrink-0 items-center border-b-2 text-sm font-medium whitespace-nowrap transition-colors',
+                        activeTab === tab.key
+                            ? 'border-ink text-ink'
+                            : 'border-transparent text-ink-subtle hover:text-ink',
+                    )
                 "
+                @click="activeTab = tab.key"
+                @keydown="onTabKeydown($event, index)"
             >
-                Ritual & Description
-            </button>
-
-            <button
-                v-if="product.inci_list"
-                type="button"
-                @click="activeTab = 'inci'"
-                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
-                :class="
-                    activeTab === 'inci'
-                        ? 'border-sage-800 text-sage-900'
-                        : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
-                "
-            >
-                Ingredients (INCI)
-            </button>
-
-            <button
-                v-if="product.how_to_use"
-                type="button"
-                @click="activeTab = 'usage'"
-                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
-                :class="
-                    activeTab === 'usage'
-                        ? 'border-sage-800 text-sage-900'
-                        : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
-                "
-            >
-                How to Use
-            </button>
-
-            <button
-                v-if="product.warnings || product.responsible_person"
-                type="button"
-                @click="activeTab = 'warnings'"
-                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
-                :class="
-                    activeTab === 'warnings'
-                        ? 'border-sage-800 text-sage-900'
-                        : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
-                "
-            >
-                Safety & Warnings
-            </button>
-
-            <button
-                type="button"
-                @click="activeTab = 'specs'"
-                class="flex min-h-[44px] shrink-0 items-center border-b-2 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase transition-colors"
-                :class="
-                    activeTab === 'specs'
-                        ? 'border-sage-800 text-sage-900'
-                        : 'text-charcoal-500 border-transparent hover:text-charcoal-900'
-                "
-            >
-                Specifications
+                {{ tab.label }}
             </button>
         </div>
 
-        <!-- Tab 1: Description -->
-        <div
-            v-show="activeTab === 'description'"
-            class="max-w-4xl space-y-4 py-8"
-        >
+        <div class="max-w-3xl">
             <div
-                v-if="product.description"
-                class="prose prose-sm prose-stone max-w-none leading-relaxed font-light text-charcoal-700"
+                v-show="activeTab === 'description'"
+                :id="`${baseId}-panel-description`"
+                role="tabpanel"
+                :aria-labelledby="`${baseId}-tab-description`"
+                class="rich-text"
             >
-                <p class="whitespace-pre-line">{{ product.description }}</p>
-            </div>
-            <p v-else class="text-charcoal-400 italic">
-                No detailed ritual description provided for this botanical
-                formulation.
-            </p>
-        </div>
-
-        <!-- Tab 2: Full INCI Formulation -->
-        <div v-show="activeTab === 'inci'" class="max-w-4xl space-y-6 py-8">
-            <div>
-                <h3 class="mb-2 font-serif text-xl text-charcoal-900">
-                    Full Ingredient Declaration (INCI)
-                </h3>
-                <p class="text-charcoal-500 text-xs">
-                    In compliance with EU Cosmetic Regulation (EC) No 1223/2009.
-                    Listed in descending order of concentration.
+                <p v-if="product.description" class="whitespace-pre-line">
+                    {{ product.description }}
                 </p>
+                <p v-else class="italic">No detailed description yet.</p>
             </div>
 
             <div
-                class="rounded-xl border border-cream-200 bg-cream-50/50 p-6 leading-relaxed"
+                v-show="activeTab === 'inci'"
+                :id="`${baseId}-panel-inci`"
+                role="tabpanel"
+                :aria-labelledby="`${baseId}-tab-inci`"
+                class="flex flex-col gap-6"
             >
+                <div class="flex flex-col gap-2">
+                    <h3 class="font-serif text-2xl text-ink">
+                        Full ingredient list (INCI)
+                    </h3>
+                    <p class="text-sm text-ink-muted">
+                        Per EU Cosmetic Regulation (EC) No 1223/2009, in
+                        descending order of concentration.
+                    </p>
+                </div>
                 <p
-                    class="font-mono text-xs leading-loose text-charcoal-800 select-all"
+                    class="rounded-2xl bg-surface-sunken p-6 font-mono text-xs leading-6 text-ink select-all"
                 >
                     {{ product.inci_list }}
                 </p>
-            </div>
-
-            <div
-                v-if="product.ingredients && product.ingredients.length > 0"
-                class="space-y-3"
-            >
-                <h4
-                    class="text-xs font-semibold tracking-wider text-charcoal-700 uppercase"
+                <div
+                    v-if="product.ingredients && product.ingredients.length > 0"
+                    class="flex flex-col gap-4"
                 >
-                    Key Active Ingredients Highlighted:
-                </h4>
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div
-                        v-for="ing in product.ingredients"
-                        :key="ing.id"
-                        class="rounded-lg border border-cream-200 bg-white p-3 shadow-2xs"
+                    <h4
+                        class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
                     >
-                        <div class="text-xs font-medium text-charcoal-900">
-                            {{ ing.name }}
-                        </div>
-                        <div
-                            v-if="ing.inci_name"
-                            class="font-mono text-[10px] text-sage-700"
+                        Key actives
+                    </h4>
+                    <ul class="grid gap-4 sm:grid-cols-2">
+                        <li
+                            v-for="ing in product.ingredients"
+                            :key="ing.id"
+                            class="flex flex-col gap-1 rounded-lg border border-border p-4"
                         >
-                            {{ ing.inci_name }}
-                        </div>
-                        <p
-                            v-if="ing.description"
-                            class="text-charcoal-600 mt-1 line-clamp-2 text-[11px]"
-                        >
-                            {{ ing.description }}
-                        </p>
-                    </div>
+                            <p class="text-sm font-medium text-ink">
+                                {{ ing.name }}
+                            </p>
+                            <p
+                                v-if="ing.inci_name"
+                                class="font-mono text-xs text-sage-700"
+                            >
+                                {{ ing.inci_name }}
+                            </p>
+                            <p
+                                v-if="ing.description"
+                                class="line-clamp-2 text-xs text-ink-muted"
+                            >
+                                {{ ing.description }}
+                            </p>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </div>
 
-        <!-- Tab 3: How to Use -->
-        <div v-show="activeTab === 'usage'" class="max-w-4xl space-y-4 py-8">
-            <h3 class="font-serif text-xl text-charcoal-900">
-                Application & Ritual
-            </h3>
             <div
-                class="prose prose-sm prose-stone max-w-none leading-relaxed font-light text-charcoal-700"
+                v-show="activeTab === 'usage'"
+                :id="`${baseId}-panel-usage`"
+                role="tabpanel"
+                :aria-labelledby="`${baseId}-tab-usage`"
+                class="rich-text"
             >
+                <h3>How to use</h3>
                 <p class="whitespace-pre-line">{{ product.how_to_use }}</p>
             </div>
-        </div>
 
-        <!-- Tab 4: Warnings & Safety -->
-        <div
-            v-show="activeTab === 'warnings'"
-            class="max-w-4xl space-y-6 py-8 text-xs"
-        >
             <div
-                class="rounded-xl border border-amber-200 bg-amber-50/60 p-5 text-amber-900"
+                v-show="activeTab === 'warnings'"
+                :id="`${baseId}-panel-warnings`"
+                role="tabpanel"
+                :aria-labelledby="`${baseId}-tab-warnings`"
+                class="flex flex-col gap-4"
             >
-                <div class="flex items-start gap-3">
-                    <svg
-                        class="h-5 w-5 shrink-0 text-amber-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.5"
-                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                        />
-                    </svg>
-                    <div>
-                        <h4 class="font-semibold text-amber-900">
-                            Cosmetic Precautionary Advice
-                        </h4>
-                        <p class="mt-1 leading-relaxed text-amber-800">
+                <div
+                    class="flex items-start gap-4 rounded-2xl border border-warning-200 bg-warning-50 p-6"
+                >
+                    <TriangleAlertIcon
+                        class="size-6 shrink-0 text-warning-600"
+                        aria-hidden="true"
+                    />
+                    <div class="flex flex-col gap-1">
+                        <h3 class="text-sm font-semibold text-warning-800">
+                            Precautions
+                        </h3>
+                        <p class="text-sm text-warning-700">
                             {{
                                 product.warnings ||
                                 'For external use only. Avoid contact with eyes. Discontinue use if irritation occurs. Keep out of reach of children.'
@@ -218,186 +268,43 @@ const manufacturedCountryName = computed(() => {
                         </p>
                     </div>
                 </div>
-            </div>
-
-            <div
-                v-if="product.responsible_person"
-                class="rounded-lg border border-cream-200 bg-white p-4"
-            >
-                <span class="font-semibold text-charcoal-900"
-                    >EU Responsible Person:</span
+                <p
+                    v-if="product.responsible_person"
+                    class="text-sm text-ink-muted"
                 >
-                <span class="ml-2 font-mono">{{
-                    product.responsible_person
-                }}</span>
+                    <span class="font-medium text-ink"
+                        >EU responsible person:</span
+                    >
+                    {{ product.responsible_person }}
+                </p>
             </div>
-        </div>
-
-        <!-- Tab 5: Specifications Table -->
-        <div v-show="activeTab === 'specs'" class="max-w-4xl py-8">
-            <h3 class="mb-6 font-serif text-xl text-charcoal-900">
-                Product Specifications
-            </h3>
 
             <div
-                class="overflow-hidden rounded-xl border border-cream-200 bg-white"
+                v-show="activeTab === 'specs'"
+                :id="`${baseId}-panel-specs`"
+                role="tabpanel"
+                :aria-labelledby="`${baseId}-tab-specs`"
             >
-                <table class="w-full text-left text-xs">
-                    <tbody class="divide-y divide-cream-200">
-                        <tr v-if="product.brand">
-                            <td
-                                class="text-charcoal-600 w-1/3 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Brand
-                            </td>
-                            <td
-                                class="px-4 py-3 font-semibold text-charcoal-900"
-                            >
-                                {{ product.brand.name }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.series">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Series
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800">
-                                {{ product.series }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.category">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Category
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800">
-                                {{ product.category.name }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.volume">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Volume / Net Content
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800">
-                                {{ product.volume }}
-                                {{ product.unit || 'ml' }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.formatted_unit_price">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                EU Unit Price
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800">
-                                {{ product.formatted_unit_price }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.classification">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Classification
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800 capitalize">
-                                {{ product.classification }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.formula_type">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Formula / Texture
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800 capitalize">
-                                {{ product.formula_type }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.gender">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Target Audience
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800 capitalize">
-                                {{ product.gender }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.spf">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Sun Protection (SPF)
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800">
-                                {{ product.spf }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.pao_months">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Period After Opening (PAO)
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800">
-                                {{ product.pao_months }} months
-                            </td>
-                        </tr>
-                        <tr v-if="manufacturedCountryName">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Country of Origin
-                            </td>
-                            <td class="px-4 py-3 text-charcoal-800">
-                                {{ manufacturedCountryName }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.barcode">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                Barcode / EAN
-                            </td>
-                            <td class="px-4 py-3 font-mono text-charcoal-800">
-                                {{ product.barcode }}
-                            </td>
-                        </tr>
-                        <tr v-if="product.sku">
-                            <td
-                                class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                            >
-                                SKU
-                            </td>
-                            <td class="px-4 py-3 font-mono text-charcoal-800">
-                                {{ selectedVariant?.sku || product.sku }}
-                            </td>
-                        </tr>
-                        <!-- Custom Characteristics Key-Values -->
-                        <template v-if="product.custom_characteristics">
-                            <tr
-                                v-for="(
-                                    val, key
-                                ) in product.custom_characteristics"
-                                :key="key"
-                            >
-                                <td
-                                    class="text-charcoal-600 bg-cream-50/60 px-4 py-3 font-medium"
-                                >
-                                    {{ key }}
-                                </td>
-                                <td class="px-4 py-3 text-charcoal-800">
-                                    {{ val }}
-                                </td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
+                <dl class="divide-y divide-border border-y border-border">
+                    <div
+                        v-for="row in specifications"
+                        :key="row.label"
+                        class="grid grid-cols-3 gap-4 py-3 text-sm"
+                    >
+                        <dt class="text-ink-subtle">{{ row.label }}</dt>
+                        <dd
+                            :class="
+                                cn(
+                                    'col-span-2 text-ink',
+                                    row.mono && 'font-mono text-xs leading-5',
+                                )
+                            "
+                        >
+                            {{ row.value }}
+                        </dd>
+                    </div>
+                </dl>
             </div>
         </div>
-    </div>
+    </section>
 </template>

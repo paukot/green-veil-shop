@@ -197,4 +197,24 @@ describe('Category Catalog', function () {
             ->where('products.data.0.name', 'Mineral Sun Essence')
         );
     });
+
+    it('reloads only the product list when paging', function () {
+        $category = Category::factory()->create(['is_active' => true]);
+        Product::factory()->count(13)->create([
+            'category_id' => $category->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->get(route('categories.show', ['category' => $category->slug, 'page' => 2]));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Catalog/Category')
+            ->reloadOnly(['products', 'filters'], fn (Assert $reload) => $reload
+                ->has('products.data', 1)
+                ->missing('facets')
+                ->missing('breadcrumbs')
+            )
+        );
+    });
 });

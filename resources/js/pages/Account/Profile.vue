@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { TextField } from '@/components/form';
 import Button from '@/components/ui/Button.vue';
 import AccountLayout from '@/layouts/AccountLayout.vue';
@@ -7,6 +8,7 @@ import {
     updateProfile as updateProfileRoute,
     updatePassword as updatePasswordRoute,
 } from '@/actions/App/Http/Controllers/AccountController';
+import { notice as verificationNotice } from '@/routes/verification';
 
 defineOptions({
     layout: AccountLayout,
@@ -21,6 +23,11 @@ interface ProfileProps {
 }
 
 const props = defineProps<ProfileProps>();
+
+const page = usePage();
+const isEmailUnverified = computed(
+    () => !!page.props.auth.user && !page.props.auth.user.email_verified_at,
+);
 
 const profileForm = useForm({
     name: props.profile.name,
@@ -50,24 +57,44 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <Head title="Account Profile & Security — Green Veil" />
+    <Head title="Account Profile & Security" />
 
-    <div class="space-y-8">
+    <div class="flex flex-col gap-6">
+        <div
+            v-if="isEmailUnverified"
+            class="flex flex-col gap-3 rounded-2xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-800 sm:flex-row sm:items-center sm:justify-between"
+            role="status"
+        >
+            <p>
+                Please confirm your email address to link earlier guest orders
+                to your account.
+            </p>
+            <Link
+                :href="verificationNotice.url()"
+                class="shrink-0 font-semibold underline underline-offset-4"
+            >
+                Confirm email
+            </Link>
+        </div>
+
         <!-- Personal Details Section -->
         <section
-            class="rounded-2xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
+            class="rounded-2xl border border-border bg-surface-raised p-6 sm:p-8"
         >
-            <div class="mb-6 border-b border-cream-200 pb-4">
-                <h2 class="font-serif text-xl text-sage-900 sm:text-2xl">
+            <div class="mb-6 flex flex-col gap-1 border-b border-border pb-4">
+                <h2 class="font-serif text-2xl text-ink">
                     Personal Information
                 </h2>
-                <p class="text-charcoal-600 mt-1 text-xs">
+                <p class="text-sm text-ink-muted">
                     Update your client account name and email address. Member
                     since {{ profile.created_at }}.
                 </p>
             </div>
 
-            <form @submit.prevent="updateProfile" class="max-w-xl space-y-5">
+            <form
+                @submit.prevent="updateProfile"
+                class="flex max-w-xl flex-col gap-4"
+            >
                 <!-- Name Field -->
                 <TextField
                     id="name"
@@ -118,19 +145,22 @@ const updatePassword = () => {
 
         <!-- Password & Security Section -->
         <section
-            class="rounded-2xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
+            class="rounded-2xl border border-border bg-surface-raised p-6 sm:p-8"
         >
-            <div class="mb-6 border-b border-cream-200 pb-4">
-                <h2 class="font-serif text-xl text-sage-900 sm:text-2xl">
+            <div class="mb-6 flex flex-col gap-1 border-b border-border pb-4">
+                <h2 class="font-serif text-2xl text-ink">
                     Security & Password
                 </h2>
-                <p class="text-charcoal-600 mt-1 text-xs">
+                <p class="text-sm text-ink-muted">
                     Ensure your account is using a long, random password to stay
                     secure.
                 </p>
             </div>
 
-            <form @submit.prevent="updatePassword" class="max-w-xl space-y-5">
+            <form
+                @submit.prevent="updatePassword"
+                class="flex max-w-xl flex-col gap-4"
+            >
                 <!-- Current Password -->
                 <TextField
                     id="current_password"

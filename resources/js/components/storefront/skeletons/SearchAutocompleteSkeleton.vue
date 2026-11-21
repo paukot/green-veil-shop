@@ -12,39 +12,23 @@ withDefaults(
 </script>
 
 <template>
-    <div
-        class="divide-y divide-cream-100 p-2"
-        role="status"
-        aria-label="Searching formulas"
-    >
-        <!-- Category Pill Skeletons -->
-        <div
-            class="mb-2 flex items-center gap-2 rounded-xl bg-cream-50/50 p-2.5"
-        >
-            <Skeleton class="h-3 w-28" rounded="sm" />
-            <Skeleton class="h-6 w-20" rounded="lg" />
-            <Skeleton class="h-6 w-24" rounded="lg" />
+    <div class="flex flex-col gap-4 p-4" role="status" aria-label="Searching">
+        <div class="flex gap-2" aria-hidden="true">
+            <Skeleton rounded="full" class="h-8 w-24" />
+            <Skeleton rounded="full" class="h-8 w-32" />
         </div>
-
-        <!-- Formula Row Skeletons -->
-        <div
-            v-for="i in count"
-            :key="i"
-            class="flex items-center gap-3 p-3"
-            aria-hidden="true"
-        >
-            <Skeleton class="h-12 w-12 shrink-0" rounded="xl" />
-            <div class="min-w-0 flex-1 space-y-1.5">
-                <div class="flex items-center gap-2">
-                    <Skeleton class="h-3.5 w-3/5" rounded="sm" />
-                    <Skeleton class="h-3 w-16" rounded="sm" />
+        <ul class="flex flex-col" aria-hidden="true">
+            <li
+                v-for="i in count"
+                :key="i"
+                class="flex h-16 items-center gap-4"
+            >
+                <Skeleton class="size-12 shrink-0" />
+                <div class="flex flex-1 flex-col gap-2">
+                    <Skeleton class="h-4 w-3/5" />
+                    <Skeleton class="h-3 w-24" />
                 </div>
-                <div class="flex items-center gap-2 pt-0.5">
-                    <Skeleton class="h-3 w-12" rounded="sm" />
-                    <Skeleton class="h-3 w-10" rounded="sm" />
-                </div>
-            </div>
-        </div>
-        <span class="sr-only">Searching botanical formulas...</span>
+            </li>
+        </ul>
     </div>
 </template>

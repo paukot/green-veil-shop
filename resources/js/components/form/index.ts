@@ -17,3 +17,6 @@ export { default as RadioCard } from './fields/RadioCard.vue';
 export { default as RadioCardGroup } from './fields/RadioCardGroup.vue';
 export { default as SearchInput } from './fields/SearchInput.vue';
 export { default as QuantityInput } from './fields/QuantityInput.vue';
+
+// Layout
+export { default as FormSection } from './FormSection.vue';

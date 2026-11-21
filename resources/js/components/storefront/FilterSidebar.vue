@@ -8,7 +8,9 @@ import {
     TextInput,
 } from '@/components/form';
 import FilterSection from '@/components/storefront/filters/FilterSection.vue';
-import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
+import FilterAccordion from '@/components/storefront/filters/FilterAccordion.vue';
+import Button from '@/components/ui/Button.vue';
+import Chip from '@/components/ui/Chip.vue';
 import { usePageLoading } from '@/composables/usePageLoading';
 import { index as productsIndex } from '@/routes/products';
 import type {
@@ -16,6 +18,7 @@ import type {
     CategoryFilterItem,
     FilterFacets,
 } from '@/types/storefront';
+import { FunnelIcon } from '@lucide/vue';
 
 const { isLoading } = usePageLoading();
 
@@ -90,10 +93,10 @@ const selectedOrigins = ref<string[]>(parseList(props.filters.manufactured_in));
 const openSections = ref<Record<string, boolean>>({
     sort: true,
     categories: true,
-    brands: selectedBrands.value.length > 0 || true,
+    brands: selectedBrands.value.length > 0,
     price: Boolean(props.filters.min_price || props.filters.max_price),
-    skin_types: selectedSkinTypes.value.length > 0 || true,
-    effects: selectedEffects.value.length > 0 || true,
+    skin_types: selectedSkinTypes.value.length > 0,
+    effects: selectedEffects.value.length > 0,
     ingredients: selectedIngredients.value.length > 0,
     claims: selectedClaims.value.length > 0,
     formula_types: selectedFormulaTypes.value.length > 0,
@@ -104,10 +107,6 @@ const openSections = ref<Record<string, boolean>>({
     origins: selectedOrigins.value.length > 0,
     stock: true,
 });
-
-function toggleSection(section: string) {
-    openSections.value[section] = !openSections.value[section];
-}
 
 // Watch props.filters changes to keep internal state aligned
 watch(
@@ -314,183 +313,104 @@ const totalActiveFilters = computed(() => {
 </script>
 
 <template>
-    <aside class="space-y-4 text-sm" aria-label="Filters and Sorting">
-        <!-- Active Filter Summary & Clear All -->
+    <div class="flex flex-col" aria-label="Filters and sorting">
         <div
-            v-if="totalActiveFilters > 0"
-            class="flex items-center justify-between border-b border-cream-200 pb-3"
+            v-if="totalActiveFilters > 0 || searchQuery"
+            class="flex flex-col gap-3 border-b border-border pb-4"
         >
-            <span
-                class="text-xs font-semibold tracking-wider text-sage-800 uppercase"
-            >
-                Active Filters ({{ totalActiveFilters }})
-            </span>
-            <button
-                type="button"
-                @click="clearAllFilters"
-                class="text-xs font-medium text-sage-700 underline underline-offset-2 hover:text-sage-900"
-            >
-                Clear all
-            </button>
-        </div>
-
-        <!-- Active Search Tag -->
-        <div
-            v-if="searchQuery"
-            class="flex items-center justify-between rounded-lg border border-sage-200 bg-sage-50 p-2.5"
-        >
-            <div class="truncate text-xs">
-                <span class="font-medium text-sage-700">Search:</span>
-                <span class="ml-1 font-semibold text-charcoal-900"
-                    >"{{ searchQuery }}"</span
+            <div class="flex items-center justify-between gap-4">
+                <p class="text-sm font-medium text-ink">
+                    {{ totalActiveFilters }} active
+                    {{ totalActiveFilters === 1 ? 'filter' : 'filters' }}
+                </p>
+                <button
+                    type="button"
+                    class="text-sm font-medium text-sage-800 underline-offset-4 hover:underline"
+                    @click="clearAllFilters"
                 >
+                    Clear all
+                </button>
             </div>
-            <button
-                type="button"
-                @click="applyFilters({ q: '' })"
-                class="ml-2 text-xs font-bold text-sage-700 hover:text-sage-900 focus:outline-none"
-                aria-label="Remove search filter"
-            >
-                &times;
-            </button>
-        </div>
-
-        <!-- Apply Filters Button (below active filters) -->
-        <div class="border-b border-cream-200 pb-4">
-            <button
-                type="button"
-                :disabled="isLoading"
-                @click="applyFilters()"
-                class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 active:bg-sage-950 disabled:cursor-not-allowed disabled:opacity-75"
-            >
-                <LoadingSpinner v-if="isLoading" size="sm" class="text-white" />
-                <svg
-                    v-else
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+            <div v-if="searchQuery">
+                <Chip
+                    removable
+                    static
+                    remove-label="Remove search"
+                    @remove="applyFilters({ q: '' })"
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                    />
-                </svg>
-                <span class="inline-flex items-center gap-1">
-                    <span>{{ isLoading ? 'Applying' : 'Apply Filters' }}</span>
-                    <span
-                        v-if="isLoading"
-                        class="ml-0.5 inline-flex items-center gap-0.5"
-                    >
-                        <span
-                            class="inline-block h-1 w-1 animate-bounce rounded-full bg-cream-100"
-                            style="animation-delay: -0.32s"
-                        />
-                        <span
-                            class="inline-block h-1 w-1 animate-bounce rounded-full bg-cream-100"
-                            style="animation-delay: -0.16s"
-                        />
-                        <span
-                            class="inline-block h-1 w-1 animate-bounce rounded-full bg-cream-100"
-                            style="animation-delay: 0s"
-                        />
-                    </span>
-                </span>
-                <span
-                    v-if="!isLoading && totalActiveFilters > 0"
-                    class="ml-1 rounded-full bg-sage-700 px-1.5 py-0.5 text-[10px] font-bold text-white"
-                >
-                    {{ totalActiveFilters }}
-                </span>
-            </button>
-        </div>
-
-        <!-- Sort Section Accordion -->
-        <div class="border-b border-cream-200 pb-4">
-            <button
-                type="button"
-                @click="toggleSection('sort')"
-                class="flex w-full items-center justify-between py-1 text-left text-xs font-semibold tracking-wider text-charcoal-800 uppercase hover:text-sage-800"
-            >
-                <span>Sort By</span>
-                <span class="text-charcoal-400 text-xs">
-                    {{ openSections.sort ? '−' : '+' }}
-                </span>
-            </button>
-            <div v-show="openSections.sort" class="mt-2.5">
-                <SelectInput v-model="selectedSort" size="sm" rounded="md">
-                    <option value="featured">Featured Botanicals</option>
-                    <option value="newest">Newest Additions</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="name_asc">Name: A to Z</option>
-                    <option value="name_desc">Name: Z to A</option>
-                </SelectInput>
+                    Search: “{{ searchQuery }}”
+                </Chip>
             </div>
         </div>
 
-        <!-- Category Filter Section (shown on general catalog) -->
-        <div
+        <FilterAccordion v-model:is-open="openSections.sort" title="Sort by">
+            <SelectInput
+                v-model="selectedSort"
+                size="sm"
+                aria-label="Sort products"
+            >
+                <option value="featured">Featured</option>
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price: low to high</option>
+                <option value="price_desc">Price: high to low</option>
+                <option value="name_asc">Name: A to Z</option>
+                <option value="name_desc">Name: Z to A</option>
+            </SelectInput>
+        </FilterAccordion>
+
+        <FilterAccordion
             v-if="showCategories && categories.length > 0"
-            class="border-b border-cream-200 pb-4"
+            v-model:is-open="openSections.categories"
+            title="Categories"
+            :count="selectedCategory ? 1 : 0"
         >
-            <button
-                type="button"
-                @click="toggleSection('categories')"
-                class="flex w-full items-center justify-between py-1 text-left text-xs font-semibold tracking-wider text-charcoal-800 uppercase hover:text-sage-800"
-            >
-                <span>Categories</span>
-                <span class="text-charcoal-400 text-xs">
-                    {{ openSections.categories ? '−' : '+' }}
-                </span>
-            </button>
-            <div
-                v-show="openSections.categories"
-                class="mt-2.5 max-h-52 space-y-1.5 overflow-y-auto pr-1 lg:max-h-50"
-            >
-                <label
-                    class="flex cursor-pointer items-center justify-between py-0.5 text-xs transition-colors hover:text-sage-800"
-                    :class="{
-                        'font-semibold text-sage-900': !selectedCategory,
-                    }"
-                >
-                    <span class="flex items-center gap-2">
+            <ul class="flex max-h-64 flex-col overflow-y-auto">
+                <li>
+                    <label
+                        class="flex h-8 cursor-pointer items-center gap-3 text-sm text-ink-muted hover:text-ink"
+                    >
                         <RadioInput
                             name="category_filter"
                             value=""
                             :checked="!selectedCategory"
                             @change="selectedCategory = ''"
                         />
-                        <span>All Categories</span>
-                    </span>
-                </label>
-
-                <label
-                    v-for="cat in categories"
-                    :key="cat.id"
-                    class="flex cursor-pointer items-center justify-between py-0.5 text-xs transition-colors hover:text-sage-800"
-                    :class="{
-                        'font-semibold text-sage-900':
-                            selectedCategory === cat.slug,
-                    }"
-                >
-                    <span class="flex items-center gap-2">
+                        <span
+                            class="flex-1"
+                            :class="{
+                                'font-medium text-ink': !selectedCategory,
+                            }"
+                        >
+                            All categories
+                        </span>
+                    </label>
+                </li>
+                <li v-for="cat in categories" :key="cat.id">
+                    <label
+                        class="flex h-8 cursor-pointer items-center gap-3 text-sm text-ink-muted hover:text-ink"
+                    >
                         <RadioInput
                             name="category_filter"
                             :value="cat.slug"
                             :checked="selectedCategory === cat.slug"
                             @change="selectedCategory = cat.slug"
                         />
-                        <span>{{ cat.name }}</span>
-                    </span>
-                    <span class="text-charcoal-400 text-[11px]"
-                        >({{ cat.products_count }})</span
-                    >
-                </label>
-            </div>
-        </div>
+                        <span
+                            class="flex-1 truncate"
+                            :class="{
+                                'font-medium text-ink':
+                                    selectedCategory === cat.slug,
+                            }"
+                        >
+                            {{ cat.name }}
+                        </span>
+                        <span class="text-xs text-ink-subtle tabular-nums">
+                            {{ cat.products_count }}
+                        </span>
+                    </label>
+                </li>
+            </ul>
+        </FilterAccordion>
 
         <!-- Brands Filter Accordion -->
         <FilterSection
@@ -501,7 +421,6 @@ const totalActiveFilters = computed(() => {
             search-placeholder="Search brand..."
             @toggle="toggleFacetItem(selectedBrands, $event)"
         />
-
         <!-- Skin Types Filter Accordion -->
         <FilterSection
             title="Skin Types"
@@ -511,7 +430,6 @@ const totalActiveFilters = computed(() => {
             search-placeholder="Search skin type..."
             @toggle="toggleFacetItem(selectedSkinTypes, $event)"
         />
-
         <!-- Effects / Actions Filter Accordion -->
         <FilterSection
             title="Effects & Actions"
@@ -521,7 +439,6 @@ const totalActiveFilters = computed(() => {
             search-placeholder="Search effect..."
             @toggle="toggleFacetItem(selectedEffects, $event)"
         />
-
         <!-- Key Ingredients Filter Accordion -->
         <FilterSection
             title="Key Ingredients"
@@ -531,7 +448,6 @@ const totalActiveFilters = computed(() => {
             search-placeholder="Search ingredient..."
             @toggle="toggleFacetItem(selectedIngredients, $event)"
         />
-
         <!-- Hair Types Filter Accordion -->
         <FilterSection
             title="Hair Types"
@@ -541,7 +457,6 @@ const totalActiveFilters = computed(() => {
             search-placeholder="Search hair type..."
             @toggle="toggleFacetItem(selectedHairTypes, $event)"
         />
-
         <!-- Clean Beauty Claims Filter Accordion -->
         <FilterSection
             title="Clean Beauty Claims"
@@ -551,7 +466,6 @@ const totalActiveFilters = computed(() => {
             search-placeholder="Search claims..."
             @toggle="toggleFacetItem(selectedClaims, $event)"
         />
-
         <!-- Formula / Texture Filter Accordion -->
         <FilterSection
             title="Formula & Texture"
@@ -561,7 +475,6 @@ const totalActiveFilters = computed(() => {
             search-placeholder="Search texture..."
             @toggle="toggleFacetItem(selectedFormulaTypes, $event)"
         />
-
         <!-- SPF Filter Accordion -->
         <FilterSection
             title="SPF Protection"
@@ -570,7 +483,6 @@ const totalActiveFilters = computed(() => {
             v-model:is-open="openSections.spf"
             @toggle="toggleFacetItem(selectedSpf, $event)"
         />
-
         <!-- Classification Filter Accordion -->
         <FilterSection
             title="Cosmetic Classification"
@@ -579,7 +491,6 @@ const totalActiveFilters = computed(() => {
             v-model:is-open="openSections.classifications"
             @toggle="toggleFacetItem(selectedClassifications, $event)"
         />
-
         <!-- Country of Origin Filter Accordion -->
         <FilterSection
             title="Country of Origin"
@@ -590,121 +501,52 @@ const totalActiveFilters = computed(() => {
             @toggle="toggleFacetItem(selectedOrigins, $event)"
         />
 
-        <!-- Price Range Filter Accordion -->
-        <div class="border-b border-cream-200 pb-4">
-            <button
-                type="button"
-                @click="toggleSection('price')"
-                class="flex w-full items-center justify-between py-1 text-left text-xs font-semibold tracking-wider text-charcoal-800 uppercase hover:text-sage-800"
-            >
-                <span>Price Range (€)</span>
-                <span class="text-charcoal-400 text-xs">
-                    {{ openSections.price ? '−' : '+' }}
-                </span>
-            </button>
-            <div
-                v-show="openSections.price"
-                class="mt-2.5 flex items-center gap-2"
-            >
-                <div class="flex-1">
-                    <TextInput
-                        v-model="minPrice"
-                        type="number"
-                        min="0"
-                        step="1"
-                        placeholder="Min"
-                        prefix-text="€"
-                        size="sm"
-                        rounded="md"
-                        @keydown.enter="applyFilters()"
-                    />
-                </div>
-                <span class="text-charcoal-400 text-xs">&ndash;</span>
-                <div class="flex-1">
-                    <TextInput
-                        v-model="maxPrice"
-                        type="number"
-                        min="0"
-                        step="1"
-                        placeholder="Max"
-                        prefix-text="€"
-                        size="sm"
-                        rounded="md"
-                        @keydown.enter="applyFilters()"
-                    />
-                </div>
+        <FilterAccordion v-model:is-open="openSections.price" title="Price (€)">
+            <div class="flex items-center gap-2">
+                <TextInput
+                    v-model="minPrice"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Min"
+                    size="sm"
+                    aria-label="Minimum price"
+                    @keydown.enter="applyFilters()"
+                />
+                <span class="text-ink-subtle" aria-hidden="true">–</span>
+                <TextInput
+                    v-model="maxPrice"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Max"
+                    size="sm"
+                    aria-label="Maximum price"
+                    @keydown.enter="applyFilters()"
+                />
             </div>
-        </div>
+        </FilterAccordion>
 
-        <!-- Availability Filter Section -->
-        <div class="border-b border-cream-200 pb-4">
+        <div class="border-b border-border py-4">
             <CheckboxField
                 id="filter-in-stock"
                 v-model="inStock"
-                label="In Stock Only"
+                label="In stock only"
             />
         </div>
 
-        <!-- Action Buttons -->
         <div
-            class="sticky bottom-0 z-20 -mx-6 -mb-6 flex flex-col gap-2 border-t border-cream-200 bg-white/95 p-4 shadow-lg backdrop-blur-md lg:static lg:mx-0 lg:mb-0 lg:border-t-0 lg:bg-transparent lg:p-0 lg:pt-2 lg:shadow-none"
+            class="sticky bottom-0 -mx-6 -mb-6 flex flex-col gap-3 border-t border-border bg-surface-raised p-6 lg:static lg:mx-0 lg:mb-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:pb-0"
         >
-            <button
-                type="button"
-                :disabled="isLoading"
-                @click="applyFilters()"
-                class="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-sage-800 px-4 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors hover:bg-sage-900 active:bg-sage-950 disabled:cursor-not-allowed disabled:opacity-75 sm:py-2.5"
-            >
-                <LoadingSpinner v-if="isLoading" size="sm" class="text-white" />
-                <svg
-                    v-else
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                    />
-                </svg>
-                <span class="inline-flex items-center gap-1">
-                    <span>{{ isLoading ? 'Applying' : 'Apply Filters' }}</span>
-                    <span
-                        v-if="isLoading"
-                        class="ml-0.5 inline-flex items-center gap-0.5"
-                    >
-                        <span
-                            class="inline-block h-1 w-1 animate-bounce rounded-full bg-cream-100"
-                            style="animation-delay: -0.32s"
-                        />
-                        <span
-                            class="inline-block h-1 w-1 animate-bounce rounded-full bg-cream-100"
-                            style="animation-delay: -0.16s"
-                        />
-                        <span
-                            class="inline-block h-1 w-1 animate-bounce rounded-full bg-cream-100"
-                            style="animation-delay: 0s"
-                        />
-                    </span>
-                </span>
-                <span
-                    v-if="!isLoading && totalActiveFilters > 0"
-                    class="ml-1 rounded-full bg-sage-700 px-1.5 py-0.5 text-[10px] font-bold text-white"
-                >
-                    {{ totalActiveFilters }}
-                </span>
-            </button>
-
-            <button
-                type="button"
-                @click="clearAllFilters"
-                class="text-charcoal-600 flex min-h-[44px] w-full items-center justify-center rounded-xl border border-cream-300 px-3 py-2.5 text-xs font-medium transition-colors hover:border-sage-500 hover:text-sage-800 sm:rounded-md sm:py-2"
-            >
-                Reset All Filters
-            </button>
+            <Button block :loading="isLoading" @click="applyFilters()">
+                <template #icon>
+                    <FunnelIcon class="size-4" aria-hidden="true" />
+                </template>
+                {{ isLoading ? 'Applying' : 'Apply filters' }}
+            </Button>
+            <Button block variant="ghost" @click="clearAllFilters">
+                Reset filters
+            </Button>
         </div>
-    </aside>
+    </div>
 </template>

@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import Button from '@/components/ui/Button.vue';
+import Card from '@/components/ui/Card.vue';
+import Container from '@/components/ui/Container.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import { formatCurrency } from '@/lib/utils';
 import type { CheckoutCancelPageProps } from '@/types/storefront';
 import { retry as checkoutRetry } from '@/actions/App/Http/Controllers/CheckoutResultController';
 import { index as cartIndex } from '@/routes/cart';
+import { CircleAlertIcon } from '@lucide/vue';
 
 defineOptions({ layout: StorefrontLayout });
 
@@ -12,66 +16,47 @@ defineProps<CheckoutCancelPageProps>();
 </script>
 
 <template>
-    <Head :title="`Order ${order.number} Cancelled | Green Veil`" />
+    <Head :title="`Order ${order.number} Cancelled`" />
 
-    <section class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-        <div
-            class="rounded-3xl border border-cream-200 bg-white p-8 text-center shadow-xs sm:p-12"
-        >
-            <div
-                class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-700"
+    <Container size="narrow" class="py-16 lg:py-24">
+        <Card padding="lg" class="flex flex-col items-center gap-6 text-center">
+            <span
+                class="flex size-16 items-center justify-center rounded-full bg-warning-50 text-warning-700"
             >
-                <svg
-                    class="h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                <CircleAlertIcon class="size-6" aria-hidden="true" />
+            </span>
+            <div class="flex flex-col gap-3">
+                <p
+                    class="text-xs font-semibold tracking-widest text-warning-700 uppercase"
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                    />
-                </svg>
+                    Payment incomplete
+                </p>
+                <h1 class="font-serif text-4xl tracking-tight text-ink">
+                    Your order wasn't finalised
+                </h1>
+                <p class="max-w-md text-sm text-ink-muted">
+                    No payment was taken for order
+                    <span class="font-mono font-semibold text-ink">{{
+                        order.number
+                    }}</span>
+                    ({{ formatCurrency(order.total) }}). Your items are still
+                    reserved if you'd like to try again or choose another way to
+                    pay.
+                </p>
             </div>
-
-            <p
-                class="text-xs font-semibold tracking-widest text-amber-800 uppercase"
-            >
-                Payment Incomplete
-            </p>
-            <h1 class="mt-2 font-serif text-3xl text-charcoal-900">
-                Your Order Was Not Finalized
-            </h1>
-            <p
-                class="text-charcoal-600 mt-3 text-xs leading-relaxed sm:text-sm"
-            >
-                No payment was captured for order
-                <span class="font-mono font-semibold">{{ order.number }}</span>
-                ({{ formatCurrency(order.total) }}). Your reserved items are
-                still held if you would like to complete your order or choose a
-                different payment option.
-            </p>
-
-            <div
-                class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-            >
+            <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <Link
                     :href="checkoutRetry.url(order.public_id)"
                     method="post"
                     as="button"
-                    class="w-full rounded-full bg-sage-800 px-8 py-3.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-sm transition-all hover:bg-sage-900 hover:shadow-md sm:w-auto"
+                    class="inline-flex h-12 items-center justify-center rounded-full bg-sage-900 px-8 text-xs font-semibold tracking-wider text-cream-50 uppercase transition-colors hover:bg-sage-800"
                 >
-                    Try Payment Again
+                    Try payment again
                 </Link>
-                <Link
-                    :href="cartIndex.url()"
-                    class="w-full rounded-full border border-cream-300 bg-white px-8 py-3.5 text-xs font-semibold tracking-wider text-charcoal-700 uppercase transition-all hover:bg-cream-50 sm:w-auto"
-                >
-                    Return to Bag
-                </Link>
+                <Button :href="cartIndex.url()" variant="outline" size="lg">
+                    Return to bag
+                </Button>
             </div>
-        </div>
-    </section>
+        </Card>
+    </Container>
 </template>

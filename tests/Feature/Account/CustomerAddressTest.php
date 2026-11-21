@@ -383,7 +383,6 @@ describe('Customer Shipping Addresses', function () {
                 ],
                 notes: null,
                 user: $user,
-                promotionId: null,
                 saveAddressToProfile: true,
                 addressLabel: 'Galway Cottage',
             );

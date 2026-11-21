@@ -55,3 +55,20 @@ export function resolveStorageUrl(path?: string | null): string | undefined {
     }
     return `/storage/${path}`;
 }
+
+export const PLACEHOLDER_IMAGE_URL = '/images/placeholder.png';
+
+/**
+ * `@error` handler for `<img>`: swaps a broken image for the shared placeholder, once,
+ * so a missing placeholder cannot trigger an endless error loop.
+ */
+export function showPlaceholderOnError(event: Event): void {
+    const image = event.target;
+
+    if (!(image instanceof HTMLImageElement) || image.dataset.fallback) {
+        return;
+    }
+
+    image.dataset.fallback = 'true';
+    image.src = PLACEHOLDER_IMAGE_URL;
+}

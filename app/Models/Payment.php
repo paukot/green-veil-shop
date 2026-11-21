@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string $driver
  * @property string|null $stripe_session_id
  * @property string|null $stripe_payment_intent_id
+ * @property string|null $stripe_charge_id
  * @property PaymentStatus $status
  * @property float $amount
  * @property string $currency
@@ -25,7 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  */
 #[Fillable([
-    'order_id', 'driver', 'stripe_session_id', 'stripe_payment_intent_id',
+    'order_id', 'driver', 'stripe_session_id', 'stripe_payment_intent_id', 'stripe_charge_id',
     'status', 'amount', 'currency', 'failure_reason', 'paid_at',
 ])]
 class Payment extends Model

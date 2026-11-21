@@ -42,7 +42,7 @@ const errorId = computed(() => `${inputId.value}-error`);
     <div :class="cn('w-full', wrapperClass)">
         <div
             v-if="label || $slots['label-right']"
-            class="flex items-center justify-between"
+            class="flex items-baseline justify-between gap-4"
         >
             <InputLabel
                 :for-id="inputId"
@@ -72,7 +72,7 @@ const errorId = computed(() => `${inputId.value}-error`);
             <slot />
         </SelectInput>
 
-        <p v-if="hint && !error" class="text-charcoal-400 mt-1 text-xs">
+        <p v-if="hint && !error" class="mt-2 text-xs text-ink-subtle">
             {{ hint }}
         </p>
 

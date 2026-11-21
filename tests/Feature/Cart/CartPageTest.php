@@ -3,6 +3,7 @@
 use App\Models\CartItem;
 use App\Models\DeliveryOption;
 use App\Models\Product;
+use App\Models\Promotion;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -110,6 +111,23 @@ describe('Cart Page', function () {
             ->where('summary.amount_until_free_shipping', 0)
             ->where('summary.qualifies_for_free_shipping', true)
             ->where('deliveryOptions.0.is_free', true)
+        );
+    });
+
+    it('shows the automatic promotion that checkout will apply', function () {
+        $product = Product::factory()->price(20.00)->create();
+        $promotion = Promotion::factory()->automatic()->percentage(10)->create(['applies_to_all_products' => true]);
+
+        $response = $this->withSession(['cart' => [
+            $product->id => ['id' => $product->id, 'product_id' => $product->id, 'quantity' => 2],
+        ]])->get(route('cart.index'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Cart/Index')
+            ->where('appliedPromotion.id', $promotion->id)
+            ->where('summary.discount_amount', 4)
+            ->where('summary.total', 36)
         );
     });
 });

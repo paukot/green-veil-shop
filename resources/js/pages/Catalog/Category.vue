@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
+import Chip from '@/components/ui/Chip.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import Section from '@/components/ui/Section.vue';
 import Breadcrumbs from '@/components/storefront/Breadcrumbs.vue';
 import CatalogListingLayout from '@/components/storefront/CatalogListingLayout.vue';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
@@ -14,7 +17,7 @@ defineProps<CategoryPageProps>();
 </script>
 
 <template>
-    <Head :title="`${category.name} | Green Veil`">
+    <Head :title="`${category.name}`">
         <meta
             name="description"
             :content="
@@ -36,48 +39,28 @@ defineProps<CategoryPageProps>();
     <!-- Breadcrumbs Navigation -->
     <Breadcrumbs :items="breadcrumbs" />
 
-    <!-- Category Header Banner -->
-    <section
-        class="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50 py-10 sm:py-14"
-    >
-        <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-            <span
-                class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
-            >
-                {{
-                    category.parent
-                        ? category.parent.name
-                        : 'Botanical Collection'
-                }}
-            </span>
-            <h1
-                class="mt-2 font-serif text-3xl tracking-tight text-charcoal-900 sm:text-4xl md:text-5xl"
-            >
-                {{ category.name }}
-            </h1>
-            <p
-                v-if="category.description"
-                class="text-charcoal-600 mx-auto mt-4 max-w-2xl text-sm leading-relaxed font-light sm:text-base"
-            >
-                {{ category.description }}
-            </p>
-
-            <!-- Subcategory navigation pills -->
-            <div
+    <Section spacing="sm" class="border-b border-border">
+        <div class="flex flex-col gap-8">
+            <PageHeader
+                :eyebrow="category.parent ? category.parent.name : 'Collection'"
+                :title="category.name"
+                :description="category.description ?? undefined"
+            />
+            <nav
                 v-if="category.children && category.children.length > 0"
-                class="mt-8 flex flex-wrap items-center justify-center gap-2"
+                aria-label="Subcategories"
+                class="-mx-4 scrollbar-none flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
             >
-                <Link
+                <Chip
                     v-for="child in category.children"
                     :key="child.id"
                     :href="categoryShow.url(child.slug)"
-                    class="rounded-full border border-cream-300 bg-white px-4 py-1.5 text-xs font-medium text-charcoal-700 shadow-xs transition-all hover:border-sage-500 hover:bg-sage-50 hover:text-sage-800"
                 >
                     {{ child.name }}
-                </Link>
-            </div>
+                </Chip>
+            </nav>
         </div>
-    </section>
+    </Section>
 
     <!-- Main Catalog Content -->
     <CatalogListingLayout

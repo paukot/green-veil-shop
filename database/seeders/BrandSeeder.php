@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\Support\SeedImages;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -92,6 +93,7 @@ class BrandSeeder extends Seeder
     public function run(): void
     {
         $now = Carbon::now();
+        $seedImages = SeedImages::make();
 
         foreach (self::CURATED_BRANDS as $index => $brandData) {
             DB::table('brands')->updateOrInsert(
@@ -101,7 +103,7 @@ class BrandSeeder extends Seeder
                     'country_of_origin' => $brandData['country'],
                     'website_url' => $brandData['website'],
                     'description' => $brandData['desc'],
-                    'logo_path' => 'brands/'.Str::slug($brandData['name']).'.png',
+                    'logo_path' => $seedImages->brandLogo($brandData['name']),
                     'is_active' => true,
                     'sort_order' => $index,
                     'created_at' => $now,

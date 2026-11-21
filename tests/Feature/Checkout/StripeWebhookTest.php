@@ -3,15 +3,37 @@
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\StripeEvent;
 use App\Models\User;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Testing\TestResponse;
 use Stripe\WebhookSignature;
 
 function signStripeWebhookPayload(string $payload, string $secret): string
 {
     return WebhookSignature::generateSignatureHeader($payload, $secret);
+}
+
+/**
+ * Deliver a signed Stripe event to the webhook endpoint.
+ *
+ * @param  array<string, mixed>  $object
+ */
+function deliverStripeEvent(string $eventId, string $type, array $object): TestResponse
+{
+    $payload = (string) json_encode([
+        'id' => $eventId,
+        'type' => $type,
+        'data' => ['object' => $object],
+    ]);
+
+    return test()->call('POST', route('stripe.webhook'), [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_STRIPE_SIGNATURE' => signStripeWebhookPayload($payload, 'whsec_test_secret_for_suite'),
+    ], $payload);
 }
 
 describe('Stripe Webhook', function () {
@@ -357,6 +379,131 @@ describe('Stripe Webhook', function () {
 
             $order->refresh();
             expect($order->payment_status)->toBe(PaymentStatus::Paid);
+        });
+    });
+
+    describe('Configuration', function () {
+        it('returns 500 so Stripe retries when no webhook secret is configured', function () {
+            Config::set('services.stripe.webhook_secret', null);
+
+            $response = deliverStripeEvent('evt_unconfigured', 'checkout.session.completed', []);
+
+            $response->assertInternalServerError();
+            expect(StripeEvent::count())->toBe(0);
+        });
+    });
+
+    describe('Reservation release', function () {
+        it('keeps stock reserved when a card is declined inside an open checkout session', function () {
+            $product = Product::factory()->create(['stock_quantity' => 1, 'track_inventory' => true]);
+            $order = Order::factory()->pendingPayment()->create();
+            OrderItem::factory()->for($order)->forProduct($product, 2)->create();
+
+            deliverStripeEvent('evt_declined', 'payment_intent.payment_failed', [
+                'id' => 'pi_declined',
+                'object' => 'payment_intent',
+                'metadata' => ['order_id' => (string) $order->id],
+            ])->assertOk();
+
+            $order->refresh();
+            expect($order->payment_status)->toBe(PaymentStatus::Failed);
+            expect($order->status)->toBe(OrderStatus::PendingPayment);
+            expect($product->fresh()->stock_quantity)->toBe(1);
+        });
+
+        it('releases stock once when an async failure is followed by session expiry', function () {
+            $product = Product::factory()->create(['stock_quantity' => 1, 'track_inventory' => true]);
+            $order = Order::factory()->pendingPayment()->create();
+            OrderItem::factory()->for($order)->forProduct($product, 2)->create();
+            $session = [
+                'id' => 'cs_async_failed',
+                'object' => 'checkout.session',
+                'metadata' => ['order_id' => (string) $order->id],
+            ];
+
+            deliverStripeEvent('evt_async_failed', 'checkout.session.async_payment_failed', $session)->assertOk();
+            deliverStripeEvent('evt_session_expired', 'checkout.session.expired', $session)->assertOk();
+
+            expect($product->fresh()->stock_quantity)->toBe(3);
+            expect($order->fresh()->status)->toBe(OrderStatus::Cancelled);
+        });
+
+        it('does not restock again when Stripe confirms a refund the admin already restocked', function () {
+            $product = Product::factory()->create(['stock_quantity' => 5, 'track_inventory' => true]);
+            $order = Order::factory()->paid()->reservationsReleased()->create([
+                'total' => 40.00,
+                'stripe_payment_intent_id' => 'pi_refunded',
+            ]);
+            OrderItem::factory()->for($order)->forProduct($product, 2)->create();
+
+            deliverStripeEvent('evt_refunded', 'charge.refunded', [
+                'id' => 'ch_refunded',
+                'object' => 'charge',
+                'payment_intent' => 'pi_refunded',
+                'amount' => 4000,
+                'amount_refunded' => 4000,
+            ])->assertOk();
+
+            $order->refresh();
+            expect($order->payment_status)->toBe(PaymentStatus::Refunded);
+            expect((float) $order->refunded_amount)->toBe(40.0);
+            expect($product->fresh()->stock_quantity)->toBe(5);
+        });
+    });
+
+    describe('Payment guards', function () {
+        it('records a payment that arrives after release without moving the order to processing', function () {
+            $order = Order::factory()->cancelled()->reservationsReleased()->create([
+                'payment_status' => PaymentStatus::Expired,
+                'total' => 50.00,
+                'currency' => 'EUR',
+            ]);
+
+            deliverStripeEvent('evt_late_payment', 'checkout.session.completed', [
+                'id' => 'cs_late',
+                'object' => 'checkout.session',
+                'payment_status' => 'paid',
+                'amount_total' => 5000,
+                'currency' => 'eur',
+                'metadata' => ['order_id' => (string) $order->id],
+            ])->assertOk();
+
+            $order->refresh();
+            expect($order->payment_status)->toBe(PaymentStatus::Paid);
+            expect($order->status)->toBe(OrderStatus::Cancelled);
+        });
+
+        it('refuses to mark an order paid when the event carries no amount', function () {
+            $order = Order::factory()->pendingPayment()->create(['total' => 50.00, 'currency' => 'EUR']);
+
+            deliverStripeEvent('evt_no_amount', 'payment_intent.succeeded', [
+                'id' => 'pi_no_amount',
+                'object' => 'payment_intent',
+                'currency' => 'eur',
+                'metadata' => ['order_id' => (string) $order->id],
+            ])->assertOk();
+
+            expect($order->fresh()->payment_status)->toBe(PaymentStatus::Unpaid);
+        });
+
+        it('attaches a guest order only to an account that verified the email', function () {
+            User::factory()->unverified()->create(['email' => 'claimant@example.com']);
+            $order = Order::factory()->guest()->pendingPayment()->create([
+                'customer_email' => 'claimant@example.com',
+                'total' => 50.00,
+                'currency' => 'EUR',
+            ]);
+
+            deliverStripeEvent('evt_guest_paid', 'checkout.session.completed', [
+                'id' => 'cs_guest_paid',
+                'object' => 'checkout.session',
+                'payment_status' => 'paid',
+                'amount_total' => 5000,
+                'currency' => 'eur',
+                'metadata' => ['order_id' => (string) $order->id],
+            ])->assertOk();
+
+            expect($order->fresh()->user_id)->toBeNull();
         });
     });
 });

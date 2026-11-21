@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MinusIcon, PlusIcon } from '@lucide/vue';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -6,6 +7,8 @@ interface Props {
     max?: number;
     disabled?: boolean;
     loading?: boolean;
+    /** sm is a 2rem compact stepper; md matches 3rem buttons and inputs. */
+    size?: 'sm' | 'md';
     class?: string;
 }
 
@@ -14,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
     max: 99,
     disabled: false,
     loading: false,
+    size: 'md',
 });
 
 const model = defineModel<number>({ default: 1 });
@@ -38,24 +42,38 @@ function increment() {
     <div
         :class="
             cn(
-                'inline-flex min-h-[44px] items-center rounded-full border border-cream-300 bg-white px-2 py-0.5 shadow-2xs sm:min-h-0',
+                'inline-flex shrink-0 items-center rounded-full border border-border-strong bg-surface-raised',
+                size === 'sm' ? 'h-8' : 'h-12 px-1',
                 disabled || loading ? 'pointer-events-none opacity-50' : '',
                 props.class,
             )
         "
+        role="group"
+        aria-label="Quantity"
     >
         <button
             type="button"
             @click="decrement"
             :disabled="disabled || loading || model <= min"
-            class="text-charcoal-600 flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors hover:text-charcoal-900 disabled:cursor-not-allowed disabled:opacity-30 sm:h-7 sm:w-7"
+            :class="
+                cn(
+                    'flex items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink disabled:cursor-not-allowed disabled:opacity-30',
+                    size === 'sm' ? 'size-8' : 'size-12',
+                )
+            "
             aria-label="Decrease quantity"
         >
-            &minus;
+            <MinusIcon class="size-4" aria-hidden="true" />
         </button>
 
         <span
-            class="w-8 text-center text-xs font-semibold text-charcoal-900 select-none"
+            :class="
+                cn(
+                    'text-center font-semibold text-ink tabular-nums select-none',
+                    size === 'sm' ? 'w-6 text-xs' : 'w-8 text-sm',
+                )
+            "
+            aria-live="polite"
         >
             {{ model }}
         </span>
@@ -64,10 +82,15 @@ function increment() {
             type="button"
             @click="increment"
             :disabled="disabled || loading || model >= max"
-            class="text-charcoal-600 flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors hover:text-charcoal-900 disabled:cursor-not-allowed disabled:opacity-30 sm:h-7 sm:w-7"
+            :class="
+                cn(
+                    'flex items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink disabled:cursor-not-allowed disabled:opacity-30',
+                    size === 'sm' ? 'size-8' : 'size-12',
+                )
+            "
             aria-label="Increase quantity"
         >
-            &#43;
+            <PlusIcon class="size-4" aria-hidden="true" />
         </button>
     </div>
 </template>

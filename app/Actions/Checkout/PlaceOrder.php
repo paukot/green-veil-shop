@@ -135,31 +135,24 @@ class PlaceOrder
 
             $subtotal = round($subtotal, 2);
 
-            // Compute promotions server-side
+            // Same resolution as the cart page, so the charged total matches what the shopper saw.
             $discountAmount = 0.00;
             $promotionId = null;
 
-            $selectedPromoId = $data->promotionId ?? ($request->hasSession() ? $request->session()->get('applied_promotion_id') : null);
+            $resolvedPromotion = $this->cartService->resolvePromotion($request, $cartItems, $subtotal);
 
-            if ($selectedPromoId) {
-                $promotion = Promotion::query()
-                    ->active()
-                    ->with('products:id')
-                    ->whereKey($selectedPromoId)
+            if ($resolvedPromotion !== null) {
+                // Re-read under lock so concurrent orders cannot push usage past the limit.
+                /** @var Promotion|null $lockedPromotion */
+                $lockedPromotion = Promotion::query()
+                    ->whereKey($resolvedPromotion['promotion']->id)
+                    ->lockForUpdate()
                     ->first();
-            } else {
-                $promotion = Promotion::query()
-                    ->active()
-                    ->where('applies_to_all_products', true)
-                    ->first();
-            }
 
-            if ($promotion && $promotion->isCurrentlyActive() && $promotion->canBeUsedByUser($data->user)) {
-                $discount = $promotion->calculateDiscountForCart(collect($orderItemsData), $subtotal);
-                if ($discount > 0) {
-                    $discountAmount = round($discount, 2);
-                    $promotionId = $promotion->id;
-                    $promotion->increment('times_used');
+                if ($lockedPromotion && $lockedPromotion->canBeUsedByUser($data->user)) {
+                    $discountAmount = $resolvedPromotion['discount'];
+                    $promotionId = $lockedPromotion->id;
+                    $lockedPromotion->increment('times_used');
                 }
             }
 

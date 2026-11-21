@@ -6,6 +6,7 @@ interface Props {
     label?: string | null;
     required?: boolean;
     subtext?: string | null;
+    /** Kept for API compatibility; every label now shares one style. */
     variant?: 'default' | 'uppercase';
     class?: string;
 }
@@ -20,24 +21,14 @@ const props = withDefaults(defineProps<Props>(), {
         :for="forId"
         :class="
             cn(
-                'block text-xs font-medium text-charcoal-700',
-                variant === 'uppercase' && 'mb-1.5 tracking-wider uppercase',
-                variant === 'default' && 'mb-1',
+                'mb-2 flex items-baseline gap-1 text-sm font-medium text-ink',
                 props.class,
             )
         "
     >
         <slot>{{ label }}</slot>
-        <span
-            v-if="required"
-            class="ml-0.5 font-serif text-rose-500"
-            aria-hidden="true"
-            >*</span
-        >
-        <span
-            v-if="subtext"
-            class="text-charcoal-400 ml-1 font-sans text-xs font-normal"
-        >
+        <span v-if="required" class="text-clay-600" aria-hidden="true">*</span>
+        <span v-if="subtext" class="text-xs font-normal text-ink-subtle">
             {{ subtext.startsWith('(') ? subtext : `(${subtext})` }}
         </span>
     </label>

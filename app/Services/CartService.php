@@ -419,9 +419,7 @@ class CartService
     }
 
     /**
-     * Get validated applied promotion data for the current cart.
-     * If the applied promotion in session is no longer valid or requirements not met,
-     * it removes the promotion and appends a warning message.
+     * Get the promotion currently applied to the cart, formatted for the storefront.
      *
      * @param  Collection<int, CartItem>  $cartItems
      * @param  array<int, string>  &$warnings
@@ -429,14 +427,63 @@ class CartService
      */
     public function getAppliedPromotionData(Request $request, Collection $cartItems, float $subtotal, array &$warnings = []): ?array
     {
-        $promoId = $request->session()->get('applied_promotion_id');
-        if (! $promoId) {
+        $resolved = $this->resolvePromotion($request, $cartItems, $subtotal, $warnings);
+
+        if ($resolved === null) {
             return null;
         }
 
+        ['promotion' => $promotion, 'discount' => $discountAmount] = $resolved;
+
+        return [
+            'id' => $promotion->id,
+            'name' => $promotion->name,
+            'description' => $promotion->description,
+            'code' => $promotion->code,
+            'discount_type' => $promotion->discount_type->value,
+            'discount_value' => (float) $promotion->discount_value,
+            'minimum_order_amount' => $promotion->minimum_order_amount ? (float) $promotion->minimum_order_amount : null,
+            'discount_amount' => $discountAmount,
+            'formatted_discount' => '-€'.number_format($discountAmount, 2),
+        ];
+    }
+
+    /**
+     * Resolve the promotion a cart qualifies for and its discount.
+     *
+     * The shopper's chosen promotion (kept in the session) wins. Without one, the best eligible
+     * automatic promotion (one without a code) applies. The cart page and order placement both
+     * go through here, so the total a shopper sees is the total they are charged.
+     *
+     * @param  Collection<int, CartItem>|Collection<int, array<string, mixed>>  $cartItems
+     * @param  array<int, string>  &$warnings
+     * @return array{promotion: Promotion, discount: float}|null
+     */
+    public function resolvePromotion(Request $request, Collection $cartItems, float $subtotal, array &$warnings = []): ?array
+    {
+        if ($cartItems->isEmpty()) {
+            return null;
+        }
+
+        if ($request->hasSession() && $request->session()->has('applied_promotion_id')) {
+            return $this->resolveChosenPromotion($request, $cartItems, $subtotal, $warnings);
+        }
+
+        return $this->resolveAutomaticPromotion($request, $cartItems, $subtotal);
+    }
+
+    /**
+     * Validate the shopper's chosen promotion, dropping it from the session when it no longer applies.
+     *
+     * @param  Collection<int, CartItem>|Collection<int, array<string, mixed>>  $cartItems
+     * @param  array<int, string>  &$warnings
+     * @return array{promotion: Promotion, discount: float}|null
+     */
+    private function resolveChosenPromotion(Request $request, Collection $cartItems, float $subtotal, array &$warnings): ?array
+    {
         $promotion = Promotion::query()
             ->with('products:id')
-            ->whereKey($promoId)
+            ->whereKey($request->session()->get('applied_promotion_id'))
             ->first();
 
         if (! $promotion || ! $promotion->isCurrentlyActive()) {
@@ -453,10 +500,6 @@ class CartService
             return null;
         }
 
-        if ($cartItems->isEmpty()) {
-            return null;
-        }
-
         if ($promotion->minimum_order_amount !== null && $subtotal < (float) $promotion->minimum_order_amount) {
             $request->session()->forget('applied_promotion_id');
             $minFormatted = number_format((float) $promotion->minimum_order_amount, 2);
@@ -465,25 +508,49 @@ class CartService
             return null;
         }
 
-        $discountAmount = round($promotion->calculateDiscountForCart($cartItems, $subtotal), 2);
-        if ($discountAmount <= 0) {
+        $discount = round($promotion->calculateDiscountForCart($cartItems, $subtotal), 2);
+        if ($discount <= 0) {
             $request->session()->forget('applied_promotion_id');
             $warnings[] = "Promotion '{$promotion->name}' was removed because your bag contains no qualifying items.";
 
             return null;
         }
 
-        return [
-            'id' => $promotion->id,
-            'name' => $promotion->name,
-            'description' => $promotion->description,
-            'code' => $promotion->code,
-            'discount_type' => $promotion->discount_type->value,
-            'discount_value' => (float) $promotion->discount_value,
-            'minimum_order_amount' => $promotion->minimum_order_amount ? (float) $promotion->minimum_order_amount : null,
-            'discount_amount' => $discountAmount,
-            'formatted_discount' => '-€'.number_format($discountAmount, 2),
-        ];
+        return ['promotion' => $promotion, 'discount' => $discount];
+    }
+
+    /**
+     * Pick the automatic promotion that gives the largest discount, the oldest one on a tie.
+     *
+     * @param  Collection<int, CartItem>|Collection<int, array<string, mixed>>  $cartItems
+     * @return array{promotion: Promotion, discount: float}|null
+     */
+    private function resolveAutomaticPromotion(Request $request, Collection $cartItems, float $subtotal): ?array
+    {
+        $user = $request->user();
+
+        $promotions = Promotion::query()
+            ->active()
+            ->whereNull('code')
+            ->with('products:id')
+            ->orderBy('id')
+            ->get();
+
+        $best = null;
+
+        foreach ($promotions as $promotion) {
+            if (! $promotion->canBeUsedByUser($user)) {
+                continue;
+            }
+
+            $discount = round($promotion->calculateDiscountForCart($cartItems, $subtotal), 2);
+
+            if ($discount > 0 && ($best === null || $discount > $best['discount'])) {
+                $best = ['promotion' => $promotion, 'discount' => $discount];
+            }
+        }
+
+        return $best;
     }
 
     /**

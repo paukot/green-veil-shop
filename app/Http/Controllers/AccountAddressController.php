@@ -10,6 +10,7 @@ use App\Models\CustomerAddress;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -57,14 +58,9 @@ class AccountAddressController extends Controller
     /**
      * Delete a customer shipping address.
      */
-    public function destroy(Request $request, CustomerAddress $address): RedirectResponse
+    public function destroy(CustomerAddress $address): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        if ($address->user_id !== $user->id) {
-            abort(403);
-        }
+        Gate::authorize('delete', $address);
 
         $address->delete();
 
@@ -74,14 +70,9 @@ class AccountAddressController extends Controller
     /**
      * Mark an address as the customer's default shipping address.
      */
-    public function setDefault(Request $request, CustomerAddress $address): RedirectResponse
+    public function setDefault(CustomerAddress $address): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        if ($address->user_id !== $user->id) {
-            abort(403);
-        }
+        Gate::authorize('update', $address);
 
         $address->update(['is_default' => true]);
 

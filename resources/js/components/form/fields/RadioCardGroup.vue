@@ -14,10 +14,7 @@ const props = defineProps<Props>();
 
 <template>
     <div :class="cn('w-full', wrapperClass)">
-        <h3
-            v-if="label"
-            class="mb-3 text-xs font-semibold tracking-wider text-charcoal-700 uppercase"
-        >
+        <h3 v-if="label" class="mb-3 text-sm font-medium text-ink">
             {{ label }}
         </h3>
 

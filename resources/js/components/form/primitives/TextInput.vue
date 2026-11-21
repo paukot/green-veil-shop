@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { useSlots } from 'vue';
+import {
+    fieldSizeClasses,
+    fieldStateClasses,
+    fieldSurfaceClasses,
+} from '@/lib/fieldStyles';
 import { cn } from '@/lib/utils';
 
 defineOptions({
@@ -10,6 +15,7 @@ interface Props {
     type?: string;
     hasError?: boolean;
     size?: 'sm' | 'md' | 'lg';
+    /** `full` gives a pill (search); every other value uses the shared field radius. */
     rounded?: 'md' | 'lg' | 'xl' | 'full';
     prefixText?: string | null;
     suffixText?: string | null;
@@ -19,7 +25,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
     type: 'text',
     size: 'md',
-    rounded: 'xl',
+    rounded: 'lg',
 });
 
 const model = defineModel<string | number | null>();
@@ -33,7 +39,7 @@ const hasSuffix = () => Boolean(props.suffixText || slots.suffix);
     <div :class="cn('relative w-full', $attrs.class as string)">
         <div
             v-if="hasPrefix()"
-            class="text-charcoal-400 pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-xs"
+            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-sm text-ink-subtle"
         >
             <slot name="prefix">{{ prefixText }}</slot>
         </div>
@@ -44,29 +50,12 @@ const hasSuffix = () => Boolean(props.suffixText || slots.suffix);
             :type="type"
             :class="
                 cn(
-                    'placeholder-charcoal-400 block w-full border bg-cream-50/50 text-charcoal-900 transition-colors focus:bg-white focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
-                    // Rounded
-                    rounded === 'md' && 'rounded-md',
-                    rounded === 'lg' && 'rounded-lg',
-                    rounded === 'xl' && 'rounded-xl',
+                    fieldSurfaceClasses,
+                    fieldSizeClasses[size],
                     rounded === 'full' && 'rounded-full',
-                    // Sizing
-                    size === 'sm' &&
-                        'min-h-[44px] px-3 py-2 text-base sm:min-h-0 sm:py-1.5 sm:text-xs',
-                    size === 'md' &&
-                        'min-h-[44px] px-4 py-2.5 text-base sm:min-h-0 sm:text-sm',
-                    size === 'lg' && 'min-h-[44px] px-4.5 py-3 text-base',
-                    // Padding offsets for prefix/suffix
-                    hasPrefix() && size === 'sm' && 'pl-6',
-                    hasPrefix() && size === 'md' && 'pl-8',
-                    hasPrefix() && size === 'lg' && 'pl-9',
-                    hasSuffix() && size === 'sm' && 'pr-6',
-                    hasSuffix() && size === 'md' && 'pr-8',
-                    hasSuffix() && size === 'lg' && 'pr-9',
-                    // Error vs Normal state
-                    hasError
-                        ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
-                        : 'border-cream-300 focus:border-sage-600 focus:ring-1 focus:ring-sage-600',
+                    hasPrefix() && 'pl-12',
+                    hasSuffix() && 'pr-12',
+                    fieldStateClasses(hasError),
                     props.class,
                 )
             "
@@ -74,7 +63,7 @@ const hasSuffix = () => Boolean(props.suffixText || slots.suffix);
 
         <div
             v-if="hasSuffix()"
-            class="text-charcoal-400 pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs"
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-sm text-ink-subtle"
         >
             <slot name="suffix">{{ suffixText }}</slot>
         </div>

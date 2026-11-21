@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, useId, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
+import Chip from '@/components/ui/Chip.vue';
+import { fieldStateClasses, fieldSurfaceClasses } from '@/lib/fieldStyles';
+import {
+    cn,
+    formatCurrency,
+    resolveStorageUrl,
+    showPlaceholderOnError,
+} from '@/lib/utils';
 import { index as productsIndex } from '@/routes/products';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import {
@@ -10,16 +17,21 @@ import {
 } from '@/actions/App/Http/Controllers/ProductController';
 import SearchAutocompleteSkeleton from '@/components/storefront/skeletons/SearchAutocompleteSkeleton.vue';
 import type { ProductCardData } from '@/types/storefront';
+import {
+    ArrowRightIcon,
+    ClockIcon,
+    LoaderCircleIcon,
+    SearchIcon,
+    XIcon,
+} from '@lucide/vue';
 
 const props = withDefaults(
     defineProps<{
         placeholder?: string;
-        size?: 'sm' | 'md' | 'lg';
         autofocus?: boolean;
     }>(),
     {
-        placeholder: 'Search botanicals, formulations, concerns...',
-        size: 'md',
+        placeholder: 'Search botanicals, formulations, concerns…',
         autofocus: false,
     },
 );
@@ -48,6 +60,16 @@ let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
 let abortController: AbortController | null = null;
 
 const RECENT_SEARCHES_KEY = 'green_veil_recent_searches';
+const listboxId = useId();
+const activeIndex = ref(-1);
+
+watch(results, () => {
+    activeIndex.value = -1;
+});
+
+const activeOptionId = computed(() =>
+    activeIndex.value >= 0 ? `${listboxId}-${activeIndex.value}` : undefined,
+);
 
 onMounted(() => {
     try {
@@ -63,16 +85,19 @@ onMounted(() => {
         inputRef.value.focus();
     }
 
-    document.addEventListener('click', handleOutsideClick);
+    // pointerdown, not click: the header's "Search" click that mounts this component is
+    // still bubbling while onMounted runs, and a click listener would treat it as an
+    // outside click and close the dropdown the moment it opens.
+    document.addEventListener('pointerdown', handleOutsideClick);
 });
 
 onUnmounted(() => {
-    document.removeEventListener('click', handleOutsideClick);
+    document.removeEventListener('pointerdown', handleOutsideClick);
     if (debounceTimeout) clearTimeout(debounceTimeout);
     if (abortController) abortController.abort();
 });
 
-function handleOutsideClick(event: MouseEvent) {
+function handleOutsideClick(event: PointerEvent) {
     if (
         searchContainer.value &&
         !searchContainer.value.contains(event.target as Node)
@@ -143,6 +168,9 @@ async function fetchSearchResults(searchTerm: string) {
 watch(query, (val) => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
 
+    // Typing always reopens the suggestions, even if they were dismissed earlier.
+    isOpen.value = true;
+
     const trimmed = val.trim();
     if (trimmed.length < 2) {
         results.value = { products: [], categories: [], total_matches: 0 };
@@ -191,9 +219,29 @@ function selectCategory(slug: string, name: string) {
 }
 
 function handleKeydown(e: KeyboardEvent) {
+    const productCount = results.value.products.length;
+
     if (e.key === 'Escape') {
         isOpen.value = false;
         emit('close');
+    } else if (e.key === 'ArrowDown' && productCount > 0) {
+        e.preventDefault();
+        isOpen.value = true;
+        activeIndex.value = (activeIndex.value + 1) % productCount;
+    } else if (e.key === 'ArrowUp' && productCount > 0) {
+        e.preventDefault();
+        activeIndex.value =
+            activeIndex.value <= 0 ? productCount - 1 : activeIndex.value - 1;
+    }
+}
+
+function onEnter() {
+    const product = results.value.products[activeIndex.value];
+
+    if (product) {
+        selectProduct(product.slug, product.name);
+    } else {
+        submitFullSearch();
     }
 }
 
@@ -207,45 +255,20 @@ const showDropdown = computed(() => {
 
 <template>
     <div ref="searchContainer" class="relative w-full" @keydown="handleKeydown">
-        <!-- Search Input Field -->
-        <div class="relative flex items-center">
+        <div class="relative">
             <span
-                class="pointer-events-none absolute left-3.5 flex items-center text-sage-600"
+                class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-subtle"
             >
-                <svg
+                <SearchIcon
                     v-if="!isLoading"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                    />
-                </svg>
-                <svg
+                    class="size-4"
+                    aria-hidden="true"
+                />
+                <LoaderCircleIcon
                     v-else
-                    class="h-4 w-4 animate-spin text-sage-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                >
-                    <circle
-                        class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"
-                    />
-                    <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                    />
-                </svg>
+                    class="size-4 animate-spin"
+                    aria-hidden="true"
+                />
             </span>
 
             <input
@@ -254,250 +277,217 @@ const showDropdown = computed(() => {
                 type="text"
                 role="combobox"
                 :aria-expanded="showDropdown"
+                :aria-controls="listboxId"
+                :aria-activedescendant="activeOptionId"
                 aria-autocomplete="list"
-                aria-haspopup="listbox"
+                aria-label="Search products"
                 :placeholder="placeholder"
                 @focus="onInputFocus"
-                @keydown.enter.prevent="submitFullSearch()"
-                class="placeholder-charcoal-400 w-full rounded-full border border-cream-300 bg-white/90 pr-9 pl-10 text-xs text-charcoal-900 shadow-2xs transition-all duration-200 focus:border-sage-500 focus:bg-white focus:ring-2 focus:ring-sage-500/20 focus:outline-none sm:text-sm"
-                :class="{
-                    'py-2': size === 'sm',
-                    'py-2.5': size === 'md',
-                    'py-3 text-base': size === 'lg',
-                }"
+                @keydown.enter.prevent="onEnter"
+                :class="
+                    cn(
+                        fieldSurfaceClasses,
+                        fieldStateClasses(false),
+                        'h-12 rounded-full pr-12 pl-12 text-base sm:text-sm',
+                    )
+                "
             />
 
-            <!-- Clear button -->
             <button
                 v-if="query"
                 type="button"
                 @click="query = ''"
-                class="text-charcoal-400 absolute right-3 hover:text-charcoal-700 focus:outline-none"
-                aria-label="Clear search input"
+                class="absolute inset-y-0 right-2 my-auto flex size-8 items-center justify-center rounded-full text-ink-subtle transition-colors hover:bg-surface-sunken hover:text-ink"
+                aria-label="Clear search"
             >
-                <svg
-                    class="h-3.5 w-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                    />
-                </svg>
+                <XIcon class="size-4" aria-hidden="true" />
             </button>
         </div>
 
-        <!-- Live Autocomplete Panel -->
         <Transition
             enter-active-class="transition duration-150 ease-out"
-            enter-from-class="opacity-0 translate-y-1 scale-98"
-            enter-to-class="opacity-100 translate-y-0 scale-100"
+            enter-from-class="opacity-0 -translate-y-1"
             leave-active-class="transition duration-100 ease-in"
-            leave-from-class="opacity-100 translate-y-0 scale-100"
-            leave-to-class="opacity-0 translate-y-1 scale-98"
+            leave-to-class="opacity-0 -translate-y-1"
         >
             <div
                 v-if="showDropdown"
-                class="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-cream-200 bg-white/98 shadow-xl backdrop-blur-md"
+                class="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-lg"
             >
-                <!-- State 1: Empty Query -> Recent Searches & Popular Tags -->
+                <!-- Recent searches -->
                 <div
                     v-if="query.trim().length < 2 && recentSearches.length > 0"
-                    class="p-4"
+                    class="flex flex-col gap-3 p-4"
                 >
-                    <div class="mb-2 flex items-center justify-between text-xs">
-                        <span
-                            class="text-charcoal-600 font-semibold tracking-wider uppercase"
+                    <div class="flex items-center justify-between gap-4">
+                        <p
+                            class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
                         >
-                            Recent Searches
-                        </span>
+                            Recent searches
+                        </p>
                         <button
                             type="button"
                             @click="clearRecentSearches"
-                            class="text-[11px] text-sage-700 hover:underline"
+                            class="text-xs font-medium text-sage-700 hover:underline"
                         >
                             Clear
                         </button>
                     </div>
-                    <div class="flex flex-wrap gap-1.5">
-                        <button
+                    <div class="flex flex-wrap gap-2">
+                        <Chip
                             v-for="term in recentSearches"
                             :key="term"
-                            type="button"
                             @click="submitFullSearch(term)"
-                            class="inline-flex items-center gap-1.5 rounded-full border border-cream-200 bg-cream-50 px-3 py-1 text-xs text-charcoal-800 transition-colors hover:border-sage-300 hover:bg-sage-50 hover:text-sage-900"
                         >
-                            <svg
-                                class="text-charcoal-400 h-3 w-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
-                            <span>{{ term }}</span>
-                        </button>
+                            <ClockIcon
+                                class="size-3 text-ink-subtle"
+                                aria-hidden="true"
+                            />
+                            {{ term }}
+                        </Chip>
                     </div>
                 </div>
 
-                <!-- State 2: Fetching Results (Skeleton) -->
                 <SearchAutocompleteSkeleton
                     v-if="isLoading && query.trim().length >= 2"
                 />
 
-                <!-- State 3: Active Results -->
-                <div
-                    v-else-if="query.trim().length >= 2"
-                    class="divide-y divide-cream-100"
-                >
-                    <!-- Matching Categories if any -->
+                <div v-else-if="query.trim().length >= 2" class="flex flex-col">
+                    <!-- Matching categories -->
                     <div
                         v-if="
                             results.categories && results.categories.length > 0
                         "
-                        class="bg-cream-50/50 p-3"
+                        class="flex flex-col gap-3 border-b border-border p-4"
                     >
                         <p
-                            class="text-charcoal-500 mb-2 text-[10px] font-semibold tracking-wider uppercase"
+                            class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
                         >
-                            Botanical Collections
+                            Collections
                         </p>
                         <div class="flex flex-wrap gap-2">
-                            <button
+                            <Chip
                                 v-for="cat in results.categories"
                                 :key="cat.id"
-                                type="button"
                                 @click="selectCategory(cat.slug, cat.name)"
-                                class="hover:border-sage-400 inline-flex items-center gap-1 rounded-lg border border-cream-200 bg-white px-2.5 py-1 text-xs font-medium text-sage-900 transition-colors hover:bg-sage-50"
                             >
-                                <span>🌿 {{ cat.name }}</span>
-                            </button>
+                                {{ cat.name }}
+                            </Chip>
                         </div>
                     </div>
 
-                    <!-- Matching Products -->
+                    <!-- Matching products -->
                     <div
                         v-if="results.products && results.products.length > 0"
-                        class="max-h-80 divide-y divide-cream-100 overflow-y-auto"
+                        class="flex flex-col"
                     >
-                        <div
-                            class="sticky top-0 bg-white/95 px-4 py-2 backdrop-blur-xs"
+                        <p
+                            class="px-4 pt-4 pb-2 text-xs font-semibold tracking-wider text-ink-subtle uppercase"
                         >
-                            <span
-                                class="text-charcoal-500 text-[10px] font-semibold tracking-wider uppercase"
-                            >
-                                Matching Formulas
-                            </span>
-                        </div>
-                        <button
-                            v-for="prod in results.products"
-                            :key="prod.id"
-                            type="button"
-                            @click="selectProduct(prod.slug, prod.name)"
-                            class="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-cream-50/80"
+                            Products
+                        </p>
+                        <ul
+                            :id="listboxId"
+                            role="listbox"
+                            aria-label="Matching products"
+                            class="max-h-80 overflow-y-auto pb-2"
                         >
-                            <div
-                                class="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-cream-200 bg-cream-100"
+                            <li
+                                v-for="(prod, index) in results.products"
+                                :id="`${listboxId}-${index}`"
+                                :key="prod.id"
+                                role="option"
+                                :aria-selected="index === activeIndex"
                             >
-                                <img
-                                    v-if="prod.main_image"
-                                    :src="resolveStorageUrl(prod.main_image)"
-                                    :alt="prod.name"
-                                    class="h-full w-full object-cover"
-                                />
-                                <div
-                                    v-else
-                                    class="text-charcoal-400 flex h-full w-full items-center justify-center text-sm"
+                                <button
+                                    type="button"
+                                    tabindex="-1"
+                                    @click="selectProduct(prod.slug, prod.name)"
+                                    @mouseenter="activeIndex = index"
+                                    :class="
+                                        cn(
+                                            'flex h-16 w-full items-center gap-4 px-4 text-left transition-colors',
+                                            index === activeIndex
+                                                ? 'bg-surface-sunken'
+                                                : 'hover:bg-surface-sunken',
+                                        )
+                                    "
                                 >
-                                    🍃
-                                </div>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-1.5">
-                                    <h4
-                                        class="truncate text-xs font-medium text-charcoal-900"
+                                    <div
+                                        class="size-12 shrink-0 overflow-hidden rounded-lg bg-surface-sunken"
                                     >
-                                        {{ prod.name }}
-                                    </h4>
-                                    <span
-                                        v-if="prod.category"
-                                        class="text-charcoal-400 hidden text-[10px] sm:inline"
+                                        <img
+                                            v-if="prod.main_image"
+                                            :src="
+                                                resolveStorageUrl(
+                                                    prod.main_image,
+                                                )
+                                            "
+                                            :alt="prod.name"
+                                            class="size-full object-cover"
+                                            loading="lazy"
+                                            @error="showPlaceholderOnError"
+                                        />
+                                    </div>
+                                    <div
+                                        class="flex min-w-0 flex-1 flex-col gap-1"
                                     >
-                                        • {{ prod.category.name }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="mt-0.5 flex items-center gap-2 text-[11px]"
-                                >
-                                    <span class="font-bold text-sage-900">
-                                        {{ formatCurrency(prod.price) }}
-                                    </span>
-                                    <span
-                                        v-if="prod.volume"
-                                        class="text-charcoal-500"
-                                    >
-                                        {{ prod.volume }}
-                                        {{ prod.unit || 'ml' }}
-                                    </span>
-                                    <span
-                                        v-if="!prod.is_in_stock"
-                                        class="text-[10px] font-semibold text-amber-700"
-                                    >
-                                        (Out of stock)
-                                    </span>
-                                </div>
-                            </div>
-                            <svg
-                                class="text-charcoal-300 h-4 w-4 shrink-0"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                                />
-                            </svg>
-                        </button>
+                                        <p
+                                            class="truncate text-sm font-medium text-ink"
+                                        >
+                                            {{ prod.name }}
+                                        </p>
+                                        <p
+                                            class="flex items-center gap-2 text-xs text-ink-subtle"
+                                        >
+                                            <span
+                                                class="font-semibold text-ink"
+                                            >
+                                                {{ formatCurrency(prod.price) }}
+                                            </span>
+                                            <span
+                                                v-if="prod.category"
+                                                class="truncate"
+                                            >
+                                                {{ prod.category.name }}
+                                            </span>
+                                            <span
+                                                v-if="!prod.is_in_stock"
+                                                class="text-warning-700"
+                                            >
+                                                Out of stock
+                                            </span>
+                                        </p>
+                                    </div>
+                                </button>
+                            </li>
+                        </ul>
                     </div>
 
-                    <!-- No Results Found -->
-                    <div v-else-if="!isLoading" class="p-6 text-center text-xs">
-                        <p class="font-medium text-charcoal-800">
-                            No botanical formulas found for "{{ query }}"
+                    <div
+                        v-else-if="!isLoading"
+                        class="flex flex-col gap-2 p-8 text-center"
+                    >
+                        <p class="text-sm font-medium text-ink">
+                            No results for “{{ query }}”
                         </p>
-                        <p class="text-charcoal-500 mt-1 text-[11px]">
-                            Try searching for <em>cleanser</em>, <em>serum</em>,
-                            or <em>lavender</em>.
+                        <p class="text-xs text-ink-subtle">
+                            Try <em>cleanser</em>, <em>serum</em> or
+                            <em>lavender</em>.
                         </p>
                     </div>
 
-                    <!-- View All Results Footer -->
                     <div
                         v-if="results.total_matches > 0"
-                        class="bg-cream-50/60 p-2.5 text-center"
+                        class="border-t border-border p-2"
                     >
                         <button
                             type="button"
                             @click="submitFullSearch()"
-                            class="inline-flex items-center gap-1.5 text-xs font-semibold text-sage-800 hover:text-sage-950 hover:underline"
+                            class="flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium text-sage-800 transition-colors hover:bg-surface-sunken"
                         >
-                            <span>
-                                View all {{ results.total_matches }} formulas
-                                matching "{{ query }}"
-                            </span>
-                            <span>→</span>
+                            View all {{ results.total_matches }} results
+                            <ArrowRightIcon class="size-4" aria-hidden="true" />
                         </button>
                     </div>
                 </div>

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\Checkout\PlaceOrder;
 use App\Actions\Checkout\RecordPaymentSession;
-use App\Actions\Checkout\ReleaseOrderStock;
+use App\Actions\Checkout\ReleaseOrderReservations;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CartItemResource;
 use App\Http\Resources\CustomerAddressResource;
@@ -63,7 +65,7 @@ class CheckoutController extends Controller
         CheckoutRequest $request,
         PlaceOrder $placeOrder,
         PaymentManager $paymentManager,
-        ReleaseOrderStock $releaseOrderStock,
+        ReleaseOrderReservations $releaseOrderReservations,
         RecordPaymentSession $recordPaymentSession,
     ): SymfonyResponse {
         $checkoutData = $request->toCheckoutData();
@@ -74,7 +76,16 @@ class CheckoutController extends Controller
         $result = $gateway->createCheckout($order);
 
         if (! $result->successful) {
-            $releaseOrderStock->execute($order);
+            $order->update([
+                'status' => OrderStatus::Cancelled,
+                'payment_status' => PaymentStatus::Failed,
+            ]);
+
+            $releaseOrderReservations->execute($order);
+
+            if ($order->promotion_id !== null) {
+                $request->session()->put('applied_promotion_id', $order->promotion_id);
+            }
 
             return back()->withErrors([
                 'payment' => $result->errorMessage ?? 'Unable to process checkout. Please try again.',

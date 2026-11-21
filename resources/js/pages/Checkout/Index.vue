@@ -13,7 +13,7 @@ import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
 import Breadcrumbs from '@/components/storefront/Breadcrumbs.vue';
 import AddressFormFields from '@/components/storefront/checkout/AddressFormFields.vue';
 import CheckoutOrderSummary from '@/components/storefront/checkout/CheckoutOrderSummary.vue';
-import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import type {
     AppliedPromotionData,
     AvailablePromotionData,
@@ -24,6 +24,20 @@ import { store as checkoutStore } from '@/actions/App/Http/Controllers/CheckoutC
 import { index as cartIndex } from '@/routes/cart';
 import { login } from '@/routes';
 import { useCart } from '@/composables/useCart';
+import {
+    ChevronDownIcon,
+    PhoneIcon,
+    PlusIcon,
+    ShoppingBagIcon,
+    TriangleAlertIcon,
+} from '@lucide/vue';
+import Badge from '@/components/ui/Badge.vue';
+import Button from '@/components/ui/Button.vue';
+import Card from '@/components/ui/Card.vue';
+import Container from '@/components/ui/Container.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import { FormSection } from '@/components/form';
+import { cn } from '@/lib/utils';
 
 defineOptions({ layout: StorefrontLayout });
 
@@ -76,7 +90,6 @@ const form = useForm({
         country: defaultSavedAddress.value?.country ?? defaultCountry,
     },
     notes: '',
-    promotion_id: props.appliedPromotion?.id ?? null,
     selected_address_id: defaultSavedAddress.value?.id ?? null,
     save_address_to_profile: false,
     address_label: '',
@@ -138,7 +151,6 @@ const deliveryCost = computed(() => {
 const isApplyingPromo = ref(false);
 const promoError = ref<string | null>(null);
 const promoSuccess = ref<string | null>(null);
-const mobilePromoCode = ref('');
 
 const cart = useCart();
 
@@ -188,8 +200,6 @@ async function handleApplyPromo(code: string) {
 
     if (res.success) {
         promoSuccess.value = res.message || 'Promotion applied!';
-        mobilePromoCode.value = '';
-        form.promotion_id = cart.appliedPromotion.value?.id ?? null;
         setTimeout(() => {
             promoSuccess.value = null;
         }, 3500);
@@ -209,7 +219,6 @@ async function handleApplyPromoOffer(promoId: number) {
 
     if (res.success) {
         promoSuccess.value = res.message || 'Promotion applied!';
-        form.promotion_id = cart.appliedPromotion.value?.id ?? null;
         setTimeout(() => {
             promoSuccess.value = null;
         }, 3500);
@@ -226,7 +235,6 @@ async function handleRemovePromo() {
 
     await cart.removePromotion();
     isApplyingPromo.value = false;
-    form.promotion_id = null;
 }
 
 const removeLocationListener = router.on('location', () => {
@@ -248,562 +256,254 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Secure Checkout | Green Veil" />
+    <Head title="Secure Checkout" />
 
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <!-- Breadcrumbs -->
-        <Breadcrumbs
-            inline
-            :items="[
-                { name: 'Shopping Bag', url: cartIndex.url() },
-                { name: 'Checkout', url: '' },
-            ]"
-            class="mb-6"
-        />
-
-        <h1
-            class="mb-8 font-serif text-3xl tracking-tight text-charcoal-900 sm:text-4xl"
-        >
-            Conscious Checkout
-        </h1>
+    <Container class="flex flex-col gap-8 py-8 lg:gap-12 lg:py-12">
+        <div class="flex flex-col gap-4">
+            <Breadcrumbs
+                inline
+                :items="[
+                    { name: 'Bag', url: cartIndex.url() },
+                    { name: 'Checkout', url: '' },
+                ]"
+            />
+            <PageHeader title="Checkout">
+                <template v-if="!customer" #actions>
+                    <p class="text-sm text-ink-muted">
+                        Have an account?
+                        <Link
+                            :href="login.url()"
+                            class="font-medium text-sage-800 underline underline-offset-4"
+                        >
+                            Sign in
+                        </Link>
+                    </p>
+                </template>
+            </PageHeader>
+        </div>
 
         <form
-            @submit.prevent="submit"
             class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12"
+            @submit.prevent="submit"
         >
-            <!-- Left Details Form (7 cols) -->
-            <div class="space-y-8 lg:col-span-7">
-                <!-- Mobile Collapsible Order Summary Bar (Top on mobile) -->
-                <div
-                    class="overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-xs lg:hidden"
-                >
+            <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
+                <!-- Mobile order summary -->
+                <Card padding="none" class="overflow-hidden lg:hidden">
                     <button
                         type="button"
+                        class="flex h-16 w-full items-center justify-between gap-4 px-4"
+                        :aria-expanded="mobileSummaryOpen"
                         @click="mobileSummaryOpen = !mobileSummaryOpen"
-                        class="flex min-h-[44px] w-full items-center justify-between bg-cream-50/80 px-4 py-3.5 text-xs transition-colors hover:bg-cream-100/80"
                     >
                         <span
-                            class="flex items-center gap-2 font-medium text-sage-900"
+                            class="flex items-center gap-3 text-sm font-medium text-ink"
                         >
-                            <svg
-                                class="h-4 w-4 text-sage-700"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
-                                />
-                            </svg>
-                            <span>{{
-                                mobileSummaryOpen
-                                    ? 'Hide order summary'
-                                    : 'Show order summary'
-                            }}</span>
-                            <svg
-                                class="h-3.5 w-3.5 transition-transform"
-                                :class="mobileSummaryOpen ? 'rotate-180' : ''"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 9l-7 7-7-7"
-                                />
-                            </svg>
+                            <ShoppingBagIcon
+                                class="size-4 text-sage-700"
+                                aria-hidden="true"
+                            />
+                            {{ mobileSummaryOpen ? 'Hide' : 'Show' }} order
+                            summary
+                            <ChevronDownIcon
+                                :class="
+                                    cn(
+                                        'size-4 text-ink-subtle transition-transform',
+                                        mobileSummaryOpen && 'rotate-180',
+                                    )
+                                "
+                                aria-hidden="true"
+                            />
                         </span>
-                        <span class="text-sm font-bold text-charcoal-900">
+                        <span
+                            class="text-base font-semibold text-ink tabular-nums"
+                        >
                             {{ formatCurrency(calculatedTotal) }}
                         </span>
                     </button>
-
                     <div
                         v-show="mobileSummaryOpen"
-                        class="border-t border-cream-100 p-4"
+                        class="border-t border-border p-4"
                     >
-                        <!-- Items mini list -->
-                        <div
-                            class="max-h-60 divide-y divide-cream-100 overflow-y-auto pr-1"
-                        >
-                            <div
-                                v-for="item in items"
-                                :key="item.product_id"
-                                class="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
-                            >
-                                <div
-                                    class="relative h-12 w-12 shrink-0 rounded-xl border border-cream-200 bg-cream-100"
-                                >
-                                    <img
-                                        v-if="item.product.main_image"
-                                        :src="
-                                            resolveStorageUrl(
-                                                item.product.main_image,
-                                            )
-                                        "
-                                        :alt="item.product.name"
-                                        class="h-full w-full rounded-[10px] object-cover"
-                                    />
-                                    <div
-                                        v-else
-                                        class="text-charcoal-300 flex h-full w-full items-center justify-center rounded-[10px]"
-                                    >
-                                        🍃
-                                    </div>
-                                    <span
-                                        class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-charcoal-800 text-[9px] font-bold text-cream-50 shadow-xs"
-                                    >
-                                        {{ item.quantity }}
-                                    </span>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <p
-                                        class="truncate text-xs font-medium text-charcoal-900"
-                                    >
-                                        {{ item.product.name }}
-                                    </p>
-                                    <p class="text-charcoal-400 text-[11px]">
-                                        {{ formatCurrency(item.product.price) }}
-                                        each
-                                    </p>
-                                </div>
-                                <span
-                                    class="shrink-0 text-xs font-semibold text-charcoal-900"
-                                >
-                                    {{ formatCurrency(item.subtotal) }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Mobile Promotions Section -->
-                        <div class="border-t border-cream-100 pt-3">
-                            <!-- Active Promotion Banner if applied -->
-                            <div
-                                v-if="activePromo"
-                                class="mb-3 flex items-center justify-between rounded-xl border border-sage-200 bg-sage-50/70 p-2.5 text-xs"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-800 text-cream-50"
-                                    >
-                                        <svg
-                                            class="h-3 w-3"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2.5"
-                                                d="M5 13l4 4L19 7"
-                                            />
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <span
-                                            class="font-medium text-sage-900"
-                                            >{{ activePromo.name }}</span
-                                        >
-                                        <span
-                                            v-if="activePromo.code"
-                                            class="ml-1 rounded bg-sage-200/70 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-sage-800 uppercase"
-                                        >
-                                            {{ activePromo.code }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="font-semibold text-emerald-800"
-                                    >
-                                        {{ activePromo.formatted_discount }}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        @click="handleRemovePromo"
-                                        class="text-[11px] font-medium text-rose-600 hover:text-rose-800"
-                                        title="Remove promo code"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Mobile Promo Input -->
-                            <div v-else class="mb-3 space-y-1.5">
-                                <div class="flex gap-2">
-                                    <input
-                                        v-model="mobilePromoCode"
-                                        type="text"
-                                        placeholder="Promo code"
-                                        class="placeholder-charcoal-400 w-full rounded-xl border border-cream-300 bg-cream-50/50 px-3 py-2 text-xs uppercase placeholder:normal-case focus:border-sage-500 focus:bg-white focus:outline-none"
-                                        :disabled="isApplyingPromo"
-                                        @keydown.enter.prevent="
-                                            handleApplyPromo(mobilePromoCode)
-                                        "
-                                    />
-                                    <button
-                                        type="button"
-                                        @click="
-                                            handleApplyPromo(mobilePromoCode)
-                                        "
-                                        :disabled="
-                                            isApplyingPromo ||
-                                            !mobilePromoCode.trim()
-                                        "
-                                        class="shrink-0 rounded-xl bg-sage-800 px-3.5 py-2 text-xs font-semibold text-cream-50 uppercase transition-colors hover:bg-sage-900 disabled:opacity-50"
-                                    >
-                                        {{ isApplyingPromo ? '...' : 'Apply' }}
-                                    </button>
-                                </div>
-                                <p
-                                    v-if="promoError"
-                                    class="text-[11px] text-rose-600"
-                                >
-                                    {{ promoError }}
-                                </p>
-                                <p
-                                    v-if="promoSuccess"
-                                    class="text-[11px] font-medium text-emerald-700"
-                                >
-                                    {{ promoSuccess }}
-                                </p>
-                            </div>
-
-                            <!-- Mobile Available Store Offers -->
-                            <div
-                                v-if="
-                                    availablePromotions &&
-                                    availablePromotions.length > 0
-                                "
-                                class="mb-3 space-y-2 border-t border-cream-100 pt-2.5"
-                            >
-                                <div
-                                    class="text-[10px] font-semibold tracking-wider text-charcoal-700 uppercase"
-                                >
-                                    Available Store Offers
-                                </div>
-                                <div class="space-y-1.5">
-                                    <div
-                                        v-for="offer in availablePromotions"
-                                        :key="offer.id"
-                                        class="flex items-center justify-between gap-2 rounded-xl border p-2 text-xs transition-all"
-                                        :class="
-                                            offer.is_applied
-                                                ? 'border-sage-300 bg-sage-50/70'
-                                                : offer.is_eligible
-                                                  ? 'border-cream-200 bg-cream-50/40'
-                                                  : 'border-cream-100 opacity-75'
-                                        "
-                                    >
-                                        <div class="min-w-0 flex-1">
-                                            <div
-                                                class="flex items-center gap-1"
-                                            >
-                                                <span
-                                                    class="truncate text-xs font-medium text-charcoal-900"
-                                                    >{{ offer.name }}</span
-                                                >
-                                                <span
-                                                    v-if="offer.code"
-                                                    class="rounded bg-cream-200/70 px-1 py-0.5 font-mono text-[9px] text-charcoal-700 uppercase"
-                                                    >{{ offer.code }}</span
-                                                >
-                                            </div>
-                                            <div
-                                                class="text-charcoal-500 text-[10px]"
-                                            >
-                                                <template
-                                                    v-if="
-                                                        offer.discount_type ===
-                                                        'percentage'
-                                                    "
-                                                >
-                                                    {{ offer.discount_value }}%
-                                                    off
-                                                </template>
-                                                <template v-else>
-                                                    €{{ offer.discount_value }}
-                                                    off
-                                                </template>
-                                                <span
-                                                    v-if="
-                                                        offer.minimum_order_amount
-                                                    "
-                                                >
-                                                    • over €{{
-                                                        offer.minimum_order_amount
-                                                    }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="shrink-0">
-                                            <span
-                                                v-if="offer.is_applied"
-                                                class="rounded-full bg-sage-100 px-2 py-0.5 text-[10px] font-semibold text-sage-800"
-                                            >
-                                                Applied
-                                            </span>
-                                            <button
-                                                v-else-if="offer.is_eligible"
-                                                type="button"
-                                                @click="
-                                                    handleApplyPromoOffer(
-                                                        offer.id,
-                                                    )
-                                                "
-                                                :disabled="isApplyingPromo"
-                                                class="rounded-full bg-sage-800 px-2.5 py-0.5 text-[10px] font-medium text-cream-50"
-                                            >
-                                                {{
-                                                    activePromo
-                                                        ? 'Switch'
-                                                        : 'Apply'
-                                                }}
-                                            </button>
-                                            <span
-                                                v-else
-                                                class="text-charcoal-500 rounded-full bg-cream-200/70 px-2 py-0.5 text-[9px]"
-                                            >
-                                                Locked
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Breakdown -->
-                        <div
-                            class="space-y-1.5 border-t border-cream-100 pt-3 text-xs"
-                        >
-                            <div class="text-charcoal-600 flex justify-between">
-                                <span>Subtotal</span>
-                                <span class="font-medium text-charcoal-900">{{
-                                    formatCurrency(summary.subtotal)
-                                }}</span>
-                            </div>
-                            <div
-                                v-if="discountAmount > 0"
-                                class="flex justify-between font-medium text-emerald-800"
-                            >
-                                <span>Promotion Savings</span>
-                                <span
-                                    >-{{ formatCurrency(discountAmount) }}</span
-                                >
-                            </div>
-                            <div class="text-charcoal-600 flex justify-between">
-                                <span>Shipping</span>
-                                <span>{{
-                                    deliveryCost === 0
-                                        ? 'Free'
-                                        : formatCurrency(deliveryCost)
-                                }}</span>
-                            </div>
-                        </div>
+                        <CheckoutOrderSummary
+                            bare
+                            :show-submit="false"
+                            :items="items"
+                            :summary="summary"
+                            :applied-promotion="activePromo"
+                            :available-promotions="availablePromotions"
+                            :selected-delivery="selectedDelivery"
+                            :selected-payment="selectedPayment"
+                            :delivery-cost="deliveryCost"
+                            :discount-amount="discountAmount"
+                            :calculated-total="calculatedTotal"
+                            :processing="form.processing"
+                            :is-applying-promo="isApplyingPromo"
+                            :promo-error="promoError"
+                            :promo-success="promoSuccess"
+                            @apply-promo="handleApplyPromo"
+                            @apply-offer="handleApplyPromoOffer"
+                            @remove-promo="handleRemovePromo"
+                        />
                     </div>
-                </div>
+                </Card>
 
-                <!-- General / Payment Errors -->
                 <div
                     v-if="generalErrors.payment || generalErrors.cart"
-                    class="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-xs text-rose-800"
+                    class="flex items-start gap-3 rounded-2xl border border-danger-200 bg-danger-50 p-4 text-sm text-danger-700"
+                    role="alert"
                 >
-                    <p v-if="generalErrors.payment" class="font-medium">
-                        {{ generalErrors.payment }}
-                    </p>
-                    <p v-if="generalErrors.cart" class="font-medium">
-                        {{ generalErrors.cart }}
-                    </p>
+                    <TriangleAlertIcon
+                        class="mt-1 size-4 shrink-0"
+                        aria-hidden="true"
+                    />
+                    <div class="flex flex-col gap-1">
+                        <p v-if="generalErrors.payment">
+                            {{ generalErrors.payment }}
+                        </p>
+                        <p v-if="generalErrors.cart">
+                            {{ generalErrors.cart }}
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Step 1: Contact Details -->
-                <section
-                    class="rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
-                >
-                    <div
-                        class="mb-6 flex items-center justify-between border-b border-cream-100 pb-4"
-                    >
-                        <h2 class="font-serif text-lg text-charcoal-900">
-                            1. Contact Information
-                        </h2>
-                        <span
-                            v-if="!customer"
-                            class="text-charcoal-500 text-xs"
-                        >
-                            Have an account?
-                            <Link
-                                :href="login.url()"
-                                class="font-medium text-sage-800 underline"
-                                >Log in</Link
-                            >
-                        </span>
-                    </div>
-
-                    <div class="space-y-4">
+                <Card padding="lg">
+                    <FormSection :step="1" title="Contact">
                         <TextField
                             id="customer_name"
                             v-model="form.customer_name"
-                            label="Full Name"
+                            label="Full name"
                             required
                             placeholder="Lady Catherine"
                             :error="form.errors.customer_name"
                         />
-
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <TextField
                                 id="customer_email"
                                 v-model="form.customer_email"
                                 type="email"
-                                label="Email Address"
+                                label="Email"
                                 required
                                 placeholder="catherine@botanicals.ie"
                                 :error="form.errors.customer_email"
                             />
-
                             <TextField
                                 id="customer_phone"
                                 v-model="form.customer_phone"
                                 type="tel"
-                                label="Phone Number"
-                                subtext="(for delivery SMS)"
+                                label="Phone"
+                                subtext="for delivery updates"
                                 placeholder="+353 87 123 4567"
                                 :error="form.errors.customer_phone"
                             />
                         </div>
-                    </div>
-                </section>
+                    </FormSection>
+                </Card>
 
-                <!-- Step 2: Delivery Address -->
-                <section
-                    class="rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
-                >
-                    <div class="mb-6 border-b border-cream-100 pb-4">
-                        <h2 class="font-serif text-lg text-charcoal-900">
-                            2. Shipping Address
-                        </h2>
-                    </div>
-
-                    <!-- Saved Addresses Selector (for authenticated users with addresses) -->
-                    <div
-                        v-if="savedAddresses && savedAddresses.length > 0"
-                        class="mb-6 space-y-3"
-                    >
-                        <div class="flex items-center justify-between">
-                            <label
-                                class="text-xs font-semibold tracking-wider text-charcoal-700 uppercase"
+                <Card padding="lg">
+                    <FormSection :step="2" title="Shipping address">
+                        <div
+                            v-if="savedAddresses && savedAddresses.length > 0"
+                            class="flex flex-col gap-3"
+                        >
+                            <p
+                                class="flex items-baseline justify-between gap-4 text-sm"
                             >
-                                Select a Saved Delivery Address
-                            </label>
-                            <span class="text-charcoal-500 text-[11px]">
-                                {{ savedAddresses.length }} of 3 saved
-                            </span>
+                                <span class="font-medium text-ink"
+                                    >Saved addresses</span
+                                >
+                                <span class="text-xs text-ink-subtle">
+                                    {{ savedAddresses.length }} of 3 saved
+                                </span>
+                            </p>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <button
+                                    v-for="address in savedAddresses"
+                                    :key="address.id"
+                                    type="button"
+                                    :aria-pressed="
+                                        form.selected_address_id === address.id
+                                    "
+                                    :class="
+                                        cn(
+                                            'flex h-full flex-col gap-2 rounded-lg border p-4 text-left transition-colors',
+                                            form.selected_address_id ===
+                                                address.id
+                                                ? 'border-sage-700 bg-sage-50 ring-1 ring-sage-700'
+                                                : 'border-border-strong bg-surface-raised hover:border-cream-400',
+                                        )
+                                    "
+                                    @click="selectSavedAddress(address)"
+                                >
+                                    <span
+                                        class="flex flex-wrap items-center gap-2"
+                                    >
+                                        <Badge>{{ address.label }}</Badge>
+                                        <Badge
+                                            v-if="address.is_default"
+                                            tone="brand"
+                                        >
+                                            Default
+                                        </Badge>
+                                    </span>
+                                    <span class="text-sm font-medium text-ink">
+                                        {{ address.recipient_name }}
+                                    </span>
+                                    <span
+                                        class="line-clamp-2 text-xs text-ink-muted"
+                                    >
+                                        {{ address.formatted }}
+                                    </span>
+                                    <span
+                                        v-if="address.phone"
+                                        class="mt-auto flex items-center gap-2 text-xs text-ink-subtle"
+                                    >
+                                        <PhoneIcon
+                                            class="size-3"
+                                            aria-hidden="true"
+                                        />
+                                        {{ address.phone }}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    :aria-pressed="
+                                        form.selected_address_id === null
+                                    "
+                                    :class="
+                                        cn(
+                                            'flex h-full min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-center transition-colors',
+                                            form.selected_address_id === null
+                                                ? 'border-sage-700 bg-sage-50'
+                                                : 'border-border-strong hover:border-cream-400',
+                                        )
+                                    "
+                                    @click="selectNewAddress"
+                                >
+                                    <span
+                                        class="flex size-8 items-center justify-center rounded-full bg-surface-sunken text-ink"
+                                    >
+                                        <PlusIcon
+                                            class="size-4"
+                                            aria-hidden="true"
+                                        />
+                                    </span>
+                                    <span class="text-sm font-medium text-ink">
+                                        Use a new address
+                                    </span>
+                                </button>
+                            </div>
                         </div>
 
                         <div
-                            class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+                            v-if="form.selected_address_id !== null"
+                            class="flex flex-col gap-4 rounded-lg bg-surface-sunken p-4 sm:flex-row sm:items-start sm:justify-between"
                         >
-                            <button
-                                v-for="address in savedAddresses"
-                                :key="address.id"
-                                type="button"
-                                @click="selectSavedAddress(address)"
-                                class="relative flex min-h-[110px] flex-col justify-between rounded-2xl border p-4 text-left transition-all"
-                                :class="
-                                    form.selected_address_id === address.id
-                                        ? 'border-sage-600 bg-sage-50/70 shadow-xs ring-1 ring-sage-600'
-                                        : 'border-cream-200 bg-white hover:border-cream-300'
-                                "
-                            >
-                                <div>
-                                    <div
-                                        class="mb-1.5 flex items-center justify-between gap-1.5"
-                                    >
-                                        <span
-                                            class="inline-flex items-center rounded-full bg-cream-200/80 px-2 py-0.5 text-[10px] font-semibold text-charcoal-800"
-                                        >
-                                            {{ address.label }}
-                                        </span>
-                                        <span
-                                            v-if="address.is_default"
-                                            class="rounded-full bg-sage-200/90 px-2 py-0.5 text-[9px] font-semibold text-sage-900"
-                                        >
-                                            Default
-                                        </span>
-                                    </div>
-                                    <p
-                                        class="font-serif text-xs font-medium text-charcoal-900"
-                                    >
-                                        {{ address.recipient_name }}
-                                    </p>
-                                    <p
-                                        class="text-charcoal-600 mt-1 line-clamp-2 text-[11px]"
-                                    >
-                                        {{ address.formatted }}
-                                    </p>
-                                </div>
-                                <p
-                                    v-if="address.phone"
-                                    class="text-charcoal-500 mt-2 text-[10px]"
-                                >
-                                    📞 {{ address.phone }}
-                                </p>
-                            </button>
-
-                            <!-- Enter New Address Card -->
-                            <button
-                                type="button"
-                                @click="selectNewAddress"
-                                class="flex min-h-[110px] flex-col items-center justify-center rounded-2xl border border-dashed p-4 text-center transition-all"
-                                :class="
-                                    form.selected_address_id === null
-                                        ? 'border-sage-600 bg-sage-50/40 ring-1 ring-sage-600'
-                                        : 'hover:border-cream-400 border-cream-300 bg-cream-50/30 hover:bg-cream-50/70'
-                                "
-                            >
-                                <span
-                                    class="mb-1 flex h-6 w-6 items-center justify-center rounded-full bg-cream-200 text-sm font-semibold text-charcoal-700"
-                                >
-                                    +
-                                </span>
-                                <span
-                                    class="text-xs font-medium text-charcoal-900"
-                                >
-                                    Use a new address
-                                </span>
-                                <span
-                                    class="text-charcoal-500 mt-0.5 text-[10px]"
-                                >
-                                    Enter details below
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Selected Address Summary Card (when a saved address is chosen) -->
-                    <div
-                        v-if="form.selected_address_id !== null"
-                        class="rounded-2xl border border-sage-200 bg-sage-50/50 p-4.5"
-                    >
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <span
-                                    class="text-[10px] font-semibold tracking-wider text-sage-800 uppercase"
-                                >
-                                    Selected Shipping Address
-                                </span>
-                                <p
-                                    class="font-serif text-sm font-medium text-charcoal-900"
-                                >
+                            <div class="flex flex-col gap-1 text-sm">
+                                <p class="font-medium text-ink">
                                     {{ form.customer_name }}
                                 </p>
-                                <p class="mt-0.5 text-xs text-charcoal-700">
+                                <p class="text-ink-muted">
                                     {{ form.shipping_address.line1
                                     }}<template
                                         v-if="form.shipping_address.line2"
@@ -812,206 +512,191 @@ function submit() {
                                             form.shipping_address.line2
                                         }}</template
                                     >, {{ form.shipping_address.city }},
-                                    {{ form.shipping_address.postal_code }} ({{
-                                        form.shipping_address.country
-                                    }})
+                                    {{ form.shipping_address.postal_code }}
+                                    ({{ form.shipping_address.country }})
                                 </p>
                                 <p
                                     v-if="form.customer_phone"
-                                    class="text-charcoal-600 mt-1 text-[11px]"
+                                    class="text-xs text-ink-subtle"
                                 >
-                                    Delivery SMS phone:
-                                    <span
-                                        class="font-medium text-charcoal-800"
-                                        >{{ form.customer_phone }}</span
-                                    >
+                                    Delivery updates to
+                                    {{ form.customer_phone }}
                                 </p>
                             </div>
-                            <button
-                                type="button"
+                            <Button
+                                size="sm"
+                                variant="outline"
                                 @click="selectNewAddress"
-                                class="rounded-xl border border-sage-300 bg-white px-3 py-1.5 text-xs font-medium text-sage-800 shadow-2xs transition-colors hover:bg-sage-50"
                             >
-                                Enter Different Address
-                            </button>
+                                Use a different address
+                            </Button>
                         </div>
-                    </div>
 
-                    <!-- Address Input Form (when entering a new address or no saved addresses exist) -->
-                    <div v-else class="space-y-4">
-                        <AddressFormFields
-                            id-prefix="shipping"
-                            error-prefix="shipping_address"
-                            v-model="form.shipping_address"
-                            :country-options="countryOptions"
-                            :errors="form.errors"
-                        />
-
-                        <!-- Option to save to customer profile -->
-                        <div
-                            v-if="customer && canSaveAddress"
-                            class="space-y-3 rounded-2xl border border-cream-200 bg-cream-50/60 p-4"
-                        >
-                            <CheckboxField
-                                id="save_address_to_profile"
-                                v-model="form.save_address_to_profile"
-                                label="Save this shipping address to my profile"
-                                subtext="Save up to 3 addresses with phone numbers for 1-click checkout next time"
+                        <div v-else class="flex flex-col gap-4">
+                            <AddressFormFields
+                                id-prefix="shipping"
+                                error-prefix="shipping_address"
+                                v-model="form.shipping_address"
+                                :country-options="countryOptions"
+                                :errors="form.errors"
                             />
 
                             <div
-                                v-if="form.save_address_to_profile"
-                                class="max-w-xs pt-1"
+                                v-if="customer && canSaveAddress"
+                                class="flex flex-col gap-4 rounded-lg bg-surface-sunken p-4"
                             >
+                                <CheckboxField
+                                    id="save_address_to_profile"
+                                    v-model="form.save_address_to_profile"
+                                    label="Save this address to my account"
+                                    description="Keep up to 3 addresses for faster checkout."
+                                />
                                 <TextField
+                                    v-if="form.save_address_to_profile"
                                     id="address_label"
                                     v-model="form.address_label"
-                                    label="Address Label"
-                                    placeholder="e.g. Home, Office, Studio"
-                                    subtext="(optional, defaults to 'Home')"
+                                    label="Label"
+                                    placeholder="Home, Office, Studio"
+                                    subtext="optional"
+                                    class="max-w-xs"
                                     :error="form.errors.address_label"
                                 />
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Billing toggle -->
-                    <div class="mt-6 border-t border-cream-100 pt-5">
-                        <CheckboxField
-                            id="billing_same_as_shipping"
-                            v-model="form.billing_same_as_shipping"
-                            label="Billing address matches shipping address"
-                        />
-
-                        <!-- Different billing address fields -->
                         <div
-                            v-if="!form.billing_same_as_shipping"
-                            class="mt-4 space-y-4 pt-2"
+                            class="flex flex-col gap-4 border-t border-border pt-6"
                         >
-                            <h3
-                                class="text-xs font-semibold tracking-wider text-charcoal-700 uppercase"
-                            >
-                                Billing Address
-                            </h3>
-
-                            <AddressFormFields
-                                id-prefix="billing"
-                                error-prefix="billing_address"
-                                v-model="form.billing_address"
-                                :country-options="countryOptions"
-                                :errors="form.errors"
+                            <CheckboxField
+                                id="billing_same_as_shipping"
+                                v-model="form.billing_same_as_shipping"
+                                label="Billing address is the same as shipping"
                             />
+                            <div
+                                v-if="!form.billing_same_as_shipping"
+                                class="flex flex-col gap-4"
+                            >
+                                <h3 class="text-sm font-medium text-ink">
+                                    Billing address
+                                </h3>
+                                <AddressFormFields
+                                    id-prefix="billing"
+                                    error-prefix="billing_address"
+                                    v-model="form.billing_address"
+                                    :country-options="countryOptions"
+                                    :errors="form.errors"
+                                />
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </FormSection>
+                </Card>
 
-                <!-- Step 3: Delivery Options -->
-                <section
-                    class="rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
+                <Card padding="lg">
+                    <FormSection :step="3" title="Delivery">
+                        <RadioCardGroup :error="form.errors.delivery_option_id">
+                            <RadioCard
+                                v-for="option in deliveryOptions"
+                                :key="option.id"
+                                v-model="form.delivery_option_id"
+                                :value="option.id"
+                                name="delivery_option"
+                                :title="option.name"
+                                :subtitle="option.estimated_delivery_label"
+                                :description="option.description"
+                            >
+                                <template #trailing>
+                                    <Badge
+                                        v-if="
+                                            option.is_free ||
+                                            Number(option.price) === 0
+                                        "
+                                        tone="success"
+                                        >Free</Badge
+                                    >
+                                    <span
+                                        v-else
+                                        class="text-sm font-semibold text-ink tabular-nums"
+                                    >
+                                        {{ formatCurrency(option.price) }}
+                                    </span>
+                                </template>
+                            </RadioCard>
+                        </RadioCardGroup>
+                    </FormSection>
+                </Card>
+
+                <Card padding="lg">
+                    <FormSection :step="4" title="Payment">
+                        <RadioCardGroup :error="form.errors.payment_option_id">
+                            <RadioCard
+                                v-for="option in paymentOptions"
+                                :key="option.id"
+                                v-model="form.payment_option_id"
+                                :value="option.id"
+                                name="payment_option"
+                                align="start"
+                                :title="option.name"
+                                :description="option.description"
+                            >
+                                <template #badge>
+                                    <Badge
+                                        v-if="option.driver === 'stripe'"
+                                        tone="brand"
+                                    >
+                                        Card · Apple Pay
+                                    </Badge>
+                                </template>
+                            </RadioCard>
+                        </RadioCardGroup>
+
+                        <TextareaField
+                            id="order_notes"
+                            v-model="form.notes"
+                            label="Order notes"
+                            subtext="optional"
+                            :rows="3"
+                            placeholder="Delivery instructions or anything we should know…"
+                            :error="form.errors.notes"
+                        />
+                    </FormSection>
+                </Card>
+
+                <Button
+                    type="submit"
+                    size="lg"
+                    block
+                    class="lg:hidden"
+                    :loading="form.processing"
                 >
-                    <div class="mb-6 border-b border-cream-100 pb-4">
-                        <h2 class="font-serif text-lg text-charcoal-900">
-                            3. Delivery Method
-                        </h2>
-                    </div>
-
-                    <RadioCardGroup :error="form.errors.delivery_option_id">
-                        <RadioCard
-                            v-for="option in deliveryOptions"
-                            :key="option.id"
-                            v-model="form.delivery_option_id"
-                            :value="option.id"
-                            name="delivery_option"
-                            :title="option.name"
-                            :subtitle="option.estimated_delivery_label"
-                            :description="option.description"
-                        >
-                            <template #trailing>
-                                <span
-                                    v-if="option.is_free"
-                                    class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800"
-                                >
-                                    FREE
-                                </span>
-                                <span
-                                    v-else
-                                    class="text-sm font-semibold text-charcoal-900"
-                                >
-                                    {{ formatCurrency(option.price) }}
-                                </span>
-                            </template>
-                        </RadioCard>
-                    </RadioCardGroup>
-                </section>
-
-                <!-- Step 4: Payment Options -->
-                <section
-                    class="rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
-                >
-                    <div class="mb-6 border-b border-cream-100 pb-4">
-                        <h2 class="font-serif text-lg text-charcoal-900">
-                            4. Payment Method
-                        </h2>
-                    </div>
-
-                    <RadioCardGroup :error="form.errors.payment_option_id">
-                        <RadioCard
-                            v-for="option in paymentOptions"
-                            :key="option.id"
-                            v-model="form.payment_option_id"
-                            :value="option.id"
-                            name="payment_option"
-                            align="start"
-                            :title="option.name"
-                            :description="option.description"
-                        >
-                            <template #badge>
-                                <span
-                                    v-if="option.driver === 'stripe'"
-                                    class="rounded-md bg-sage-100 px-2 py-0.5 text-[10px] font-medium text-sage-800"
-                                >
-                                    Card / Apple Pay
-                                </span>
-                            </template>
-                        </RadioCard>
-                    </RadioCardGroup>
-                </section>
-
-                <!-- Step 5: Optional Notes -->
-                <section
-                    class="rounded-3xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
-                >
-                    <TextareaField
-                        id="order_notes"
-                        v-model="form.notes"
-                        label="Order Notes & Botanical Requests"
-                        subtext="(optional)"
-                        :rows="2"
-                        placeholder="Special delivery notes or sensitive skin instructions..."
-                        :error="form.errors.notes"
-                    />
-                </section>
+                    {{
+                        selectedPayment?.driver === 'stripe'
+                            ? 'Continue to payment'
+                            : 'Place order'
+                    }}
+                    · {{ formatCurrency(calculatedTotal) }}
+                </Button>
             </div>
 
-            <!-- Right Sidebar: Order Summary (5 cols) -->
-            <CheckoutOrderSummary
-                :items="items"
-                :summary="summary"
-                :applied-promotion="activePromo"
-                :available-promotions="availablePromotions"
-                :selected-delivery="selectedDelivery"
-                :selected-payment="selectedPayment"
-                :delivery-cost="deliveryCost"
-                :discount-amount="discountAmount"
-                :calculated-total="calculatedTotal"
-                :processing="form.processing"
-                :is-applying-promo="isApplyingPromo"
-                :promo-error="promoError"
-                :promo-success="promoSuccess"
-                @apply-promo="handleApplyPromo"
-                @apply-offer="handleApplyPromoOffer"
-                @remove-promo="handleRemovePromo"
-            />
+            <div class="hidden lg:sticky lg:top-sticky lg:col-span-5 lg:block">
+                <CheckoutOrderSummary
+                    :items="items"
+                    :summary="summary"
+                    :applied-promotion="activePromo"
+                    :available-promotions="availablePromotions"
+                    :selected-delivery="selectedDelivery"
+                    :selected-payment="selectedPayment"
+                    :delivery-cost="deliveryCost"
+                    :discount-amount="discountAmount"
+                    :calculated-total="calculatedTotal"
+                    :processing="form.processing"
+                    :is-applying-promo="isApplyingPromo"
+                    :promo-error="promoError"
+                    :promo-success="promoSuccess"
+                    @apply-promo="handleApplyPromo"
+                    @apply-offer="handleApplyPromoOffer"
+                    @remove-promo="handleRemovePromo"
+                />
+            </div>
         </form>
-    </div>
+    </Container>
 </template>

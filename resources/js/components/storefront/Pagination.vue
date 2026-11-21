@@ -1,10 +1,43 @@
 <script setup lang="ts">
+import { ChevronLeftIcon, ChevronRightIcon } from '@lucide/vue';
+import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/vue3';
 import type { PaginationLink } from '@/types/storefront';
 
-defineProps<{
+const props = defineProps<{
     links: PaginationLink[];
+    /**
+     * Props to reload when changing page. Paging only needs the list itself, so a partial
+     * reload skips everything else on the page (facets, categories, shared data).
+     */
+    only?: string[];
+    /** Element id to bring into view once the new page has loaded. */
+    scrollTarget?: string;
 }>();
+
+function scrollToTarget() {
+    if (!props.scrollTarget) return;
+
+    document.getElementById(props.scrollTarget)?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 'auto'
+            : 'smooth',
+        block: 'start',
+    });
+}
+
+function linkBindings(url: string | null) {
+    if (!url) return {};
+
+    return {
+        href: url,
+        only: props.only,
+        preserveState: props.only ? true : undefined,
+        preserveScroll: true,
+        prefetch: true,
+        onSuccess: scrollToTarget,
+    };
+}
 
 function formatLabel(label: string): string {
     return label.replace('&laquo;', '«').replace('&raquo;', '»');
@@ -14,41 +47,51 @@ function formatLabel(label: string): string {
 <template>
     <nav
         v-if="links.length > 3"
-        aria-label="Pagination Navigation"
-        class="my-10 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2"
+        aria-label="Pagination"
+        class="flex items-center justify-center gap-2"
     >
         <template v-for="(link, index) in links" :key="index">
-            <!-- Disabled / null URL link (e.g. Previous when on page 1) -->
-            <span
-                v-if="!link.url"
-                :class="[
-                    'text-charcoal-400 inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-xl border border-cream-200 bg-cream-100 px-3.5 py-2 text-xs font-medium select-none sm:rounded-md',
-                    index !== 0 && index !== links.length - 1 && !link.active
-                        ? 'hidden sm:inline-flex'
-                        : 'inline-flex',
-                ]"
-            >
-                {{ formatLabel(link.label) }}
-            </span>
-
-            <!-- Active / Clickable link -->
-            <Link
-                v-else
-                :href="link.url"
-                preserve-scroll
-                :class="[
-                    'inline-flex min-h-[44px] items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors sm:rounded-md',
-                    index !== 0 && index !== links.length - 1 && !link.active
-                        ? 'hidden sm:inline-flex'
-                        : 'inline-flex',
-                    link.active
-                        ? 'border-sage-700 bg-sage-700 font-semibold text-white'
-                        : 'border-cream-200 bg-white text-charcoal-700 hover:bg-cream-100 hover:text-sage-800',
-                ]"
+            <component
+                :is="link.url ? Link : 'span'"
+                v-bind="linkBindings(link.url)"
                 :aria-current="link.active ? 'page' : undefined"
+                :aria-disabled="link.url ? undefined : true"
+                :aria-label="
+                    index === 0
+                        ? 'Previous page'
+                        : index === links.length - 1
+                          ? 'Next page'
+                          : undefined
+                "
+                :class="
+                    cn(
+                        'inline-flex size-12 items-center justify-center rounded-full text-sm font-medium transition-colors',
+                        index !== 0 &&
+                            index !== links.length - 1 &&
+                            !link.active &&
+                            'hidden sm:inline-flex',
+                        link.active
+                            ? 'bg-sage-900 text-cream-50'
+                            : link.url
+                              ? 'text-ink hover:bg-surface-sunken'
+                              : 'cursor-not-allowed text-ink-subtle opacity-50',
+                        (index === 0 || index === links.length - 1) &&
+                            'border border-border-strong',
+                    )
+                "
             >
-                {{ formatLabel(link.label) }}
-            </Link>
+                <ChevronLeftIcon
+                    v-if="index === 0"
+                    class="size-4"
+                    aria-hidden="true"
+                />
+                <ChevronRightIcon
+                    v-else-if="index === links.length - 1"
+                    class="size-4"
+                    aria-hidden="true"
+                />
+                <template v-else>{{ formatLabel(link.label) }}</template>
+            </component>
         </template>
     </nav>
 </template>

@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Actions\Checkout\MarkOrderPaid;
 use App\Actions\Checkout\MarkOrderPaymentFailed;
-use App\Actions\Checkout\ReleaseOrderStock;
+use App\Actions\Checkout\ReleaseOrderReservations;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
@@ -19,6 +19,15 @@ class HandleStripeWebhook implements ShouldQueue
 {
     use Queueable;
 
+    public int $tries = 5;
+
+    /**
+     * Seconds to wait before each retry.
+     *
+     * @var array<int, int>
+     */
+    public array $backoff = [10, 60, 300, 900];
+
     public function __construct(
         public readonly int $stripeEventRecordId,
     ) {}
@@ -26,14 +35,30 @@ class HandleStripeWebhook implements ShouldQueue
     public function handle(
         MarkOrderPaid $markOrderPaid,
         MarkOrderPaymentFailed $markOrderPaymentFailed,
-        ReleaseOrderStock $releaseOrderStock,
+        ReleaseOrderReservations $releaseOrderReservations,
     ): void {
-        $eventRecord = StripeEvent::find($this->stripeEventRecordId);
+        // Claim the event under a row lock: a duplicate delivery processed concurrently
+        // waits here and then sees processed_at set, so an event is applied once.
+        DB::transaction(function () use ($markOrderPaid, $markOrderPaymentFailed, $releaseOrderReservations): void {
+            /** @var StripeEvent|null $eventRecord */
+            $eventRecord = StripeEvent::query()->whereKey($this->stripeEventRecordId)->lockForUpdate()->first();
 
-        if (! $eventRecord || $eventRecord->processed_at !== null) {
-            return;
-        }
+            if (! $eventRecord || $eventRecord->processed_at !== null) {
+                return;
+            }
 
+            $this->process($eventRecord, $markOrderPaid, $markOrderPaymentFailed, $releaseOrderReservations);
+
+            $eventRecord->update(['processed_at' => now()]);
+        });
+    }
+
+    protected function process(
+        StripeEvent $eventRecord,
+        MarkOrderPaid $markOrderPaid,
+        MarkOrderPaymentFailed $markOrderPaymentFailed,
+        ReleaseOrderReservations $releaseOrderReservations,
+    ): void {
         $type = $eventRecord->type;
         $payload = $eventRecord->payload;
         $dataObject = $payload['data']['object'] ?? [];
@@ -47,15 +72,13 @@ class HandleStripeWebhook implements ShouldQueue
             'checkout.session.completed' => $this->handleSessionCompleted($dataObject, $markOrderPaid),
             'checkout.session.async_payment_succeeded' => $this->handleAsyncPaymentSucceeded($dataObject, $markOrderPaid),
             'checkout.session.async_payment_failed' => $this->handleAsyncPaymentFailed($dataObject, $markOrderPaymentFailed),
-            'checkout.session.expired' => $this->handleSessionExpired($dataObject, $releaseOrderStock),
+            'checkout.session.expired' => $this->handleSessionExpired($dataObject, $releaseOrderReservations),
             'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($dataObject, $markOrderPaid),
             'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($dataObject, $markOrderPaymentFailed),
             'charge.succeeded' => $this->handleChargeSucceeded($dataObject, $markOrderPaid),
-            'charge.refunded' => $this->handleChargeRefunded($dataObject, $releaseOrderStock),
+            'charge.refunded' => $this->handleChargeRefunded($dataObject, $releaseOrderReservations),
             default => Log::info("Unhandled Stripe webhook event: {$type}"),
         };
-
-        $eventRecord->update(['processed_at' => now()]);
     }
 
     /**
@@ -114,7 +137,7 @@ class HandleStripeWebhook implements ShouldQueue
     /**
      * @param  array<string, mixed>  $sessionData
      */
-    protected function handleSessionExpired(array $sessionData, ReleaseOrderStock $releaseOrderStock): void
+    protected function handleSessionExpired(array $sessionData, ReleaseOrderReservations $releaseOrderReservations): void
     {
         $order = $this->resolveOrder($sessionData);
 
@@ -122,7 +145,7 @@ class HandleStripeWebhook implements ShouldQueue
             return;
         }
 
-        DB::transaction(function () use ($order, $releaseOrderStock): void {
+        DB::transaction(function () use ($order, $releaseOrderReservations): void {
             /** @var Order|null $lockedOrder */
             $lockedOrder = Order::query()->where('id', $order->id)->lockForUpdate()->first();
 
@@ -145,7 +168,7 @@ class HandleStripeWebhook implements ShouldQueue
                 ]
             );
 
-            $releaseOrderStock->execute($lockedOrder);
+            $releaseOrderReservations->execute($lockedOrder);
 
             Log::info("Order {$lockedOrder->number} cancelled due to expired Stripe session.");
         });
@@ -179,7 +202,9 @@ class HandleStripeWebhook implements ShouldQueue
         }
 
         $reason = $paymentIntentData['last_payment_error']['message'] ?? 'Payment intent failed';
-        $markOrderPaymentFailed->execute($order, $reason);
+
+        // The shopper may still retry within the Checkout session; expiry releases the stock.
+        $markOrderPaymentFailed->execute($order, $reason, releaseReservations: false);
     }
 
     /**
@@ -199,7 +224,7 @@ class HandleStripeWebhook implements ShouldQueue
     /**
      * @param  array<string, mixed>  $chargeData
      */
-    protected function handleChargeRefunded(array $chargeData, ReleaseOrderStock $releaseOrderStock): void
+    protected function handleChargeRefunded(array $chargeData, ReleaseOrderReservations $releaseOrderReservations): void
     {
         $order = $this->resolveOrder($chargeData);
 
@@ -225,26 +250,40 @@ class HandleStripeWebhook implements ShouldQueue
             return;
         }
 
-        $amountRefunded = (int) ($chargeData['amount_refunded'] ?? 0);
-        $amountTotal = (int) ($chargeData['amount'] ?? round($order->total * 100));
-        $isFullRefund = ($amountRefunded >= $amountTotal);
+        DB::transaction(function () use ($order, $chargeData, $releaseOrderReservations): void {
+            /** @var Order|null $lockedOrder */
+            $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->first();
 
-        $refundStatus = $isFullRefund ? PaymentStatus::Refunded : PaymentStatus::PartiallyRefunded;
+            if (! $lockedOrder) {
+                return;
+            }
 
-        $order->update([
-            'payment_status' => $refundStatus,
-            'status' => $isFullRefund ? OrderStatus::Refunded : $order->status,
-        ]);
+            $amountRefunded = (int) ($chargeData['amount_refunded'] ?? 0);
+            $amountTotal = (int) ($chargeData['amount'] ?? round($lockedOrder->total * 100));
+            $isFullRefund = ($amountRefunded >= $amountTotal);
 
-        Payment::where('order_id', $order->id)->update([
-            'status' => $refundStatus,
-        ]);
+            $refundStatus = $isFullRefund ? PaymentStatus::Refunded : PaymentStatus::PartiallyRefunded;
+            $statusBeforeRefund = $lockedOrder->status;
 
-        if ($isFullRefund && ! in_array($order->status, [OrderStatus::Shipped, OrderStatus::Delivered])) {
-            $releaseOrderStock->execute($order);
-        }
+            $lockedOrder->update([
+                // Stripe reports the cumulative refunded amount, so it is authoritative.
+                'refunded_amount' => max((float) $lockedOrder->refunded_amount, round($amountRefunded / 100, 2)),
+                'payment_status' => $refundStatus,
+                'status' => $isFullRefund ? OrderStatus::Refunded : $lockedOrder->status,
+            ]);
 
-        Log::info("Order {$order->number} refund recorded ({$refundStatus->value}).");
+            Payment::where('order_id', $lockedOrder->id)->update([
+                'status' => $refundStatus,
+            ]);
+
+            // Stock that already left the warehouse is not put back. The release is
+            // idempotent, so an admin refund that already restocked is not repeated.
+            if ($isFullRefund && ! in_array($statusBeforeRefund, [OrderStatus::Shipped, OrderStatus::Delivered], true)) {
+                $releaseOrderReservations->execute($lockedOrder);
+            }
+
+            Log::info("Order {$lockedOrder->number} refund recorded ({$refundStatus->value}).");
+        });
     }
 
     /**
@@ -317,30 +356,6 @@ class HandleStripeWebhook implements ShouldQueue
             $payment = Payment::where('stripe_charge_id', $chargeId)->first();
             if ($payment?->order) {
                 return $payment->order;
-            }
-        }
-
-        // 6. Guest Order Fallback by customer email + total amount for recent unfulfilled order
-        $customerEmail = $dataObject['customer_details']['email']
-            ?? $dataObject['receipt_email']
-            ?? $dataObject['billing_details']['email']
-            ?? null;
-
-        $amountCents = $dataObject['amount_total'] ?? $dataObject['amount'] ?? null;
-
-        if (! empty($customerEmail) && $amountCents !== null) {
-            $expectedTotal = round(((int) $amountCents) / 100, 2);
-            $order = Order::query()
-                ->where('customer_email', $customerEmail)
-                ->where('total', $expectedTotal)
-                ->where('payment_status', PaymentStatus::Unpaid)
-                ->where('status', OrderStatus::PendingPayment)
-                ->where('created_at', '>=', now()->subHours(24))
-                ->latest('id')
-                ->first();
-
-            if ($order) {
-                return $order;
             }
         }
 

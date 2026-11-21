@@ -15,7 +15,7 @@ const props = defineProps<Props>();
         v-if="message"
         :id="id"
         role="alert"
-        :class="cn('mt-1.5 text-xs text-rose-600', props.class)"
+        :class="cn('mt-2 text-xs text-danger-600', props.class)"
     >
         {{ message }}
     </p>

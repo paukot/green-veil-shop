@@ -1,9 +1,9 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Green Veil';
 
 void createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: (title) => (title ? `${title} · ${appName}` : appName),
     withApp: (app) => {
         app.directive('focus', {
             mounted: (el: HTMLElement, shouldFocus) => {
@@ -14,6 +14,6 @@ void createInertiaApp({
         });
     },
     progress: {
-        color: '#4B5563',
+        color: '#4c6b4b',
     },
 });

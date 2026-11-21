@@ -17,7 +17,14 @@ class StripeWebhookController extends Controller
     {
         $payload = (string) $request->getContent();
         $sigHeader = (string) $request->header('Stripe-Signature');
-        $secret = config('services.stripe.webhook_secret') ?: 'whsec_placeholder';
+        $secret = (string) config('services.stripe.webhook_secret');
+
+        if ($secret === '') {
+            Log::error('Stripe webhook received but services.stripe.webhook_secret is not configured.');
+
+            // A 5xx makes Stripe retry the delivery once the secret is configured.
+            return response()->json(['error' => 'Webhook not configured'], 500);
+        }
 
         try {
             $event = Webhook::constructEvent($payload, $sigHeader, $secret);
@@ -31,24 +38,21 @@ class StripeWebhookController extends Controller
             return response()->json(['error' => 'Invalid signature'], 400);
         }
 
-        // Check if event already exists for idempotency
-        $existingEvent = StripeEvent::where('stripe_event_id', $event->id)->first();
+        // createOrFirst relies on the unique stripe_event_id, so two concurrent deliveries
+        // of one event resolve to the same record instead of a unique-violation 500.
+        $eventRecord = StripeEvent::query()->createOrFirst(
+            ['stripe_event_id' => $event->id],
+            [
+                'type' => $event->type,
+                'payload' => json_decode($payload, true) ?: [],
+            ],
+        );
 
-        if ($existingEvent && $existingEvent->processed_at !== null) {
+        if ($eventRecord->processed_at !== null) {
             return response()->json(['status' => 'already_processed'], 200);
         }
 
-        $eventRecord = $existingEvent ?? StripeEvent::create([
-            'stripe_event_id' => $event->id,
-            'type' => $event->type,
-            'payload' => json_decode($payload, true) ?: [],
-        ]);
-
-        if (app()->environment('testing')) {
-            HandleStripeWebhook::dispatchSync($eventRecord->id);
-        } else {
-            HandleStripeWebhook::dispatch($eventRecord->id);
-        }
+        HandleStripeWebhook::dispatch($eventRecord->id);
 
         return response()->json(['status' => 'received'], 200);
     }

@@ -29,7 +29,6 @@ class TaxonomyObserver
         AppCache::chain()
             ->tags([CacheTag::Taxonomies, CacheTag::Catalog])
             ->keys([CacheKey::CatalogFacetsGlobal])
-            ->patterns(['catalog.facets.*'])
             ->flush();
     }
 }

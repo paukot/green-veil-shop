@@ -2,6 +2,7 @@
 
 namespace App\Actions\Checkout;
 
+use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
@@ -11,12 +12,18 @@ use Illuminate\Support\Facades\Log;
 class MarkOrderPaymentFailed
 {
     public function __construct(
-        protected ReleaseOrderStock $releaseOrderStock,
+        protected ReleaseOrderReservations $releaseOrderReservations,
     ) {}
 
-    public function execute(Order $order, ?string $reason = null): void
+    /**
+     * Record a failed payment attempt.
+     *
+     * A declined card inside an open Stripe Checkout session is not final (the shopper can try
+     * another card), so reservations are only released when the failure ends the checkout.
+     */
+    public function execute(Order $order, ?string $reason = null, bool $releaseReservations = true): void
     {
-        DB::transaction(function () use ($order, $reason): void {
+        DB::transaction(function () use ($order, $reason, $releaseReservations): void {
             /** @var Order|null $lockedOrder */
             $lockedOrder = Order::query()->where('id', $order->id)->lockForUpdate()->first();
 
@@ -26,6 +33,8 @@ class MarkOrderPaymentFailed
 
             $lockedOrder->update([
                 'payment_status' => PaymentStatus::Failed,
+                // A terminal failure ends the checkout; a retryable one leaves it open.
+                'status' => $releaseReservations ? OrderStatus::Cancelled : $lockedOrder->status,
             ]);
 
             Payment::updateOrCreate(
@@ -38,8 +47,9 @@ class MarkOrderPaymentFailed
                 ]
             );
 
-            // Release reserved inventory back
-            $this->releaseOrderStock->execute($lockedOrder);
+            if ($releaseReservations) {
+                $this->releaseOrderReservations->execute($lockedOrder);
+            }
 
             Log::warning("Order {$lockedOrder->number} marked payment failed: {$reason}");
         });

@@ -2,6 +2,8 @@ export type CategoryNavigationItem = {
     id: number;
     slug: string;
     name: string;
+    /** Only departments (top level) carry an image, for the mega menu feature tile. */
+    image?: string | null;
     children?: CategoryNavigationItem[];
 };
 

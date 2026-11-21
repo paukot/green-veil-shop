@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { cn } from '@/lib/utils';
 import MegaMenuDropdown from '@/components/storefront/layout/MegaMenuDropdown.vue';
 import LiveSearchAutocomplete from '@/components/storefront/layout/LiveSearchAutocomplete.vue';
 import type { SharedProps } from '@/types/storefront';
@@ -9,10 +10,22 @@ import { index as productsIndex } from '@/routes/products';
 import { show as categoryShow } from '@/actions/App/Http/Controllers/CategoryController';
 import { index as favouritesIndex } from '@/routes/favourites';
 import { profile, rituals as accountRituals } from '@/routes/account';
-import { getNavigationLayout } from '@/lib/navigation';
 
 import { useCart } from '@/composables/useCart';
 import { useFavourites } from '@/composables/useFavourites';
+import {
+    ChevronDownIcon,
+    HeartIcon,
+    LogOutIcon,
+    MenuIcon,
+    SearchIcon,
+    ShoppingBagIcon,
+    UserIcon,
+    XIcon,
+} from '@lucide/vue';
+import Button from '@/components/ui/Button.vue';
+import Container from '@/components/ui/Container.vue';
+import IconButton from '@/components/ui/IconButton.vue';
 
 const mobileMenuOpen = defineModel<boolean>('mobileMenuOpen', {
     default: false,
@@ -42,347 +55,229 @@ const demoNotice = computed(
         'This website is for demonstration purposes only. Payments are not processed and orders will not be fulfilled.',
 );
 
-const userFirstName = computed(() => {
-    if (!user.value?.name) return '';
-    return user.value.name.trim().split(' ')[0] ?? '';
-});
+const isFavouritesPage = computed(
+    () =>
+        page.url.startsWith(favouritesIndex.url()) ||
+        page.url.startsWith(accountRituals.url()),
+);
 </script>
 
 <template>
-    <!-- Top Announcement Bar / Demo Mode Notice -->
     <aside
         aria-label="Announcement"
         :class="
             isDemoMode
-                ? 'border-b border-amber-600/40 bg-amber-900 px-4 py-2 text-center text-xs tracking-wide text-amber-100 shadow-xs'
-                : 'bg-sage-800 px-4 py-2 text-center text-xs tracking-wide text-cream-100'
+                ? 'bg-clay-800 text-clay-50'
+                : 'bg-sage-950 text-cream-100'
         "
     >
-        <div
-            v-if="isDemoMode"
-            class="flex flex-wrap items-center justify-center gap-2 font-medium"
+        <Container
+            class="flex min-h-8 items-center justify-center gap-2 py-2 text-center text-xs"
         >
-            <span
-                class="rounded-sm bg-amber-950/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-300 uppercase"
-            >
-                Demo Mode
+            <template v-if="isDemoMode">
+                <span
+                    class="inline-flex h-6 shrink-0 items-center rounded-full bg-clay-950/40 px-2 font-semibold tracking-wider uppercase"
+                >
+                    Demo
+                </span>
+                <span>{{ demoNotice }}</span>
+            </template>
+            <span v-else>
+                Botanical formulas, conscious ingredients · Complimentary
+                delivery over €50
             </span>
-            <span>
-                {{ demoNotice }}
-            </span>
-        </div>
-        <span v-else>
-            Botanical formulation, conscious ingredients &bull; Complimentary
-            standard delivery over €50
-        </span>
+        </Container>
     </aside>
 
-    <!-- Main Header -->
     <header
-        class="sticky top-0 z-40 border-b border-cream-200 bg-cream-50/95 backdrop-blur-md transition-colors"
+        class="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-md"
     >
-        <!-- Tier 1: Brand Logo, Desktop Search & Utility Actions -->
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 items-center justify-between gap-4 sm:h-18">
-                <!-- Left: Mobile Menu Toggle & Brand Logo -->
-                <div class="flex items-center gap-3">
-                    <!-- Mobile Menu Button (lg:hidden) -->
-                    <div class="flex items-center lg:hidden">
-                        <button
-                            type="button"
-                            class="-ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md p-2 text-charcoal-700 hover:text-sage-700 focus:ring-2 focus:ring-sage-500 focus:outline-none"
-                            aria-label="Toggle navigation menu"
-                            :aria-expanded="mobileMenuOpen"
-                            @click="mobileMenuOpen = !mobileMenuOpen"
-                        >
-                            <svg
-                                v-if="!mobileMenuOpen"
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                                />
-                            </svg>
-                            <svg
-                                v-else
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Brand Logo -->
-                    <Link
-                        :href="home.url()"
-                        prefetch
-                        class="group flex shrink-0 flex-col"
-                    >
-                        <span
-                            class="font-serif text-2xl tracking-tight text-sage-900 transition-colors group-hover:text-sage-700 sm:text-3xl"
-                        >
-                            Green Veil
-                        </span>
-                        <span
-                            class="-mt-1 text-[10px] tracking-widest text-sage-600 uppercase"
-                        >
-                            Botanical Apothecary
-                        </span>
-                    </Link>
-                </div>
-
-                <!-- Center: Live Search Autocomplete (Visible on desktop lg+) -->
-                <div
-                    class="hidden max-w-md flex-1 items-center lg:flex xl:max-w-lg"
+        <Container
+            class="grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-2 lg:h-24"
+        >
+            <!-- Left: menu and search -->
+            <div class="flex items-center gap-2">
+                <IconButton
+                    :label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+                    class="-ml-3 lg:hidden"
+                    :aria-expanded="mobileMenuOpen"
+                    @click="mobileMenuOpen = !mobileMenuOpen"
                 >
-                    <LiveSearchAutocomplete
-                        size="sm"
-                        placeholder="Search botanicals, perfumes, skincare..."
+                    <XIcon
+                        v-if="mobileMenuOpen"
+                        class="size-6"
+                        aria-hidden="true"
                     />
-                </div>
+                    <MenuIcon v-else class="size-6" aria-hidden="true" />
+                </IconButton>
+                <IconButton
+                    label="Search"
+                    class="lg:hidden"
+                    :aria-expanded="searchOpen"
+                    @click="searchOpen = !searchOpen"
+                >
+                    <SearchIcon class="size-6" aria-hidden="true" />
+                </IconButton>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    class="-ml-4 hidden lg:inline-flex"
+                    :aria-expanded="searchOpen"
+                    @click="searchOpen = !searchOpen"
+                >
+                    <template #icon>
+                        <SearchIcon class="size-4" aria-hidden="true" />
+                    </template>
+                    Search
+                </Button>
+            </div>
 
-                <!-- Right: Utility Actions (Search Toggle, Favourites, Cart, Account) -->
-                <div class="flex shrink-0 items-center space-x-1 sm:space-x-3">
-                    <!-- Search Toggle Button (Mobile & Tablet only) -->
-                    <button
-                        type="button"
-                        class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700 lg:hidden"
-                        aria-label="Search products"
-                        @click="searchOpen = !searchOpen"
+            <!-- Centre: wordmark -->
+            <Link
+                :href="home.url()"
+                prefetch
+                class="flex flex-col items-center gap-1 text-center"
+                aria-label="Green Veil home"
+            >
+                <span
+                    class="font-serif text-2xl leading-none tracking-tight text-sage-950 lg:text-4xl"
+                >
+                    Green Veil
+                </span>
+                <span
+                    class="hidden text-xs tracking-widest text-ink-subtle uppercase lg:block"
+                >
+                    Botanical Apothecary
+                </span>
+            </Link>
+
+            <!-- Right: favourites, bag, account -->
+            <div class="flex items-center justify-end gap-2">
+                <IconButton
+                    label="Favourites"
+                    :href="user ? accountRituals.url() : favouritesIndex.url()"
+                    :badge="favouritesCount"
+                    :class="
+                        cn(
+                            'hidden sm:inline-flex',
+                            isFavouritesPage && 'bg-surface-sunken',
+                        )
+                    "
+                >
+                    <HeartIcon class="size-6" aria-hidden="true" />
+                </IconButton>
+
+                <IconButton
+                    label="Shopping bag"
+                    :badge="cartCount"
+                    @click="cart.openDrawer()"
+                >
+                    <ShoppingBagIcon class="size-6" aria-hidden="true" />
+                </IconButton>
+
+                <div class="group relative -mr-3">
+                    <IconButton
+                        :label="user ? 'Your account' : 'Sign in'"
+                        :href="user ? profile.url() : login.url()"
                     >
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                            />
-                        </svg>
-                    </button>
+                        <UserIcon class="size-6" aria-hidden="true" />
+                    </IconButton>
 
-                    <!-- Favourites Link -->
-                    <Link
-                        :href="
-                            user ? accountRituals.url() : favouritesIndex.url()
-                        "
-                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 transition-colors hover:bg-cream-100 hover:text-sage-700"
-                        :class="
-                            $page.url.startsWith(favouritesIndex.url()) ||
-                            $page.url.startsWith(accountRituals.url())
-                                ? 'bg-cream-100 text-sage-800'
-                                : 'text-charcoal-700'
-                        "
-                        aria-label="View favourites"
+                    <div
+                        v-if="user"
+                        class="invisible absolute top-full right-0 z-50 w-64 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
                     >
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                            />
-                        </svg>
-                        <span
-                            v-if="favouritesCount > 0"
-                            class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-sage-600 text-[10px] font-medium text-white"
-                        >
-                            {{ favouritesCount }}
-                        </span>
-                    </Link>
-
-                    <!-- Cart Trigger Button -->
-                    <button
-                        type="button"
-                        @click="cart.openDrawer()"
-                        class="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700 focus:outline-none"
-                        aria-label="View shopping bag"
-                    >
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25c-.67 0-1.19-.578-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                            />
-                        </svg>
-                        <span
-                            v-if="cartCount > 0"
-                            class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-sage-700 text-[10px] font-medium text-white"
-                        >
-                            {{ cartCount }}
-                        </span>
-                    </button>
-
-                    <!-- Customer Account -->
-                    <div class="group relative">
-                        <Link
-                            :href="user ? profile.url() : login.url()"
-                            class="flex min-h-[44px] items-center gap-1.5 rounded-full p-2 text-charcoal-700 transition-colors hover:bg-cream-100 hover:text-sage-700"
-                            :aria-label="user ? 'Account profile' : 'Sign in'"
-                        >
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                                />
-                            </svg>
-                            <span
-                                v-if="userFirstName"
-                                class="hidden max-w-[100px] truncate text-xs font-medium sm:inline"
-                            >
-                                {{ userFirstName }}
-                            </span>
-                        </Link>
-
-                        <!-- User dropdown menu on hover if logged in -->
                         <div
-                            v-if="user"
-                            class="pointer-events-none absolute top-full right-0 z-50 w-44 pt-1.5 opacity-0 transition-all duration-150 group-hover:pointer-events-auto group-hover:opacity-100"
+                            class="flex flex-col gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-lg"
                         >
                             <div
-                                class="rounded-lg border border-cream-200 bg-cream-50 py-1.5 text-xs shadow-lg"
+                                class="flex flex-col gap-1 border-b border-border px-3 pt-2 pb-3"
                             >
-                                <div
-                                    class="border-b border-cream-200 px-3 py-1.5"
+                                <p
+                                    class="truncate text-sm font-medium text-ink"
                                 >
-                                    <p
-                                        class="truncate font-medium text-charcoal-900"
-                                    >
-                                        {{ user.name }}
-                                    </p>
-                                    <p
-                                        class="text-charcoal-500 truncate text-[11px]"
-                                    >
-                                        {{ user.email }}
-                                    </p>
-                                </div>
-                                <Link
-                                    :href="profile.url()"
-                                    class="block px-3 py-2 text-charcoal-700 transition-colors hover:bg-sage-50 hover:text-sage-800"
-                                >
-                                    My Profile
-                                </Link>
-                                <Link
-                                    :href="logout.url()"
-                                    method="post"
-                                    as="button"
-                                    class="w-full px-3 py-2 text-left text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
-                                >
-                                    Sign Out
-                                </Link>
+                                    {{ user.name }}
+                                </p>
+                                <p class="truncate text-xs text-ink-subtle">
+                                    {{ user.email }}
+                                </p>
                             </div>
+                            <Link
+                                :href="profile.url()"
+                                class="flex h-8 items-center gap-2 rounded-lg px-3 text-sm text-ink transition-colors hover:bg-surface-sunken"
+                            >
+                                <UserIcon class="size-4" aria-hidden="true" />
+                                My account
+                            </Link>
+                            <Link
+                                :href="logout.url()"
+                                method="post"
+                                as="button"
+                                class="flex h-8 w-full items-center gap-2 rounded-lg px-3 text-left text-sm text-danger-600 transition-colors hover:bg-danger-50"
+                            >
+                                <LogOutIcon class="size-4" aria-hidden="true" />
+                                Sign out
+                            </Link>
                         </div>
                     </div>
                 </div>
             </div>
+        </Container>
 
-            <!-- Mobile / Tablet Search Input Dropdown -->
-            <div
-                v-if="searchOpen"
-                class="border-t border-cream-200 py-3 lg:hidden"
-            >
-                <div class="mx-auto max-w-xl">
-                    <LiveSearchAutocomplete
-                        size="sm"
-                        placeholder="Search botanicals, formulations..."
-                        :autofocus="true"
-                        @close="searchOpen = false"
-                    />
-                </div>
-            </div>
+        <!-- Search panel: one instance for every screen size -->
+        <div v-if="searchOpen" class="border-t border-border py-4">
+            <Container size="narrow">
+                <LiveSearchAutocomplete
+                    placeholder="Search botanicals, perfumes, skincare…"
+                    :autofocus="true"
+                    @close="searchOpen = false"
+                />
+            </Container>
         </div>
 
-        <!-- Tier 2: Category Navigation Bar (Desktop lg+) -->
+        <!-- Department navigation (desktop) -->
         <nav
-            class="hidden border-t border-cream-200/70 bg-cream-50/90 lg:block"
+            class="relative hidden border-t border-border lg:block"
             aria-label="Primary"
         >
-            <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div
-                    class="flex h-11 items-center justify-center gap-6 text-xs font-medium tracking-wide xl:gap-8 xl:text-sm"
+            <Container>
+                <ul
+                    class="flex h-12 items-stretch justify-center gap-8 text-sm"
                 >
-                    <Link
-                        :href="productsIndex.url()"
-                        prefetch
-                        class="border-b-2 border-transparent py-2.5 text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
-                    >
-                        All Products
-                    </Link>
-
-                    <div
+                    <li class="flex">
+                        <Link
+                            :href="productsIndex.url()"
+                            prefetch
+                            class="flex items-center border-b-2 border-transparent text-ink transition-colors hover:border-ink"
+                        >
+                            All products
+                        </Link>
+                    </li>
+                    <li
                         v-for="cat in navigation"
                         :key="cat.id"
-                        class="group py-2.5"
-                        :class="{
-                            relative: !getNavigationLayout(cat).isMegaMenu,
-                        }"
+                        class="group flex"
                     >
                         <Link
                             :href="categoryShow.url(cat.slug)"
                             prefetch
-                            class="inline-flex items-center gap-1 border-b-2 border-transparent text-charcoal-800 transition-colors hover:border-sage-500 hover:text-sage-700"
+                            class="flex items-center gap-2 border-b-2 border-transparent text-ink transition-colors group-hover:border-ink"
                         >
-                            <span>{{ cat.name }}</span>
-                            <svg
+                            {{ cat.name }}
+                            <ChevronDownIcon
                                 v-if="cat.children && cat.children.length > 0"
-                                class="text-charcoal-400 h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180 group-hover:text-sage-700"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 9l-7 7-7-7"
-                                />
-                            </svg>
+                                class="size-4 text-ink-subtle transition-transform duration-200 group-hover:rotate-180"
+                                aria-hidden="true"
+                            />
                         </Link>
 
-                        <!-- Submenu / Mega-Menu -->
                         <MegaMenuDropdown
                             v-if="cat.children && cat.children.length > 0"
                             :category="cat"
                         />
-                    </div>
-                </div>
-            </div>
+                    </li>
+                </ul>
+            </Container>
         </nav>
     </header>
 </template>

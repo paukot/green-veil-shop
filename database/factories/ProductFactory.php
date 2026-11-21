@@ -62,7 +62,7 @@ class ProductFactory extends Factory
             'is_active' => true,
             'is_featured' => false,
             'sort_order' => 0,
-            'main_image' => 'products/main/'.fake()->uuid().'.jpg',
+            'main_image' => 'products/'.fake()->uuid().'.jpg',
             'short_description' => fake()->sentence(),
             'description' => fake()->paragraph(),
         ];

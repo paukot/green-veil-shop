@@ -1,3 +1,6 @@
+import type { BadgeTone } from '@/components/ui/Badge.vue';
+import { formatCurrency } from '@/lib/utils';
+
 /**
  * Format status strings with underscores into clean capitalized title text.
  * e.g. "pending_payment" -> "Pending Payment"
@@ -10,44 +13,59 @@ export function formatStatusLabel(status: string): string {
 }
 
 /**
- * Returns Tailwind badge classes corresponding to an order fulfillment status.
+ * Badge tone for an order fulfilment status.
  */
-export function getOrderStatusClass(status: string): string {
+export function getOrderStatusTone(status: string): BadgeTone {
     switch (status) {
         case 'paid':
         case 'delivered':
         case 'completed':
-            return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            return 'success';
         case 'processing':
         case 'shipped':
-            return 'bg-sage-50 text-sage-700 border-sage-200';
+            return 'brand';
         case 'pending_payment':
         case 'pending':
-            return 'bg-amber-50 text-amber-700 border-amber-200';
+            return 'warning';
         case 'cancelled':
         case 'refunded':
-            return 'bg-stone-100 text-stone-600 border-stone-200';
         default:
-            return 'bg-cream-100 text-charcoal-600 border-cream-300';
+            return 'neutral';
     }
 }
 
 /**
- * Returns Tailwind badge classes corresponding to a payment lifecycle status.
+ * Badge tone for a payment lifecycle status.
  */
-export function getPaymentStatusClass(paymentStatus: string): string {
+export function getPaymentStatusTone(paymentStatus: string): BadgeTone {
     switch (paymentStatus) {
         case 'paid':
-            return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            return 'success';
         case 'unpaid':
-            return 'bg-amber-50 text-amber-700 border-amber-200';
+            return 'warning';
         case 'partially_refunded':
         case 'refunded':
-            return 'bg-purple-50 text-purple-700 border-purple-200';
+            return 'accent';
         case 'failed':
         case 'expired':
-            return 'bg-rose-50 text-rose-700 border-rose-200';
+            return 'danger';
         default:
-            return 'bg-cream-100 text-charcoal-600 border-cream-300';
+            return 'neutral';
     }
+}
+
+/**
+ * "10%" or "€5": whole amounts drop their decimals, which read as noise in offers.
+ */
+export function formatDiscount(
+    discountType: string,
+    discountValue: number | string,
+): string {
+    const value = Number(discountValue);
+
+    if (discountType === 'percentage') {
+        return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
+    }
+
+    return formatCurrency(value).replace(/[.,]00(?=\D*$)/, '');
 }

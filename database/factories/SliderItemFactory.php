@@ -20,7 +20,7 @@ class SliderItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'image' => 'sliders/'.fake()->uuid().'.jpg',
+            'image' => 'slider/'.fake()->uuid().'.jpg',
             'url' => '/products',
             'url_opens_in_new_tab' => false,
             'is_active' => true,

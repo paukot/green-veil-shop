@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue';
 import { cn } from '@/lib/utils';
 
+export type ButtonVariant =
+    | 'primary'
+    | 'accent'
+    | 'secondary'
+    | 'outline'
+    | 'ghost'
+    | 'danger'
+    | 'link';
+
 interface Props {
     type?: 'button' | 'submit' | 'reset';
-    variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
+    variant?: ButtonVariant;
+    /** sm is a 2rem compact control; md and lg are 3rem (the touch-target size). */
     size?: 'sm' | 'md' | 'lg';
     loading?: boolean;
     disabled?: boolean;
+    /** Stretch to the full width of the container. */
+    block?: boolean;
     href?: string;
-    as?: 'button' | 'a' | typeof Link;
+    /** Render a plain anchor (external links) instead of an Inertia Link. */
+    as?: 'a';
     class?: string;
 }
 
@@ -21,105 +34,69 @@ const props = withDefaults(defineProps<Props>(), {
     size: 'md',
     loading: false,
     disabled: false,
+    block: false,
 });
 
-const variantClasses = computed(() => {
-    switch (props.variant) {
-        case 'secondary':
-            return 'bg-cream-100 text-charcoal-800 hover:bg-cream-200 border border-cream-200 shadow-xs';
-        case 'outline':
-            return 'border border-cream-300 bg-white text-charcoal-800 hover:bg-cream-100 hover:text-sage-900 shadow-xs';
-        case 'danger':
-            return 'bg-red-700 text-white hover:bg-red-800 shadow-xs';
-        case 'ghost':
-            return 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800';
-        case 'primary':
-        default:
-            return 'bg-sage-800 text-cream-50 hover:bg-sage-900 shadow-xs';
-    }
-});
+const variantClasses: Record<ButtonVariant, string> = {
+    primary: 'bg-sage-900 text-cream-50 hover:bg-sage-800',
+    accent: 'bg-clay-600 text-white hover:bg-clay-700',
+    secondary: 'bg-surface-sunken text-ink hover:bg-cream-200',
+    outline:
+        'border border-border-strong bg-transparent text-ink hover:border-ink hover:bg-surface-raised',
+    ghost: 'text-ink hover:bg-surface-sunken',
+    danger: 'bg-danger-600 text-white hover:bg-danger-700',
+    link: 'text-sage-800 underline-offset-4 hover:underline',
+};
 
 const sizeClasses = computed(() => {
-    switch (props.size) {
-        case 'sm':
-            return 'min-h-[44px] sm:min-h-0 px-3.5 py-2 text-xs font-medium tracking-wider uppercase rounded-lg gap-1.5';
-        case 'lg':
-            return 'min-h-[44px] px-6 py-3.5 text-xs font-semibold tracking-wider uppercase rounded-full gap-2.5';
-        case 'md':
-        default:
-            return 'min-h-[44px] px-5 py-2.5 text-xs font-medium tracking-wider uppercase rounded-xl gap-2';
+    if (props.variant === 'link') {
+        return 'gap-2 text-sm font-medium';
     }
+
+    return {
+        sm: 'h-8 gap-2 px-4 text-xs',
+        md: 'h-12 gap-2 px-6 text-xs',
+        lg: 'h-12 gap-2 px-8 text-sm',
+    }[props.size];
 });
+
+const isInactive = computed(() => props.disabled || props.loading);
+
+const tag = computed(() => {
+    if (!props.href) {
+        return 'button';
+    }
+
+    return props.as === 'a' ? 'a' : Link;
+});
+
+const classes = computed(() =>
+    cn(
+        'inline-flex shrink-0 items-center justify-center rounded-full font-semibold tracking-wider whitespace-nowrap uppercase transition-colors select-none',
+        props.variant === 'link' && 'tracking-normal normal-case',
+        variantClasses[props.variant],
+        sizeClasses.value,
+        props.block && 'w-full',
+        isInactive.value
+            ? 'pointer-events-none cursor-not-allowed opacity-50'
+            : 'active:translate-y-px',
+        props.class,
+    ),
+);
 </script>
 
 <template>
-    <Link
-        v-if="href && as !== 'a'"
+    <component
+        :is="tag"
         :href="href"
-        :class="
-            cn(
-                'inline-flex items-center justify-center transition-all select-none',
-                variantClasses,
-                sizeClasses,
-                disabled || loading
-                    ? 'pointer-events-none opacity-50 cursor-not-allowed'
-                    : 'active:scale-[0.99]',
-                props.class,
-            )
-        "
+        :type="href ? undefined : type"
+        :disabled="href ? undefined : isInactive"
+        :aria-busy="loading || undefined"
+        :class="classes"
     >
-        <LoadingSpinner
-            v-if="loading"
-            :size="size === 'lg' ? 'md' : 'sm'"
-            class="-ml-1"
-        />
+        <LoadingSpinner v-if="loading" size="sm" />
+        <slot name="icon" v-else />
         <slot />
-    </Link>
-
-    <a
-        v-else-if="href && as === 'a'"
-        :href="href"
-        :class="
-            cn(
-                'inline-flex items-center justify-center transition-all select-none',
-                variantClasses,
-                sizeClasses,
-                disabled || loading
-                    ? 'pointer-events-none opacity-50 cursor-not-allowed'
-                    : 'active:scale-[0.99]',
-                props.class,
-            )
-        "
-    >
-        <LoadingSpinner
-            v-if="loading"
-            :size="size === 'lg' ? 'md' : 'sm'"
-            class="-ml-1"
-        />
-        <slot />
-    </a>
-
-    <button
-        v-else
-        :type="type"
-        :disabled="disabled || loading"
-        :class="
-            cn(
-                'inline-flex items-center justify-center transition-all select-none',
-                variantClasses,
-                sizeClasses,
-                disabled || loading
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'active:scale-[0.99]',
-                props.class,
-            )
-        "
-    >
-        <LoadingSpinner
-            v-if="loading"
-            :size="size === 'lg' ? 'md' : 'sm'"
-            class="-ml-1"
-        />
-        <slot />
-    </button>
+        <slot name="trailing" />
+    </component>
 </template>

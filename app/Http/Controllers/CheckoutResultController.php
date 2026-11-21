@@ -62,6 +62,8 @@ class CheckoutResultController extends Controller
             return to_route('cart.index');
         }
 
+        abort_if($order->isOwnedByAnotherUser($request->user()), 403);
+
         return Inertia::render('Checkout/Cancel', [
             'order' => [
                 'public_id' => $order->public_id,
@@ -74,22 +76,21 @@ class CheckoutResultController extends Controller
 
     public function retry(
         Request $request,
-        string $publicId,
+        Order $order,
         PaymentManager $paymentManager
     ): SymfonyResponse {
-        $order = Order::query()
-            ->where('public_id', $publicId)
-            ->where('status', OrderStatus::PendingPayment)
-            ->where('payment_status', PaymentStatus::Unpaid)
-            ->first();
+        abort_if($order->isOwnedByAnotherUser($request->user()), 403);
 
-        if (! $order) {
+        // An order whose stock was already given back cannot be paid for again.
+        $isRetryable = $order->status === OrderStatus::PendingPayment
+            && in_array($order->payment_status, [PaymentStatus::Unpaid, PaymentStatus::Failed], true)
+            && $order->reservations_released_at === null;
+
+        if (! $isRetryable) {
             return to_route('checkout.show')->withErrors([
                 'payment' => 'This order is not eligible for payment retry.',
             ]);
         }
-
-        abort_if($order->isOwnedByAnotherUser($request->user()), 403);
 
         $driver = $order->paymentOption->driver ?? 'stripe';
         $gateway = $paymentManager->gateway($driver);

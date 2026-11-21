@@ -133,7 +133,9 @@ class Promotion extends Model
             return $this->applyDiscount($subtotal);
         }
 
-        $eligibleProductIds = $this->products()->pluck('products.id')->all();
+        $eligibleProductIds = $this->relationLoaded('products')
+            ? $this->products->modelKeys()
+            : $this->products()->pluck('products.id')->all();
         if (empty($eligibleProductIds)) {
             return 0.0;
         }

@@ -69,7 +69,7 @@ test('creates checkout session with correct line items, amounts, metadata, expir
             expect($params['expires_at'])->toBeGreaterThanOrEqual(time() + (30 * 60));
 
             // Check idempotency key
-            expect($opts['idempotency_key'])->toBe("order_{$order->public_id}");
+            expect($opts['idempotency_key'])->toBe("order_{$order->public_id}_".hash('sha256', (string) json_encode($params)));
 
             // Check line items count (1 product line item + 1 shipping line item)
             expect($params['line_items'])->toHaveCount(2);

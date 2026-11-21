@@ -7,7 +7,13 @@ import {
     TextField,
     type SelectOption,
 } from '@/components/form';
+import { MapPinIcon, PhoneIcon, PlusIcon } from '@lucide/vue';
+import Badge from '@/components/ui/Badge.vue';
 import Button from '@/components/ui/Button.vue';
+import Card from '@/components/ui/Card.vue';
+import Chip from '@/components/ui/Chip.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
+import Modal from '@/components/ui/Modal.vue';
 import AccountLayout from '@/layouts/AccountLayout.vue';
 import type { SavedAddressItem } from '@/types/storefront';
 import {
@@ -151,381 +157,257 @@ const formTitle = computed(() => {
 </script>
 
 <template>
-    <Head title="Saved Shipping Addresses — Green Veil" />
+    <Head title="Saved Shipping Addresses" />
 
-    <div class="space-y-8">
-        <!-- Header & Action section -->
-        <section
-            class="rounded-2xl border border-cream-200 bg-white p-6 shadow-xs sm:p-8"
-        >
-            <div
-                class="flex flex-col gap-4 border-b border-cream-200 pb-5 sm:flex-row sm:items-center sm:justify-between"
-            >
-                <div>
-                    <div class="flex items-center gap-3">
-                        <h2
-                            class="font-serif text-xl text-sage-900 sm:text-2xl"
-                        >
-                            Saved Shipping Addresses
-                        </h2>
-                        <span
-                            class="inline-flex items-center rounded-full bg-sage-100 px-2.5 py-0.5 text-xs font-semibold text-sage-800"
-                        >
-                            {{ addresses.length }} / {{ maxAddresses }} Saved
-                        </span>
-                    </div>
-                    <p class="text-charcoal-600 mt-1 text-xs">
-                        Save up to {{ maxAddresses }} shipping destinations with
-                        contact numbers for fast, one-click checkout.
-                    </p>
-                </div>
-
-                <div class="shrink-0">
-                    <Button
-                        v-if="!isFormOpen"
-                        type="button"
-                        @click="openCreateForm"
-                        :disabled="!canAddAddress"
-                        size="sm"
-                    >
-                        <span class="mr-1">+</span> Add Address
-                    </Button>
-                </div>
-            </div>
-
-            <!-- Address limit warning if limit reached -->
-            <div
-                v-if="!canAddAddress && !isFormOpen"
-                class="text-charcoal-600 mt-4 flex items-center justify-between rounded-xl border border-cream-200 bg-cream-50/70 p-3 text-xs"
-            >
-                <span
-                    >You have reached the maximum of {{ maxAddresses }} saved
-                    addresses. Edit or remove an existing address to save a new
-                    one.</span
-                >
-            </div>
-
-            <!-- Add / Edit Inline Modal Drawer Form -->
-            <div
-                v-if="isFormOpen"
-                class="mt-6 rounded-2xl border border-sage-200 bg-sage-50/40 p-6"
-            >
-                <div
-                    class="mb-5 flex items-center justify-between border-b border-sage-200 pb-3"
-                >
-                    <h3 class="font-serif text-lg text-sage-900">
-                        {{ formTitle }}
-                    </h3>
-                    <button
-                        type="button"
-                        @click="closeForm"
-                        class="text-charcoal-500 text-xs underline hover:text-charcoal-800"
-                    >
-                        Cancel
-                    </button>
-                </div>
-
-                <form @submit.prevent="submitForm" class="max-w-2xl space-y-4">
-                    <!-- Label selection -->
-                    <div>
-                        <label
-                            class="mb-2 block text-xs font-semibold tracking-wider text-charcoal-700 uppercase"
-                        >
-                            Address Label
-                        </label>
-                        <div class="mb-2 flex flex-wrap items-center gap-2">
-                            <button
-                                v-for="preset in labelPresets"
-                                :key="preset"
-                                type="button"
-                                @click="selectPresetLabel(preset)"
-                                class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
-                                :class="
-                                    form.label === preset
-                                        ? 'bg-sage-800 text-cream-50'
-                                        : 'border border-cream-200 bg-white text-charcoal-700 hover:bg-cream-100'
-                                "
-                            >
-                                {{ preset }}
-                            </button>
-                        </div>
-                        <TextField
-                            id="label"
-                            v-model="form.label"
-                            placeholder="Custom Label (e.g. Parents, Beach House)"
-                            :error="form.errors.label"
-                        />
-                    </div>
-
-                    <!-- Recipient & Phone -->
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <TextField
-                            id="recipient_name"
-                            v-model="form.recipient_name"
-                            label="Recipient Full Name"
-                            required
-                            placeholder="Jane Doe"
-                            :error="form.errors.recipient_name"
-                        />
-
-                        <TextField
-                            id="phone"
-                            v-model="form.phone"
-                            type="tel"
-                            label="Phone Number"
-                            subtext="(for delivery SMS notifications)"
-                            placeholder="+353 87 123 4567"
-                            :error="form.errors.phone"
-                        />
-                    </div>
-
-                    <!-- Street lines -->
-                    <TextField
-                        id="line1"
-                        v-model="form.line1"
-                        label="Address Line 1"
-                        required
-                        placeholder="42 Willowbrook Lane"
-                        :error="form.errors.line1"
-                    />
-
-                    <TextField
-                        id="line2"
-                        v-model="form.line2"
-                        label="Address Line 2"
-                        subtext="(optional)"
-                        placeholder="Apt 3B"
-                        :error="form.errors.line2"
-                    />
-
-                    <!-- City, Postal, Country -->
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <TextField
-                            id="city"
-                            v-model="form.city"
-                            label="City"
-                            required
-                            placeholder="Dublin"
-                            :error="form.errors.city"
-                        />
-
-                        <TextField
-                            id="postal_code"
-                            v-model="form.postal_code"
-                            label="Postal Code / Eircode"
-                            required
-                            placeholder="D02 X285"
-                            :error="form.errors.postal_code"
-                        />
-
-                        <SelectField
-                            id="country"
-                            v-model="form.country"
-                            label="Country"
-                            required
-                            :options="countries"
-                            :error="form.errors.country"
-                        />
-                    </div>
-
-                    <!-- Default address checkbox -->
-                    <div class="pt-2">
-                        <CheckboxField
-                            id="is_default"
-                            v-model="form.is_default"
-                            label="Set as default shipping address"
-                        />
-                    </div>
-
-                    <!-- General errors -->
-                    <div
-                        v-if="form.errors.address_limit"
-                        class="text-xs font-medium text-rose-600"
-                    >
-                        {{ form.errors.address_limit }}
-                    </div>
-
-                    <!-- Action buttons -->
-                    <div class="flex items-center gap-3 pt-3">
-                        <Button
-                            type="submit"
-                            :loading="form.processing"
-                            size="md"
-                        >
-                            {{ form.processing ? 'Saving...' : 'Save Address' }}
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            @click="closeForm"
-                            size="md"
-                        >
-                            Cancel
-                        </Button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Existing Addresses Grid -->
-            <div v-if="addresses.length > 0" class="mt-6">
-                <div
-                    class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                >
-                    <div
-                        v-for="address in addresses"
-                        :key="address.id"
-                        class="relative flex flex-col justify-between rounded-2xl border p-5 transition-all"
-                        :class="
-                            address.is_default
-                                ? 'border-sage-300 bg-sage-50/50 shadow-xs'
-                                : 'border-cream-200 bg-white hover:border-cream-300'
-                        "
-                    >
-                        <!-- Card Header -->
-                        <div>
-                            <div
-                                class="mb-2 flex items-center justify-between gap-2"
-                            >
-                                <span
-                                    class="inline-flex items-center rounded-full bg-cream-200/90 px-2.5 py-0.5 text-[11px] font-semibold text-charcoal-800"
-                                >
-                                    {{ address.label }}
-                                </span>
-                                <span
-                                    v-if="address.is_default"
-                                    class="inline-flex items-center gap-1 rounded-full bg-sage-200 px-2.5 py-0.5 text-[10px] font-semibold text-sage-900"
-                                >
-                                    ✓ Default
-                                </span>
-                            </div>
-
-                            <h4
-                                class="font-serif text-base font-medium text-charcoal-900"
-                            >
-                                {{ address.recipient_name }}
-                            </h4>
-
-                            <p
-                                v-if="address.phone"
-                                class="text-charcoal-600 mt-1 flex items-center gap-1.5 text-xs"
-                            >
-                                <span class="text-charcoal-400">📞</span>
-                                <span>{{ address.phone }}</span>
-                            </p>
-
-                            <p
-                                class="mt-2 text-xs leading-relaxed text-charcoal-700"
-                            >
-                                {{ address.line1
-                                }}<template v-if="address.line2"
-                                    >, {{ address.line2 }}</template
-                                ><br />
-                                {{ address.city }}, {{ address.postal_code
-                                }}<br />
-                                <span class="font-medium text-sage-800">{{
-                                    address.country_name || address.country
-                                }}</span>
-                            </p>
-                        </div>
-
-                        <!-- Card Actions -->
-                        <div
-                            class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-cream-100 pt-3"
-                        >
-                            <div class="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    @click="openEditForm(address)"
-                                    class="text-xs font-medium text-sage-800 underline hover:text-sage-900"
-                                >
-                                    Edit
-                                </button>
-                                <span class="text-charcoal-300">•</span>
-                                <button
-                                    type="button"
-                                    @click="confirmDelete(address)"
-                                    class="text-xs font-medium text-rose-600 underline hover:text-rose-700"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-
-                            <button
-                                v-if="!address.is_default"
-                                type="button"
-                                @click="setDefaultAddress(address)"
-                                class="text-charcoal-600 text-[11px] font-medium transition-colors hover:text-sage-900"
-                            >
-                                Set as Default
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Empty State -->
-            <div
-                v-else-if="!isFormOpen"
-                class="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-cream-200 bg-cream-50/40 p-8 text-center"
-            >
-                <span
-                    class="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-cream-200/80 text-xl text-sage-800"
-                >
-                    📍
-                </span>
-                <h3 class="font-serif text-base text-charcoal-900">
-                    No Shipping Addresses Saved Yet
-                </h3>
-                <p class="text-charcoal-500 mt-1 max-w-sm text-xs">
-                    Save your primary delivery locations and contact numbers for
-                    seamless 1-click checkout.
-                </p>
-                <div class="mt-4">
-                    <Button type="button" @click="openCreateForm" size="sm">
-                        Add Your First Address
-                    </Button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Delete Confirmation Modal -->
+    <section class="flex flex-col gap-6">
         <div
-            v-if="deletingAddress"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-charcoal-950/40 p-4 backdrop-blur-xs"
+            class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
         >
-            <div
-                class="animate-fade-in w-full max-w-md rounded-2xl border border-cream-200 bg-white p-6 shadow-xl"
-            >
-                <h3 class="font-serif text-lg text-charcoal-900">
-                    Remove Shipping Address?
-                </h3>
-                <p class="text-charcoal-600 mt-2 text-xs leading-relaxed">
-                    Are you sure you want to remove
-                    <span class="font-semibold text-charcoal-900"
-                        >"{{ deletingAddress.label }}"</span
-                    >
-                    ({{ deletingAddress.formatted }})? This action cannot be
-                    undone.
+            <div class="flex flex-col gap-2">
+                <h2
+                    class="flex items-baseline gap-3 font-serif text-3xl text-ink"
+                >
+                    Addresses
+                    <span class="font-sans text-sm text-ink-subtle">
+                        {{ addresses.length }} of {{ maxAddresses }}
+                    </span>
+                </h2>
+                <p class="text-sm text-ink-muted">
+                    Save up to {{ maxAddresses }} delivery addresses for faster
+                    checkout.
                 </p>
-
-                <div class="mt-6 flex items-center justify-end gap-3">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        @click="cancelDelete"
-                    >
-                        Cancel
-                    </Button>
-                    <button
-                        type="button"
-                        @click="executeDelete"
-                        class="rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-rose-700"
-                    >
-                        Remove Address
-                    </button>
-                </div>
             </div>
+            <Button :disabled="!canAddAddress" @click="openCreateForm">
+                <template #icon>
+                    <PlusIcon class="size-4" aria-hidden="true" />
+                </template>
+                Add address
+            </Button>
         </div>
-    </div>
+
+        <p
+            v-if="!canAddAddress"
+            class="rounded-lg bg-surface-sunken p-4 text-sm text-ink-muted"
+        >
+            You've saved the maximum of {{ maxAddresses }} addresses. Edit or
+            remove one to add another.
+        </p>
+
+        <div
+            v-if="addresses.length > 0"
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+        >
+            <Card
+                v-for="address in addresses"
+                :key="address.id"
+                :class="
+                    address.is_default
+                        ? 'flex flex-col gap-4 border-sage-300 ring-1 ring-sage-300'
+                        : 'flex flex-col gap-4'
+                "
+            >
+                <div class="flex flex-wrap items-center gap-2">
+                    <Badge>{{ address.label }}</Badge>
+                    <Badge v-if="address.is_default" tone="brand"
+                        >Default</Badge
+                    >
+                </div>
+                <address
+                    class="flex flex-col gap-1 text-sm text-ink-muted not-italic"
+                >
+                    <span class="font-serif text-lg text-ink">{{
+                        address.recipient_name
+                    }}</span>
+                    <span>
+                        {{ address.line1
+                        }}<template v-if="address.line2"
+                            >, {{ address.line2 }}</template
+                        >
+                    </span>
+                    <span>{{ address.city }}, {{ address.postal_code }}</span>
+                    <span>{{ address.country_name || address.country }}</span>
+                    <span
+                        v-if="address.phone"
+                        class="flex items-center gap-2 pt-1"
+                    >
+                        <PhoneIcon class="size-3" aria-hidden="true" />
+                        {{ address.phone }}
+                    </span>
+                </address>
+                <div
+                    class="mt-auto flex flex-wrap items-center gap-2 border-t border-border pt-4"
+                >
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        @click="openEditForm(address)"
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        v-if="!address.is_default"
+                        size="sm"
+                        variant="ghost"
+                        @click="setDefaultAddress(address)"
+                    >
+                        Make default
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        class="ml-auto text-danger-600 hover:bg-danger-50"
+                        @click="confirmDelete(address)"
+                    >
+                        Remove
+                    </Button>
+                </div>
+            </Card>
+        </div>
+
+        <EmptyState
+            v-else
+            title="No saved addresses"
+            description="Save where you usually receive deliveries for one-click checkout."
+        >
+            <template #icon>
+                <MapPinIcon aria-hidden="true" />
+            </template>
+            <template #actions>
+                <Button @click="openCreateForm">Add your first address</Button>
+            </template>
+        </EmptyState>
+    </section>
+
+    <Modal :open="isFormOpen" :title="formTitle" size="lg" @close="closeForm">
+        <form
+            id="address-form"
+            class="flex flex-col gap-4"
+            @submit.prevent="submitForm"
+        >
+            <div class="flex flex-col gap-3">
+                <p class="text-sm font-medium text-ink">Label</p>
+                <div class="flex flex-wrap gap-2">
+                    <Chip
+                        v-for="preset in labelPresets"
+                        :key="preset"
+                        :selected="form.label === preset"
+                        @click="selectPresetLabel(preset)"
+                    >
+                        {{ preset }}
+                    </Chip>
+                </div>
+                <TextField
+                    id="label"
+                    v-model="form.label"
+                    placeholder="Or type your own, e.g. Parents"
+                    aria-label="Address label"
+                    :error="form.errors.label"
+                />
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <TextField
+                    id="recipient_name"
+                    v-model="form.recipient_name"
+                    label="Recipient"
+                    required
+                    placeholder="Jane Doe"
+                    :error="form.errors.recipient_name"
+                />
+                <TextField
+                    id="phone"
+                    v-model="form.phone"
+                    type="tel"
+                    label="Phone"
+                    subtext="for delivery updates"
+                    placeholder="+353 87 123 4567"
+                    :error="form.errors.phone"
+                />
+            </div>
+            <TextField
+                id="line1"
+                v-model="form.line1"
+                label="Address line 1"
+                required
+                placeholder="42 Willowbrook Lane"
+                :error="form.errors.line1"
+            />
+            <TextField
+                id="line2"
+                v-model="form.line2"
+                label="Address line 2"
+                subtext="optional"
+                placeholder="Apt 3B"
+                :error="form.errors.line2"
+            />
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <TextField
+                    id="city"
+                    v-model="form.city"
+                    label="City"
+                    required
+                    placeholder="Dublin"
+                    :error="form.errors.city"
+                />
+                <TextField
+                    id="postal_code"
+                    v-model="form.postal_code"
+                    label="Postal code"
+                    required
+                    placeholder="D02 X285"
+                    :error="form.errors.postal_code"
+                />
+                <SelectField
+                    id="country"
+                    v-model="form.country"
+                    label="Country"
+                    required
+                    :options="countries"
+                    :error="form.errors.country"
+                />
+            </div>
+            <CheckboxField
+                id="is_default"
+                v-model="form.is_default"
+                label="Use as my default address"
+            />
+            <p
+                v-if="form.errors.address_limit"
+                class="text-sm text-danger-600"
+                role="alert"
+            >
+                {{ form.errors.address_limit }}
+            </p>
+        </form>
+
+        <template #footer>
+            <Button variant="ghost" @click="closeForm">Cancel</Button>
+            <Button
+                type="submit"
+                form="address-form"
+                :loading="form.processing"
+            >
+                Save address
+            </Button>
+        </template>
+    </Modal>
+
+    <Modal
+        :open="Boolean(deletingAddress)"
+        title="Remove this address?"
+        :description="
+            deletingAddress
+                ? `“${deletingAddress.label}” (${deletingAddress.formatted}) will be removed. This can't be undone.`
+                : undefined
+        "
+        size="sm"
+        @close="cancelDelete"
+    >
+        <template #footer>
+            <Button variant="ghost" @click="cancelDelete">Keep it</Button>
+            <Button variant="danger" @click="executeDelete"
+                >Remove address</Button
+            >
+        </template>
+    </Modal>
 </template>

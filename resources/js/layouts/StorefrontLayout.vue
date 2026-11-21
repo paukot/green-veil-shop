@@ -9,15 +9,18 @@ import MiniCartDrawer from '@/components/storefront/cart/MiniCartDrawer.vue';
 import type { SharedProps } from '@/types/storefront';
 import { useCart } from '@/composables/useCart';
 import { useFavourites } from '@/composables/useFavourites';
-import { usePageLoading } from '@/composables/usePageLoading';
 
 const page = usePage<SharedProps>();
 const mobileMenuOpen = ref(false);
 const cart = useCart();
 const favourites = useFavourites();
-const { isLoading } = usePageLoading();
 
 onMounted(() => {
+    // Items saved in this browser are ready immediately; marking the cart initialised lets
+    // the mini bag show them on every page, not only on the bag and checkout pages (which
+    // initialise first with their full server payload, so this call is then a no-op).
+    cart.initFromServer([]);
+
     if (page.props.favourites) {
         favourites.initFromServer(page.props.favourites);
     }
@@ -39,22 +42,12 @@ const favouritesCount = computed(() => {
 
 <template>
     <div
-        class="flex min-h-screen flex-col bg-cream-50 font-sans text-charcoal-900 selection:bg-sage-200 selection:text-sage-900"
+        class="flex min-h-screen flex-col bg-surface font-sans text-ink selection:bg-sage-200 selection:text-sage-900"
     >
-        <!-- Top Global Loading Bar -->
-        <div
-            v-if="isLoading"
-            class="fixed top-0 right-0 left-0 z-50 h-1 overflow-hidden bg-cream-200"
-        >
-            <div
-                class="h-full w-full animate-[pulse_1s_ease-in-out_infinite] bg-sage-700"
-            />
-        </div>
-
         <!-- Skip to Main Content Link for Screen Readers & Keyboard Navigation -->
         <a
             href="#main-content"
-            class="sr-only z-50 rounded-lg bg-sage-800 px-4 py-2 text-xs font-medium tracking-wider text-cream-50 uppercase shadow-lg ring-2 ring-sage-500 outline-none focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+            class="sr-only z-50 rounded-full bg-sage-900 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-lg focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
         >
             Skip to main content
         </a>

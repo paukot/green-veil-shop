@@ -8,9 +8,34 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentOption;
 use App\Models\Product;
+use App\Models\Promotion;
 use App\Models\User;
 use App\Payments\DTOs\CheckoutResult;
 use App\Payments\Stripe\StripeGateway;
+
+/**
+ * A complete checkout form for the given delivery and payment options.
+ *
+ * @return array<string, mixed>
+ */
+function validCheckoutPayload(DeliveryOption $delivery, PaymentOption $payment): array
+{
+    $address = [
+        'line1' => '10 Botanical Way',
+        'city' => 'Galway',
+        'postal_code' => 'H91 AB12',
+        'country' => 'IE',
+    ];
+
+    return [
+        'customer_name' => 'Rosemary Green',
+        'customer_email' => 'rosemary@example.com',
+        'delivery_option_id' => $delivery->id,
+        'payment_option_id' => $payment->id,
+        'shipping_address' => $address,
+        'billing_address' => $address,
+    ];
+}
 
 describe('Checkout Order Submission', function () {
     it('validates required fields on checkout store', function () {
@@ -183,6 +208,45 @@ describe('Checkout Order Submission', function () {
         expect($paymentRecord->status)->toBe(PaymentStatus::Unpaid);
 
         $response->assertRedirect('https://checkout.stripe.com/pay/cs_test_mock_session_123');
+    });
+
+    it('cancels the order and gives back its stock and promotion when the gateway fails', function () {
+        $product = Product::factory()->create(['price' => 40.00, 'stock_quantity' => 3, 'track_inventory' => true]);
+        $promotion = Promotion::factory()->automatic()->percentage(10)->create(['times_used' => 0]);
+        $delivery = DeliveryOption::factory()->standard()->create();
+        $payment = PaymentOption::factory()->stripe()->create();
+        $gateway = Mockery::mock(StripeGateway::class);
+        $gateway->shouldReceive('createCheckout')->once()->andReturn(CheckoutResult::failed('Stripe is unavailable.'));
+        $this->app->instance(StripeGateway::class, $gateway);
+
+        $response = $this->withSession(['cart' => [
+            $product->id => ['id' => $product->id, 'product_id' => $product->id, 'quantity' => 2],
+        ]])->post(route('checkout.store'), validCheckoutPayload($delivery, $payment));
+
+        $response->assertSessionHasErrors(['payment' => 'Stripe is unavailable.']);
+        $order = Order::sole();
+        expect($order->status)->toBe(OrderStatus::Cancelled);
+        expect($order->payment_status)->toBe(PaymentStatus::Failed);
+        expect($product->fresh()->stock_quantity)->toBe(3);
+        expect($promotion->fresh()->times_used)->toBe(0);
+    });
+
+    it('ignores a promotion id sent with the checkout form', function () {
+        $product = Product::factory()->create(['price' => 40.00, 'track_inventory' => false]);
+        $codedPromotion = Promotion::factory()->percentage(50)->create();
+        $delivery = DeliveryOption::factory()->standard()->create();
+        $payment = PaymentOption::factory()->bankTransfer()->create();
+
+        $this->withSession(['cart' => [
+            $product->id => ['id' => $product->id, 'product_id' => $product->id, 'quantity' => 1],
+        ]])->post(route('checkout.store'), [
+            ...validCheckoutPayload($delivery, $payment),
+            'promotion_id' => $codedPromotion->id,
+        ]);
+
+        $order = Order::sole();
+        expect($order->promotion_id)->toBeNull();
+        expect((float) $order->discount_amount)->toBe(0.0);
     });
 
     it('associates authenticated user with placed order', function () {

@@ -12,49 +12,19 @@ withDefaults(
 </script>
 
 <template>
-    <div class="space-y-4" role="status" aria-label="Loading orders">
-        <article
+    <div class="flex flex-col gap-4" role="status" aria-label="Loading orders">
+        <div
             v-for="i in count"
             :key="i"
-            class="overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-xs"
+            class="flex items-center gap-6 rounded-2xl border border-border p-6"
             aria-hidden="true"
         >
-            <!-- Header bar -->
-            <div
-                class="border-b border-cream-100 bg-cream-50/60 p-4 sm:flex sm:items-center sm:justify-between sm:px-6"
-            >
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    <Skeleton class="h-4 w-28" rounded="sm" />
-                    <Skeleton class="h-3 w-20" rounded="sm" />
-                    <Skeleton class="h-4 w-16" rounded="sm" />
-                </div>
-                <div class="mt-2 flex items-center gap-2 sm:mt-0">
-                    <Skeleton class="h-5 w-20" rounded="full" />
-                    <Skeleton class="h-5 w-16" rounded="full" />
-                </div>
+            <Skeleton class="size-16 shrink-0" />
+            <div class="flex flex-1 flex-col gap-2">
+                <Skeleton class="h-4 w-32" />
+                <Skeleton class="h-4 w-48" />
             </div>
-
-            <!-- Items preview -->
-            <div class="p-4 sm:flex sm:items-center sm:justify-between sm:p-6">
-                <div class="flex items-center gap-3">
-                    <Skeleton
-                        class="h-14 w-14 shrink-0 bg-cream-100"
-                        rounded="xl"
-                    />
-                    <Skeleton
-                        class="h-14 w-14 shrink-0 bg-cream-100"
-                        rounded="xl"
-                    />
-                    <div class="ml-2 space-y-1.5">
-                        <Skeleton class="h-4 w-40" rounded="sm" />
-                        <Skeleton class="h-3 w-24" rounded="sm" />
-                    </div>
-                </div>
-                <div class="mt-4 sm:mt-0">
-                    <Skeleton class="h-8 w-24" rounded="xl" />
-                </div>
-            </div>
-        </article>
-        <span class="sr-only">Loading your previous orders...</span>
+            <Skeleton rounded="full" class="hidden h-8 w-24 sm:block" />
+        </div>
     </div>
 </template>

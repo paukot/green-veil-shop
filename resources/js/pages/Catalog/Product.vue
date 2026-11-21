@@ -13,16 +13,40 @@ import ProductGrid from '@/components/storefront/ProductGrid.vue';
 import ProductGridSkeleton from '@/components/storefront/skeletons/ProductGridSkeleton.vue';
 import { useCart } from '@/composables/useCart';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
+import { formatDiscount } from '@/lib/formatters';
 import { formatCurrency } from '@/lib/utils';
 import { index as productsIndex } from '@/routes/products';
 import type {
     ProductDetailPageProps,
     ProductVariantItem,
 } from '@/types/storefront';
+import {
+    CheckIcon,
+    LeafIcon,
+    RabbitIcon,
+    RecycleIcon,
+    Share2Icon,
+    ShoppingBagIcon,
+    TruckIcon,
+} from '@lucide/vue';
+import Badge from '@/components/ui/Badge.vue';
+import Button from '@/components/ui/Button.vue';
+import Container from '@/components/ui/Container.vue';
+import IconButton from '@/components/ui/IconButton.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import Price from '@/components/ui/Price.vue';
+import Section from '@/components/ui/Section.vue';
 
 defineOptions({
     layout: StorefrontLayout,
 });
+
+const promises = [
+    { icon: LeafIcon, label: 'Pure botanical actives' },
+    { icon: RabbitIcon, label: 'Cruelty-free & vegan' },
+    { icon: RecycleIcon, label: 'Recyclable packaging' },
+    { icon: TruckIcon, label: 'Free delivery over €50' },
+];
 
 const props = defineProps<ProductDetailPageProps>();
 
@@ -213,7 +237,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <Head :title="`${product.name} | Green Veil`">
+    <Head :title="`${product.name}`">
         <meta
             name="description"
             :content="
@@ -257,153 +281,128 @@ onUnmounted(() => {
         />
     </Head>
 
-    <!-- Breadcrumbs Navigation -->
     <Breadcrumbs :items="breadcrumbs" />
 
-    <!-- Product Main Showcase -->
-    <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <Container class="py-8 pb-24 lg:py-12 lg:pb-16">
         <div
-            class="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-16"
+            class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-16"
         >
-            <!-- Gallery Column -->
             <ProductGallery
+                class="min-w-0 lg:col-span-7"
                 :images="allImages"
                 v-model:active-index="activeImageIndex"
                 :product-name="product.name"
                 :discount-percentage="product.discount_percentage"
             />
 
-            <!-- Product Details Column -->
-            <div class="space-y-6">
-                <!-- Brand, Series & Category Top Bar -->
-                <div class="space-y-1">
-                    <div class="flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-2">
-                            <!-- Brand Link -->
-                            <Link
-                                v-if="product.brand"
-                                :href="
-                                    productsIndex.url({
-                                        query: { brands: product.brand.slug },
-                                    })
-                                "
-                                class="font-bold tracking-widest text-sage-800 uppercase hover:text-sage-950 hover:underline"
-                            >
-                                {{ product.brand.name }}
-                            </Link>
+            <div
+                class="flex min-w-0 flex-col gap-8 lg:sticky lg:top-sticky lg:col-span-5"
+            >
+                <!-- Brand, title and price -->
+                <div class="flex flex-col gap-4">
+                    <div
+                        class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold tracking-wider uppercase"
+                    >
+                        <Link
+                            v-if="product.brand"
+                            :href="
+                                productsIndex.url({
+                                    query: { brands: product.brand.slug },
+                                })
+                            "
+                            class="text-clay-600 hover:underline"
+                        >
+                            {{ product.brand.name }}
+                        </Link>
+                        <Link
+                            v-if="product.category"
+                            :href="categoryShow.url(product.category.slug)"
+                            class="text-ink-subtle hover:text-ink"
+                        >
+                            {{ product.category.name }}
+                        </Link>
+                    </div>
+
+                    <h1
+                        class="font-serif text-4xl tracking-tight text-balance text-ink lg:text-5xl"
+                    >
+                        {{ product.name }}
+                    </h1>
+
+                    <p v-if="product.series" class="text-sm text-ink-muted">
+                        {{ product.series }} collection
+                    </p>
+
+                    <div class="flex flex-col gap-1">
+                        <Price
+                            :amount="currentPrice"
+                            :compare-at="currentComparePrice"
+                            size="lg"
+                        />
+                        <p
+                            v-if="
+                                product.formatted_unit_price || product.volume
+                            "
+                            class="text-xs text-ink-subtle"
+                        >
+                            <span v-if="product.volume">
+                                {{ product.volume }} {{ product.unit || 'ml' }}
+                            </span>
                             <span
-                                v-if="product.brand && product.category"
-                                class="text-charcoal-300"
-                                >&bull;</span
+                                v-if="
+                                    product.volume &&
+                                    product.formatted_unit_price
+                                "
                             >
-                            <!-- Category Link -->
-                            <Link
-                                v-if="product.category"
-                                :href="categoryShow.url(product.category.slug)"
-                                class="text-charcoal-500 font-medium tracking-wider uppercase hover:text-sage-800"
-                            >
-                                {{ product.category.name }}
-                            </Link>
-                        </div>
-
-                        <!-- SKU / Code -->
-                        <span
-                            v-if="product.sku"
-                            class="text-charcoal-400 font-mono text-[11px]"
-                        >
-                            SKU: {{ selectedVariant?.sku || product.sku }}
-                        </span>
+                                ·
+                            </span>
+                            <span v-if="product.formatted_unit_price">
+                                {{ product.formatted_unit_price }}
+                            </span>
+                            <span v-if="product.sku">
+                                · SKU {{ selectedVariant?.sku || product.sku }}
+                            </span>
+                        </p>
                     </div>
 
-                    <!-- Series / Product Line Subtitle -->
-                    <div
-                        v-if="product.series"
-                        class="text-xs font-medium tracking-wide text-sage-700"
+                    <p
+                        v-if="product.short_description"
+                        class="text-base text-pretty text-ink-muted"
                     >
-                        Series: {{ product.series }}
-                    </div>
+                        {{ product.short_description }}
+                    </p>
                 </div>
 
-                <!-- Product Name -->
-                <h1
-                    class="font-serif text-3xl leading-tight tracking-tight text-charcoal-900 sm:text-4xl"
-                >
-                    {{ product.name }}
-                </h1>
-
-                <!-- Pricing Section with EU Unit Pricing -->
-                <div class="py-4">
-                    <div class="flex items-baseline gap-3">
-                        <span
-                            class="text-2xl font-semibold text-charcoal-900 sm:text-3xl"
-                        >
-                            {{ formatCurrency(currentPrice) }}
-                        </span>
-                        <span
-                            v-if="
-                                currentComparePrice &&
-                                currentComparePrice > currentPrice
-                            "
-                            class="text-charcoal-400 text-lg line-through"
-                        >
-                            {{ formatCurrency(currentComparePrice) }}
-                        </span>
-                    </div>
-
-                    <!-- EU Unit Pricing line -->
-                    <div
-                        v-if="product.formatted_unit_price || product.volume"
-                        class="text-charcoal-500 mt-1 text-xs font-light"
-                    >
-                        <span v-if="product.volume">
-                            Net volume: {{ product.volume }}
-                            {{ product.unit || 'ml' }}
-                        </span>
-                        <span
-                            v-if="
-                                product.volume && product.formatted_unit_price
-                            "
-                        >
-                            &middot;
-                        </span>
-                        <span
-                            v-if="product.formatted_unit_price"
-                            class="font-medium text-charcoal-700"
-                        >
-                            ({{ product.formatted_unit_price }})
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Active Promotions Banner -->
-                <div
+                <!-- Offers -->
+                <ul
                     v-if="product.promotions && product.promotions.length > 0"
-                    class="space-y-1 rounded-xl border border-sage-200 bg-sage-50 p-4"
+                    class="flex flex-col gap-2 rounded-2xl bg-clay-50 p-4"
                 >
-                    <div
+                    <li
                         v-for="promo in product.promotions"
                         :key="promo.id"
-                        class="flex items-center gap-2 text-xs text-sage-900"
+                        class="flex flex-wrap items-center gap-2 text-sm text-ink"
                     >
-                        <span
-                            class="rounded bg-sage-200 px-2 py-0.5 font-mono font-bold text-sage-800"
+                        <Badge
+                            v-if="promo.code"
+                            tone="accent"
+                            class="font-mono"
                         >
                             {{ promo.code }}
-                        </span>
+                        </Badge>
                         <span class="font-medium">{{ promo.name }}</span>
-                        <span
-                            v-if="promo.discount_type === 'percentage'"
-                            class="text-sage-700"
-                        >
-                            ({{ promo.discount_value }}% off)
+                        <span class="text-ink-muted">
+                            {{
+                                formatDiscount(
+                                    promo.discount_type,
+                                    promo.discount_value,
+                                )
+                            }}
+                            off
                         </span>
-                        <span v-else class="text-sage-700">
-                            ({{ formatCurrency(promo.discount_value) }} off)
-                        </span>
-                    </div>
-                </div>
+                    </li>
+                </ul>
 
-                <!-- Interactive Variant / Shade Selector & Stock Status -->
                 <ProductVariantSelector
                     :variants="product.variants"
                     :selected-variant="selectedVariant"
@@ -416,15 +415,70 @@ onUnmounted(() => {
                     @select="selectVariant"
                 />
 
-                <!-- Short Description -->
-                <p
-                    v-if="product.short_description"
-                    class="text-charcoal-600 text-sm leading-relaxed font-light"
-                >
-                    {{ product.short_description }}
-                </p>
+                <!-- Purchase -->
+                <div ref="mainCtaRef" class="flex flex-col gap-4">
+                    <div class="flex items-center gap-2">
+                        <QuantityInput
+                            v-model="quantity"
+                            :max="maxQuantity"
+                            :disabled="!isInStock"
+                        />
+                        <Button
+                            class="min-w-0 flex-1"
+                            :variant="
+                                addedToCartNotice ? 'secondary' : 'primary'
+                            "
+                            :disabled="!isInStock"
+                            @click="addToCart"
+                        >
+                            <template #icon>
+                                <CheckIcon
+                                    v-if="addedToCartNotice"
+                                    class="size-4"
+                                    aria-hidden="true"
+                                />
+                                <ShoppingBagIcon
+                                    v-else
+                                    class="size-4"
+                                    aria-hidden="true"
+                                />
+                            </template>
+                            {{
+                                addedToCartNotice
+                                    ? 'Added to bag'
+                                    : isInStock
+                                      ? 'Add to bag'
+                                      : 'Sold out'
+                            }}
+                        </Button>
+                        <FavouriteButton
+                            :product-id="product.id"
+                            :product-name="product.name"
+                            variant="icon"
+                            class="border border-border-strong"
+                        />
+                        <IconButton
+                            :label="
+                                shareCopied ? 'Link copied' : 'Share product'
+                            "
+                            variant="outline"
+                            class="hidden sm:inline-flex"
+                            @click="shareProduct"
+                        >
+                            <CheckIcon
+                                v-if="shareCopied"
+                                class="size-4 text-success-700"
+                                aria-hidden="true"
+                            />
+                            <Share2Icon
+                                v-else
+                                class="size-4"
+                                aria-hidden="true"
+                            />
+                        </IconButton>
+                    </div>
+                </div>
 
-                <!-- Targeted Benefits Badges (Skin types, Effects, Active Ingredients, Claims) -->
                 <ProductBenefitsBadges
                     :skin-types="product.skin_types"
                     :effects="product.effects"
@@ -432,236 +486,90 @@ onUnmounted(() => {
                     :claims="product.claims"
                 />
 
-                <!-- Quantity & Add to Cart Action -->
-                <div
-                    ref="mainCtaRef"
-                    class="space-y-4 border-t border-cream-200 pt-4"
-                >
-                    <div class="flex items-center gap-4">
-                        <QuantityInput
-                            v-model="quantity"
-                            :max="maxQuantity"
-                            :disabled="!isInStock"
-                        />
-
-                        <!-- Add to Cart Button -->
-                        <button
-                            type="button"
-                            @click="addToCart"
-                            :disabled="!isInStock"
-                            class="flex flex-1 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-xs font-semibold tracking-wider uppercase shadow-sm transition-all sm:text-sm"
-                            :class="
-                                addedToCartNotice
-                                    ? 'bg-emerald-700 text-white shadow-md'
-                                    : isInStock
-                                      ? 'bg-sage-800 text-cream-50 hover:bg-sage-900 hover:shadow-md active:scale-[0.99]'
-                                      : 'text-charcoal-400 cursor-not-allowed bg-cream-200'
-                            "
+                <ul class="grid grid-cols-2 gap-4 border-t border-border pt-8">
+                    <li
+                        v-for="promise in promises"
+                        :key="promise.label"
+                        class="flex items-center gap-3 text-sm text-ink-muted"
+                    >
+                        <span
+                            class="flex size-8 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-800"
                         >
-                            <svg
-                                v-if="!addedToCartNotice"
-                                class="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.75"
-                                    d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
-                                />
-                            </svg>
-                            <svg
-                                v-else
-                                class="h-4 w-4 text-white"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M4.5 12.75l6 6 9-13.5"
-                                />
-                            </svg>
-                            <span>{{
-                                addedToCartNotice
-                                    ? 'Added to Bag ✓'
-                                    : isInStock
-                                      ? 'Add to Bag'
-                                      : 'Out of Stock'
-                            }}</span>
-                        </button>
-
-                        <!-- Favourite Toggle Button -->
-                        <FavouriteButton
-                            :product-id="product.id"
-                            :product-name="product.name"
-                            size="lg"
-                        />
-
-                        <!-- Share Formulation Button -->
-                        <button
-                            type="button"
-                            @click="shareProduct"
-                            class="hover:border-sage-400 relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-cream-200 bg-white text-charcoal-700 shadow-2xs transition-colors hover:text-sage-800 focus:outline-none"
-                            :title="
-                                shareCopied ? 'Copied link!' : 'Share formula'
-                            "
-                            aria-label="Share formula"
-                        >
-                            <svg
-                                v-if="!shareCopied"
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
-                                />
-                            </svg>
-                            <svg
-                                v-else
-                                class="h-5 w-5 text-emerald-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M4.5 12.75l6 6 9-13.5"
-                                />
-                            </svg>
-
-                            <!-- Toast popup -->
-                            <span
-                                v-if="shareCopied"
-                                class="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-charcoal-900 px-2 py-1 text-[10px] font-medium whitespace-nowrap text-white shadow-md"
-                            >
-                                Copied!
-                            </span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Botanical Promises & Value Props -->
-                <div
-                    class="grid grid-cols-2 gap-3 border-t border-cream-200 pt-6 text-xs text-charcoal-700"
-                >
-                    <div class="flex items-center gap-2">
-                        <span class="text-base text-sage-700">&bull;</span>
-                        <span>Pure botanical actives</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-base text-sage-700">&bull;</span>
-                        <span>Cruelty-free & vegan formulas</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-base text-sage-700">&bull;</span>
-                        <span>Recyclable amber packaging</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-base text-sage-700">&bull;</span>
-                        <span>Free shipping on orders over €50</span>
-                    </div>
-                </div>
+                            <component
+                                :is="promise.icon"
+                                class="size-4"
+                                aria-hidden="true"
+                            />
+                        </span>
+                        {{ promise.label }}
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <!-- Disclosure Tabs & Full Cosmetic Details -->
         <ProductDisclosureTabs
             :product="product"
             :selected-variant="selectedVariant"
         />
-    </section>
+    </Container>
 
-    <!-- Related Products Section -->
-    <section
+    <Section
         v-if="!relatedProducts || relatedProducts.length > 0"
-        class="border-t border-cream-200 bg-cream-100/60 py-12 sm:py-16"
+        tone="sunken"
     >
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mx-auto mb-10 max-w-xl text-center">
-                <span
-                    class="text-xs font-semibold tracking-widest text-sage-700 uppercase"
-                >
-                    Harmonious Care
-                </span>
-                <h2
-                    class="mt-2 font-serif text-2xl text-charcoal-900 sm:text-3xl"
-                >
-                    Complete Your Ritual
-                </h2>
-            </div>
-
+        <div class="flex flex-col gap-8 lg:gap-12">
+            <PageHeader
+                level="section"
+                eyebrow="Pairs well with"
+                title="Complete your ritual"
+            />
             <WhenVisible data="relatedProducts">
                 <template #fallback>
                     <ProductGridSkeleton :count="4" />
                 </template>
-                <template #default>
-                    <ProductGrid
-                        v-if="relatedProducts && relatedProducts.length > 0"
-                        :products="relatedProducts"
-                    />
-                </template>
+                <ProductGrid
+                    v-if="relatedProducts && relatedProducts.length > 0"
+                    :products="relatedProducts"
+                />
             </WhenVisible>
         </div>
-    </section>
+    </Section>
 
-    <!-- Mobile Sticky Add to Bag Bar -->
+    <!-- Mobile buy bar -->
     <Transition
-        enter-active-class="transform transition ease-out duration-300"
+        enter-active-class="transition-transform duration-300 ease-out"
         enter-from-class="translate-y-full"
-        enter-to-class="translate-y-0"
-        leave-active-class="transform transition ease-in duration-200"
-        leave-from-class="translate-y-0"
+        leave-active-class="transition-transform duration-200 ease-in"
         leave-to-class="translate-y-full"
     >
         <div
             v-if="showStickyBar"
-            class="fixed right-0 bottom-0 left-0 z-30 border-t border-cream-200 bg-white/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur-md lg:hidden"
+            class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface-raised/95 pb-[env(safe-area-inset-bottom)] shadow-lg backdrop-blur-md lg:hidden"
         >
-            <div class="flex items-center justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                    <p
-                        class="truncate font-serif text-sm font-medium text-charcoal-900"
-                    >
+            <Container class="flex h-16 items-center justify-between gap-4">
+                <div class="flex min-w-0 flex-col">
+                    <p class="truncate text-sm font-medium text-ink">
                         {{ product.name }}
                     </p>
-                    <p class="text-xs font-semibold text-charcoal-900">
+                    <p class="text-sm font-semibold text-ink tabular-nums">
                         {{ formatCurrency(currentPrice) }}
                     </p>
                 </div>
-                <button
-                    type="button"
-                    @click="addToCart"
+                <Button
+                    size="sm"
+                    :variant="addedToCartNotice ? 'secondary' : 'primary'"
                     :disabled="!isInStock"
-                    class="flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-xs transition-colors"
-                    :class="
-                        addedToCartNotice
-                            ? 'bg-emerald-700'
-                            : isInStock
-                              ? 'bg-sage-800 hover:bg-sage-900 active:scale-95'
-                              : 'text-charcoal-400 cursor-not-allowed bg-cream-300'
-                    "
+                    @click="addToCart"
                 >
                     {{
                         addedToCartNotice
-                            ? 'Added ✓'
+                            ? 'Added'
                             : isInStock
-                              ? 'Add to Bag'
-                              : 'Out of Stock'
+                              ? 'Add to bag'
+                              : 'Sold out'
                     }}
-                </button>
-            </div>
+                </Button>
+            </Container>
         </div>
     </Transition>
 </template>

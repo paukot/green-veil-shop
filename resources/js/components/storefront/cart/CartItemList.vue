@@ -3,7 +3,21 @@ import { Link } from '@inertiajs/vue3';
 import { show as productShow } from '@/actions/App/Http/Controllers/ProductController';
 import { QuantityInput } from '@/components/form';
 import type { LocalCartItem } from '@/composables/useCart';
-import { formatCurrency, resolveStorageUrl } from '@/lib/utils';
+import {
+    formatCurrency,
+    resolveStorageUrl,
+    showPlaceholderOnError,
+} from '@/lib/utils';
+import {
+    BookmarkIcon,
+    Trash2Icon,
+    TriangleAlertIcon,
+    XIcon,
+} from '@lucide/vue';
+import FreeShippingProgress from '@/components/storefront/cart/FreeShippingProgress.vue';
+import Badge from '@/components/ui/Badge.vue';
+import Card from '@/components/ui/Card.vue';
+import IconButton from '@/components/ui/IconButton.vue';
 
 defineProps<{
     items: LocalCartItem[];
@@ -22,232 +36,142 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="space-y-6">
-        <!-- Sync Warnings Alert -->
+    <div class="flex flex-col gap-6">
         <div
             v-if="warnings && warnings.length > 0"
-            class="space-y-1.5 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-xs text-amber-900 shadow-xs"
+            class="flex items-start gap-3 rounded-2xl border border-warning-200 bg-warning-50 p-4"
+            role="alert"
         >
-            <div
-                class="flex items-center justify-between font-semibold text-amber-800"
+            <TriangleAlertIcon
+                class="mt-1 size-4 shrink-0 text-warning-600"
+                aria-hidden="true"
+            />
+            <div class="flex flex-1 flex-col gap-1 text-sm text-warning-800">
+                <p class="font-medium">Your bag was updated</p>
+                <ul class="flex flex-col gap-1 text-warning-700">
+                    <li v-for="(warn, idx) in warnings" :key="idx">
+                        {{ warn }}
+                    </li>
+                </ul>
+            </div>
+            <IconButton
+                label="Dismiss"
+                size="sm"
+                class="-mt-1 -mr-1 text-warning-700 hover:bg-warning-100"
+                @click="emit('dismiss-warnings')"
             >
-                <span class="flex items-center gap-1.5">
-                    <svg
-                        class="h-4 w-4 text-amber-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                    </svg>
-                    Inventory Adjustment Notice
-                </span>
-                <button
-                    type="button"
-                    @click="emit('dismiss-warnings')"
-                    class="text-base leading-none text-amber-600 hover:text-amber-800"
-                    aria-label="Dismiss warnings"
-                >
-                    &times;
-                </button>
-            </div>
-            <ul class="list-inside list-disc space-y-0.5 text-amber-800">
-                <li v-for="(warn, idx) in warnings" :key="idx">
-                    {{ warn }}
-                </li>
-            </ul>
+                <XIcon class="size-4" aria-hidden="true" />
+            </IconButton>
         </div>
 
-        <!-- Free Shipping Progress Banner -->
-        <div
-            class="space-y-2.5 rounded-2xl border border-cream-200 bg-white p-4 shadow-xs sm:p-5"
-        >
-            <div class="flex items-center justify-between text-xs">
-                <span
-                    v-if="qualifiesForFreeShipping"
-                    class="flex items-center gap-1.5 font-medium text-emerald-800"
-                >
-                    <svg
-                        class="h-4 w-4 text-emerald-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                        />
-                    </svg>
-                    <span
-                        >You have unlocked complimentary standard
-                        delivery!</span
-                    >
-                </span>
-                <span v-else class="text-charcoal-700">
-                    Add
-                    <span class="font-semibold text-sage-800">{{
-                        formatCurrency(amountUntilFreeShipping)
-                    }}</span>
-                    more for free standard delivery
-                </span>
-                <span class="text-charcoal-400 font-mono text-[11px]"
-                    >{{ freeShippingProgress }}%</span
-                >
-            </div>
-            <div class="h-2 w-full overflow-hidden rounded-full bg-cream-100">
-                <div
-                    class="h-full rounded-full bg-sage-600 transition-all duration-500 ease-out"
-                    :style="{ width: `${freeShippingProgress}%` }"
-                />
-            </div>
-        </div>
+        <Card>
+            <FreeShippingProgress
+                :progress="freeShippingProgress"
+                :qualifies="qualifiesForFreeShipping"
+                :amount-remaining="amountUntilFreeShipping"
+            />
+        </Card>
 
-        <!-- Items Card Table -->
-        <div
-            class="divide-y overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-xs"
-        >
-            <div
+        <ul class="flex flex-col divide-y divide-border border-y border-border">
+            <li
                 v-for="item in items"
                 :key="item.product_id"
-                class="flex flex-col items-start justify-between gap-4 p-4 transition-colors hover:bg-cream-50/50 sm:flex-row sm:items-center sm:p-6"
+                class="flex gap-4 py-6 sm:gap-6"
             >
-                <!-- Product Image & Meta -->
-                <div class="flex min-w-0 flex-1 items-center gap-4">
-                    <Link
-                        :href="productShow.url(item.slug)"
-                        prefetch
-                        class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-cream-200 bg-cream-100 sm:h-24 sm:w-24"
-                    >
-                        <img
-                            v-if="item.main_image"
-                            :src="resolveStorageUrl(item.main_image)"
-                            :alt="item.name"
-                            class="h-full w-full object-cover object-center"
-                            loading="lazy"
-                        />
-                        <div
-                            v-else
-                            class="text-charcoal-300 flex h-full w-full items-center justify-center"
-                        >
-                            <svg
-                                class="h-8 w-8"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1"
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                            </svg>
-                        </div>
-                    </Link>
-
-                    <div class="min-w-0 space-y-1">
-                        <span
-                            v-if="item.category"
-                            class="block text-[11px] font-medium tracking-wider text-sage-600 uppercase"
-                        >
-                            {{ item.category.name }}
-                        </span>
-                        <Link
-                            :href="productShow.url(item.slug)"
-                            prefetch
-                            class="block truncate font-serif text-sm text-charcoal-900 transition-colors hover:text-sage-700 sm:text-base"
-                        >
-                            {{ item.name }}
-                        </Link>
-                        <div class="text-charcoal-500 text-xs">
-                            {{ formatCurrency(item.price) }}
-                            each
-                        </div>
-                        <div
-                            v-if="
-                                item.track_inventory && item.stock_quantity <= 5
-                            "
-                            class="text-[11px] text-amber-700"
-                        >
-                            Only {{ item.stock_quantity }} left in stock
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quantity Adjuster & Subtotal -->
-                <div
-                    class="flex w-full items-center justify-between gap-3 border-t border-cream-100 pt-3 sm:w-auto sm:justify-end sm:gap-6 sm:border-t-0 sm:pt-0"
+                <Link
+                    :href="productShow.url(item.slug)"
+                    prefetch
+                    class="size-24 shrink-0 overflow-hidden rounded-lg bg-surface-sunken sm:size-32"
                 >
-                    <QuantityInput
-                        :model-value="item.quantity"
-                        :min="1"
-                        :max="item.track_inventory ? item.stock_quantity : 99"
-                        @change="
-                            (qty) =>
-                                emit('update-quantity', item.product_id, qty)
-                        "
+                    <img
+                        v-if="item.main_image"
+                        :src="resolveStorageUrl(item.main_image)"
+                        :alt="item.name"
+                        class="size-full object-cover"
+                        loading="lazy"
+                        @error="showPlaceholderOnError"
                     />
+                </Link>
+
+                <div class="flex min-w-0 flex-1 flex-col gap-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex min-w-0 flex-col gap-1">
+                            <p
+                                v-if="item.category"
+                                class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
+                            >
+                                {{ item.category.name }}
+                            </p>
+                            <Link
+                                :href="productShow.url(item.slug)"
+                                prefetch
+                                class="font-serif text-lg leading-6 text-ink hover:text-sage-800"
+                            >
+                                {{ item.name }}
+                            </Link>
+                            <p class="text-sm text-ink-muted tabular-nums">
+                                {{ formatCurrency(item.price) }} each
+                            </p>
+                            <Badge
+                                v-if="
+                                    item.track_inventory &&
+                                    item.stock_quantity <= 5
+                                "
+                                tone="warning"
+                                class="self-start"
+                            >
+                                Only {{ item.stock_quantity }} left
+                            </Badge>
+                        </div>
+                        <p
+                            class="text-base font-semibold text-ink tabular-nums"
+                        >
+                            {{ formatCurrency(item.price * item.quantity) }}
+                        </p>
+                    </div>
 
                     <div
-                        class="w-20 text-right text-sm font-semibold text-charcoal-900"
+                        class="mt-auto flex items-center justify-between gap-2"
                     >
-                        {{ formatCurrency(item.price * item.quantity) }}
-                    </div>
-
-                    <div class="flex items-center gap-1">
-                        <button
-                            type="button"
-                            @click="emit('save-for-later', item.product_id)"
-                            class="text-charcoal-500 flex min-h-[44px] items-center gap-1 px-2 text-xs transition-colors hover:text-sage-800"
-                            title="Save for later"
-                        >
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        <QuantityInput
+                            size="sm"
+                            :model-value="item.quantity"
+                            :min="1"
+                            :max="
+                                item.track_inventory ? item.stock_quantity : 99
+                            "
+                            @change="
+                                (qty) =>
+                                    emit(
+                                        'update-quantity',
+                                        item.product_id,
+                                        qty,
+                                    )
+                            "
+                        />
+                        <div class="flex items-center gap-2">
+                            <IconButton
+                                label="Save for later"
+                                size="sm"
+                                @click="emit('save-for-later', item.product_id)"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+                                <BookmarkIcon
+                                    class="size-4"
+                                    aria-hidden="true"
                                 />
-                            </svg>
-                            <span class="hidden sm:inline">Save</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="emit('remove-item', item.product_id)"
-                            class="text-charcoal-400 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                            aria-label="Remove item from bag"
-                            title="Remove from bag"
-                        >
-                            <svg
-                                class="h-4.5 w-4.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                            </IconButton>
+                            <IconButton
+                                label="Remove from bag"
+                                size="sm"
+                                class="hover:text-danger-600"
+                                @click="emit('remove-item', item.product_id)"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                />
-                            </svg>
-                        </button>
+                                <Trash2Icon class="size-4" aria-hidden="true" />
+                            </IconButton>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </li>
+        </ul>
     </div>
 </template>

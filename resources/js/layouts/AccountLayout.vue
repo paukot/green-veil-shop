@@ -1,211 +1,115 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import {
+    FileTextIcon,
+    HeartIcon,
+    LogOutIcon,
+    MapPinIcon,
+    UserIcon,
+} from '@lucide/vue';
+import Container from '@/components/ui/Container.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
 import StorefrontLayout from '@/layouts/StorefrontLayout.vue';
-import type { CustomerUser } from '@/types/storefront';
-import { profile, rituals } from '@/routes/account';
-import { index as ordersIndex } from '@/routes/account/orders';
-import { index as addressesIndex } from '@/routes/account/addresses';
 import { logout } from '@/routes';
+import { profile, rituals } from '@/routes/account';
+import { index as addressesIndex } from '@/routes/account/addresses';
+import { index as ordersIndex } from '@/routes/account/orders';
+import { index as favouritesIndex } from '@/routes/favourites';
+import { cn } from '@/lib/utils';
 
-const page = usePage<{ auth: { user: CustomerUser | null } }>();
+const page = usePage();
 const user = computed(() => page.props.auth?.user);
+
+const navigation = computed(() => [
+    {
+        label: 'Profile',
+        href: profile.url(),
+        icon: UserIcon,
+        active: page.url.startsWith(profile.url()),
+    },
+    {
+        label: 'Addresses',
+        href: addressesIndex.url(),
+        icon: MapPinIcon,
+        active: page.url.startsWith(addressesIndex.url()),
+    },
+    {
+        label: 'Orders',
+        href: ordersIndex.url(),
+        icon: FileTextIcon,
+        active: page.url.startsWith(ordersIndex.url()),
+    },
+    {
+        label: 'Saved',
+        href: rituals.url(),
+        icon: HeartIcon,
+        active:
+            page.url.startsWith(rituals.url()) ||
+            page.url.startsWith(favouritesIndex.url()),
+    },
+]);
 </script>
 
 <template>
     <StorefrontLayout>
-        <div
-            class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 print:p-0"
+        <Container
+            class="flex flex-col gap-8 py-8 lg:gap-12 lg:py-12 print:p-0"
         >
-            <!-- Header greeting -->
-            <div class="mb-8 border-b border-cream-200 pb-6 print:hidden">
-                <p
-                    class="text-xs font-semibold tracking-widest text-sage-600 uppercase"
-                >
-                    Client Sanctuary
-                </p>
-                <h1 class="mt-1 font-serif text-3xl text-sage-900 sm:text-4xl">
-                    My Account
-                </h1>
-                <p v-if="user" class="text-charcoal-600 mt-1 text-xs">
-                    Welcome back,
-                    <span class="font-medium text-sage-800">{{
-                        user.name
-                    }}</span>
-                    ({{ user.email }})
-                </p>
-            </div>
+            <PageHeader
+                eyebrow="Your account"
+                :title="
+                    user ? `Hello, ${user.name.split(' ')[0]}` : 'My account'
+                "
+                :description="user?.email"
+                class="print:hidden"
+            />
 
             <div
-                class="grid grid-cols-1 gap-8 md:grid-cols-4 lg:gap-10 print:block"
+                class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12 print:block"
             >
-                <!-- Account Navigation Sidebar -->
-                <aside class="md:col-span-1 print:hidden">
+                <aside class="lg:col-span-3 print:hidden">
                     <nav
-                        class="flex scrollbar-none flex-row items-center gap-2 overflow-x-auto rounded-2xl border border-cream-200 bg-white p-2 shadow-xs sm:p-3 md:flex-col md:items-stretch md:gap-0 md:space-y-1 md:p-4"
-                        aria-label="Account navigation"
+                        aria-label="Account"
+                        class="-mx-4 scrollbar-none flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:sticky lg:top-sticky lg:flex-col lg:gap-1"
                     >
                         <Link
-                            :href="profile.url()"
-                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
+                            v-for="item in navigation"
+                            :key="item.href"
+                            :href="item.href"
+                            :aria-current="item.active ? 'page' : undefined"
                             :class="
-                                $page.url.startsWith(profile.url())
-                                    ? 'bg-sage-100 font-semibold text-sage-900'
-                                    : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
+                                cn(
+                                    'flex h-12 shrink-0 items-center gap-3 rounded-full px-4 text-sm whitespace-nowrap transition-colors lg:rounded-lg',
+                                    item.active
+                                        ? 'bg-sage-900 font-medium text-cream-50'
+                                        : 'text-ink hover:bg-surface-sunken',
+                                )
                             "
                         >
-                            <svg
-                                class="h-4 w-4 shrink-0 transition-colors"
-                                :class="
-                                    $page.url.startsWith(profile.url())
-                                        ? 'text-sage-900'
-                                        : 'text-sage-600'
-                                "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                                />
-                            </svg>
-                            <span>Profile & Security</span>
+                            <component
+                                :is="item.icon"
+                                class="size-4"
+                                aria-hidden="true"
+                            />
+                            {{ item.label }}
                         </Link>
-
                         <Link
-                            :href="addressesIndex.url()"
-                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
-                            :class="
-                                $page.url.startsWith(addressesIndex.url())
-                                    ? 'bg-sage-100 font-semibold text-sage-900'
-                                    : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
-                            "
+                            :href="logout.url()"
+                            method="post"
+                            as="button"
+                            class="flex h-12 shrink-0 items-center gap-3 rounded-full px-4 text-left text-sm whitespace-nowrap text-danger-600 transition-colors hover:bg-danger-50 lg:mt-4 lg:rounded-lg lg:border-t lg:border-border"
                         >
-                            <svg
-                                class="h-4 w-4 shrink-0 transition-colors"
-                                :class="
-                                    $page.url.startsWith(addressesIndex.url())
-                                        ? 'text-sage-900'
-                                        : 'text-sage-600'
-                                "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-                                />
-                            </svg>
-                            <span>Shipping Addresses</span>
+                            <LogOutIcon class="size-4" aria-hidden="true" />
+                            Sign out
                         </Link>
-
-                        <Link
-                            :href="ordersIndex.url()"
-                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
-                            :class="
-                                $page.url.startsWith(ordersIndex.url())
-                                    ? 'bg-sage-100 font-semibold text-sage-900'
-                                    : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
-                            "
-                        >
-                            <svg
-                                class="h-4 w-4 shrink-0 transition-colors"
-                                :class="
-                                    $page.url.startsWith(ordersIndex.url())
-                                        ? 'text-sage-900'
-                                        : 'text-sage-600'
-                                "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-                                />
-                            </svg>
-                            <span>Order History</span>
-                        </Link>
-
-                        <Link
-                            :href="rituals.url()"
-                            class="flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors"
-                            :class="
-                                $page.url.startsWith(rituals.url()) ||
-                                $page.url.startsWith('/favourites')
-                                    ? 'bg-sage-100 font-semibold text-sage-900'
-                                    : 'text-charcoal-700 hover:bg-cream-100 hover:text-sage-800'
-                            "
-                        >
-                            <svg
-                                class="h-4 w-4 shrink-0 transition-colors"
-                                :class="
-                                    $page.url.startsWith(rituals.url()) ||
-                                    $page.url.startsWith('/favourites')
-                                        ? 'text-sage-900'
-                                        : 'text-sage-600'
-                                "
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                                />
-                            </svg>
-                            <span>Wishlist</span>
-                        </Link>
-
-                        <div
-                            class="shrink-0 border-l border-cream-200 pl-2 md:mt-2 md:border-t md:border-l-0 md:pt-2 md:pl-0"
-                        >
-                            <Link
-                                :href="logout.url()"
-                                method="post"
-                                as="button"
-                                class="flex min-h-[44px] w-full shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium whitespace-nowrap text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
-                            >
-                                <svg
-                                    class="h-4 w-4 shrink-0 text-red-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-                                    />
-                                </svg>
-                                <span>Sign Out</span>
-                            </Link>
-                        </div>
                     </nav>
                 </aside>
 
-                <!-- Content Area -->
-                <div class="md:col-span-3 print:w-full">
+                <div class="min-w-0 lg:col-span-9">
                     <slot />
                 </div>
             </div>
-        </div>
+        </Container>
     </StorefrontLayout>
 </template>
