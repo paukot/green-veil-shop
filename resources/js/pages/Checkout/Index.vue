@@ -677,7 +677,7 @@ function submit() {
                 </Button>
             </div>
 
-            <div class="hidden lg:sticky lg:top-sticky lg:col-span-5 lg:block">
+            <div class="hidden lg:col-span-5 lg:block">
                 <CheckoutOrderSummary
                     :items="items"
                     :summary="summary"

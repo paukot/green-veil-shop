@@ -13,7 +13,6 @@ const props = defineProps<{
 type Step = {
     id: string;
     title: string;
-    description: string;
     date?: string | null;
     isCompleted: boolean;
     isCurrent: boolean;
@@ -42,15 +41,13 @@ const steps = computed<Step[]>(() => {
         {
             id: 'placed',
             title: 'Order Placed',
-            description: 'Received by Green Veil',
             date: props.placedAt,
             isCompleted: true,
             isCurrent: false,
         },
         {
             id: 'paid',
-            title: 'Payment Confirmed',
-            description: isPaid ? 'Authorized & Secured' : 'Pending payment',
+            title: isPaid ? 'Payment Confirmed' : 'Pending payment',
             date: props.paidAt,
             isCompleted: isPaid,
             isCurrent: !isPaid,
@@ -58,7 +55,6 @@ const steps = computed<Step[]>(() => {
         {
             id: 'processing',
             title: 'Handcrafted & Packed',
-            description: 'Apothecary preparation',
             isCompleted: isProcessing,
             isCurrent:
                 isPaid &&
@@ -67,14 +63,12 @@ const steps = computed<Step[]>(() => {
         {
             id: 'shipped',
             title: 'Dispatched',
-            description: 'In courier transit',
             isCompleted: isShipped,
             isCurrent: props.status === 'shipped',
         },
         {
             id: 'delivered',
             title: 'Delivered',
-            description: 'Safely arrived',
             isCompleted: isDelivered,
             isCurrent: props.status === 'delivered',
         },
@@ -142,9 +136,6 @@ const steps = computed<Step[]>(() => {
                         ]"
                     >
                         {{ step.title }}
-                    </p>
-                    <p class="text-xs text-ink-subtle">
-                        {{ step.description }}
                     </p>
                     <p
                         v-if="step.date"
