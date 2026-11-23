@@ -58,7 +58,7 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
         <div class="flex items-start gap-12">
             <!-- Desktop filters -->
             <aside
-                class="sticky top-sticky scrollbar-none hidden max-h-[80vh] w-64 shrink-0 overflow-y-auto pr-4 lg:block"
+                class="hidden w-64 shrink-0 pr-4 lg:block"
                 aria-label="Filters"
             >
                 <FilterSidebar
