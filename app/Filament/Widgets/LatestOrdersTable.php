@@ -12,7 +12,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class LatestOrdersTable extends BaseWidget
 {
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 3;
 
     public static function canView(): bool
     {
