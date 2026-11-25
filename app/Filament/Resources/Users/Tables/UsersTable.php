@@ -2,14 +2,11 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
-use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class UsersTable
@@ -32,25 +29,12 @@ class UsersTable
                     ->label('Orders')
                     ->counts('orders')
                     ->sortable(),
-                IconColumn::make('email_verified_at')
-                    ->label('Verified')
-                    ->boolean()
-                    ->getStateUsing(fn (User $record): bool => $record->email_verified_at !== null)
-                    ->trueIcon('heroicon-o-check-badge')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('gray'),
                 TextColumn::make('created_at')
                     ->label('Joined')
                     ->since()
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->filters([
-                TernaryFilter::make('email_verified_at')
-                    ->label('Email Verification')
-                    ->nullable(),
-            ])
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),

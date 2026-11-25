@@ -4,13 +4,11 @@ namespace App\Actions\Checkout;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Mail\OrderConfirmationMail;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class MarkOrderPaid
 {
@@ -84,12 +82,11 @@ class MarkOrderPaid
                 ? $rawId
                 : ($sessionData['latest_charge'] ?? $sessionData['charge'] ?? $lockedOrder->stripe_charge_id);
 
-            // Connect a guest order to the account that has verified ownership of its email
+            // Connect a guest order to the account registered with its email
             $userId = $lockedOrder->user_id;
             if ($userId === null && ! empty($lockedOrder->customer_email)) {
                 $existingUser = User::query()
                     ->where('email', $lockedOrder->customer_email)
-                    ->whereNotNull('email_verified_at')
                     ->first();
                 if ($existingUser) {
                     $userId = $existingUser->id;
@@ -165,10 +162,6 @@ class MarkOrderPaid
             }
 
             Log::info("Order {$lockedOrder->number} ({$lockedOrder->id}) marked as paid via Stripe.");
-
-            Mail::to($lockedOrder->customer_email)->queue(
-                new OrderConfirmationMail($lockedOrder)
-            );
 
             return true;
         });

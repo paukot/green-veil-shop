@@ -11,7 +11,6 @@ use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CartItemResource;
 use App\Http\Resources\CustomerAddressResource;
 use App\Http\Resources\PaymentOptionResource;
-use App\Mail\OrderConfirmationMail;
 use App\Models\Country;
 use App\Models\PaymentOption;
 use App\Models\User;
@@ -19,7 +18,6 @@ use App\Payments\PaymentManager;
 use App\Services\CartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -99,11 +97,6 @@ class CheckoutController extends Controller
 
             return Inertia::location($result->redirectUrl);
         }
-
-        // Non-stripe payment options (direct bank transfer, COD)
-        Mail::to($order->customer_email)->queue(
-            new OrderConfirmationMail($order)
-        );
 
         return to_route('checkout.success', ['order' => $order->public_id]);
     }

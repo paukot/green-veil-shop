@@ -134,8 +134,8 @@ const { stop } = usePoll(
                     Waiting for confirmation from the payment processor…
                 </template>
                 <template v-else>
-                    Your payment is still being verified. We'll email
-                    {{ order.customer_email }} as soon as it completes.
+                    Your payment is still being verified. This page will
+                    update once it completes.
                 </template>
             </p>
 

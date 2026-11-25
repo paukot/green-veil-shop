@@ -37,7 +37,7 @@ I skipped a full repository layer or DDD-style modules on purpose. For a shop th
 
 ### Guest-first cart
 
-The bag lives in `localStorage` and syncs to the server in the background (debounced), so the UI never waits on a request. When a guest signs in, their bag and wishlist merge into the account. Earlier guest orders attach only after the email is verified, so nobody can claim someone else's order history by registering with their address.
+The bag lives in `localStorage` and syncs to the server in the background (debounced), so the UI never waits on a request. When a guest signs in, their bag and wishlist merge into the account. Earlier guest orders placed with the same email attach to the account on sign-in (this demo has no email verification or outgoing mail).
 
 ### Caching that actually invalidates
 
@@ -65,7 +65,7 @@ One FrankenPHP container (PHP embedded in Caddy, no separate FPM), plus MySQL an
 
 ## Features
 
-**Storefront:** catalogue with multi-facet filters (brand, skin type, ingredients, claims…), live search, product variants and shade swatches, bag and wishlist that work for guests, Stripe Checkout or offline payment, promo codes with automatic offers, order tracking, saved addresses and email verification.
+**Storefront:** catalogue with multi-facet filters (brand, skin type, ingredients, claims…), live search, product variants and shade swatches, bag and wishlist that work for guests, Stripe Checkout or offline payment, promo codes with automatic offers, order tracking, and saved addresses.
 
 **Admin (Filament):** products, variants and media; categories and brands; orders with refunds (partial or full) and cancellations; promotions; homepage slider; countries and delivery and payment options; Stripe event log; role-based staff access; dashboard metrics.
 

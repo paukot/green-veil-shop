@@ -7,10 +7,7 @@ use App\Models\Favourite;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\URL;
 
 describe('Guest Data Migration', function () {
     describe('Session Cart & Favourites Migration', function () {
@@ -122,7 +119,7 @@ describe('Guest Data Migration', function () {
     });
 
     describe('Guest Order Claiming', function () {
-        it('claims guest orders matching the email only after the new account verifies it', function () {
+        it('claims guest orders matching the email when a new account registers', function () {
             $guestOrder1 = Order::factory()->create([
                 'user_id' => null,
                 'customer_email' => 'newuser@example.com',
@@ -142,8 +139,6 @@ describe('Guest Data Migration', function () {
                 'customer_email' => 'someoneelse@example.com',
             ]);
 
-            Notification::fake();
-
             $response = $this->post('/register', [
                 'name' => 'New Customer',
                 'email' => 'newuser@example.com',
@@ -155,20 +150,6 @@ describe('Guest Data Migration', function () {
 
             $user = User::where('email', 'newuser@example.com')->first();
             expect($user)->not->toBeNull();
-            Notification::assertSentTo($user, VerifyEmail::class);
-
-            // An unverified email does not prove ownership of the mailbox.
-            expect($guestOrder1->fresh()->user_id)->toBeNull();
-
-            $verificationUrl = URL::temporarySignedRoute('verification.verify', now()->addHour(), [
-                'id' => $user->id,
-                'hash' => sha1($user->email),
-            ]);
-
-            $this->get($verificationUrl)->assertRedirect(route('account.profile'));
-
-            expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-
             $guestOrder1->refresh();
             $guestOrder2->refresh();
             $otherGuestOrder->refresh();

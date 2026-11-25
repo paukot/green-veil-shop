@@ -73,21 +73,6 @@ describe('Account Profile', function () {
                 ->and($user->fresh()->email)->toBe('expert@example.com');
         });
 
-        it('resets email_verified_at when email address is changed', function () {
-            $user = User::factory()->create([
-                'email' => 'verified@example.com',
-                'email_verified_at' => now(),
-            ]);
-
-            $response = actingAsCustomer($user)->patch(route('account.profile.update'), [
-                'name' => $user->name,
-                'email' => 'new.email@example.com',
-            ]);
-
-            $response->assertSessionHasNoErrors();
-            expect($user->fresh()->email_verified_at)->toBeNull();
-        });
-
         it('allows user to keep their current email without triggering unique violation', function () {
             $user = User::factory()->create([
                 'name' => 'Current User',

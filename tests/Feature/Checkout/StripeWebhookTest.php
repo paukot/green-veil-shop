@@ -486,8 +486,8 @@ describe('Stripe Webhook', function () {
             expect($order->fresh()->payment_status)->toBe(PaymentStatus::Unpaid);
         });
 
-        it('attaches a guest order only to an account that verified the email', function () {
-            User::factory()->unverified()->create(['email' => 'claimant@example.com']);
+        it('attaches a guest order to the account registered with the email', function () {
+            $user = User::factory()->create(['email' => 'claimant@example.com']);
             $order = Order::factory()->guest()->pendingPayment()->create([
                 'customer_email' => 'claimant@example.com',
                 'total' => 50.00,
@@ -503,7 +503,7 @@ describe('Stripe Webhook', function () {
                 'metadata' => ['order_id' => (string) $order->id],
             ])->assertOk();
 
-            expect($order->fresh()->user_id)->toBeNull();
+            expect($order->fresh()->user_id)->toBe($user->id);
         });
     });
 });

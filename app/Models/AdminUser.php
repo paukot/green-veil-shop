@@ -9,8 +9,6 @@ use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
-use Filament\Auth\MultiFactor\Email\Concerns\InteractsWithEmailAuthentication;
-use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
@@ -58,7 +56,7 @@ use Illuminate\Support\Str;
     'app_authentication_secret',
     'app_authentication_recovery_codes',
 ])]
-class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasAvatar, HasEmailAuthentication, ImageVariantOwner
+class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasAvatar, ImageVariantOwner
 {
     /** @use HasFactory<AdminUserFactory> */
     use HasFactory, HasImageVariants;
@@ -68,7 +66,6 @@ class AdminUser extends Authenticatable implements FilamentUser, HasAppAuthentic
 
     use InteractsWithAppAuthentication;
     use InteractsWithAppAuthenticationRecovery;
-    use InteractsWithEmailAuthentication;
     use Notifiable;
 
     protected $table = 'admin_users';
