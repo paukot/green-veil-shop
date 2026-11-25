@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Head, WhenVisible } from '@inertiajs/vue3';
 import {
     ArrowRightIcon,
-    LeafIcon,
+    SparklesIcon,
     RabbitIcon,
     RecycleIcon,
     TruckIcon,
@@ -30,9 +30,9 @@ const props = defineProps<HomePageProps>();
 
 const pillars = [
     {
-        icon: LeafIcon,
-        title: 'Pure botanicals',
-        description: 'Active plant extracts and cold-pressed oils',
+        icon: SparklesIcon,
+        title: 'Skin-first formulas',
+        description: 'Proven actives chosen for visible results',
     },
     {
         icon: RabbitIcon,
@@ -60,18 +60,18 @@ const storyImage = computed(() =>
 </script>
 
 <template>
-    <Head title="Botanical Skincare & Conscious Beauty">
+    <Head title="Skincare, Makeup & Beauty Essentials">
         <meta
             name="description"
-            content="Discover pure botanical skincare and artisan cosmetics formulated with active herbal extracts and sustainable apothecary rituals."
+            content="Discover skincare, makeup and fragrance from the brands you love, chosen for visible results and a daily beauty ritual."
         />
         <meta
             property="og:title"
-            content="Green Veil — Botanical Skincare & Conscious Beauty"
+            content="Green Veil — Skincare, Makeup & Beauty Essentials"
         />
         <meta
             property="og:description"
-            content="Discover pure botanical skincare and artisan cosmetics formulated with active herbal extracts and sustainable apothecary rituals."
+            content="Discover skincare, makeup and fragrance from the brands you love, chosen for visible results and a daily beauty ritual."
         />
         <meta property="og:type" content="website" />
     </Head>
@@ -90,7 +90,7 @@ const storyImage = computed(() =>
                     class="flex items-center gap-4"
                 >
                     <span
-                        class="flex size-12 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-800"
+                        class="flex size-12 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-800"
                     >
                         <component
                             :is="pillar.icon"
@@ -177,7 +177,7 @@ const storyImage = computed(() =>
             class="grid items-center gap-8 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24"
         >
             <div
-                class="aspect-[4/3] overflow-hidden rounded-2xl bg-sage-900 lg:aspect-square"
+                class="aspect-[4/3] overflow-hidden rounded-2xl bg-rose-900 lg:aspect-square"
             >
                 <img
                     v-if="storyImage"
@@ -190,21 +190,21 @@ const storyImage = computed(() =>
             </div>
             <div class="flex flex-col gap-6">
                 <p
-                    class="text-xs font-semibold tracking-widest text-sage-300 uppercase"
+                    class="text-xs font-semibold tracking-widest text-rose-300 uppercase"
                 >
                     Our philosophy
                 </p>
                 <h2
                     class="font-serif text-4xl tracking-tight text-balance text-cream-50 lg:text-6xl"
                 >
-                    Simplicity. Patience.
-                    <em class="text-sage-300">Plant alchemy.</em>
+                    Glow, refined.
+                    <em class="text-rose-300">Beauty, simplified.</em>
                 </h2>
                 <p class="max-w-lg text-base text-cream-200">
-                    Every Green Veil creation follows the rhythm of nature. We
-                    combine cold-pressed botanical oils, healing herbal extracts
-                    and floral waters to support your skin's own vitality,
-                    without synthetic fillers.
+                    Every Green Veil pick is chosen for results you can see. We
+                    bring together dermatologist-loved skincare, runway-ready
+                    makeup and signature fragrances to support your skin and
+                    your confidence, one ritual at a time.
                 </p>
                 <div>
                     <Button

@@ -115,7 +115,7 @@ class ProductsTable
                     ->color('gray')
                     ->requiresConfirmation()
                     ->modalHeading('Duplicate Product')
-                    ->modalDescription('Duplicate this botanical formulation? The duplicate will be created as an inactive draft.')
+                    ->modalDescription('Duplicate this product? The duplicate will be created as an inactive draft.')
                     ->action(function (Product $record): void {
                         $replica = $record->replicate([
                             'sales_count',

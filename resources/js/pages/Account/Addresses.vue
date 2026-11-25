@@ -202,7 +202,7 @@ const formTitle = computed(() => {
                 :key="address.id"
                 :class="
                     address.is_default
-                        ? 'flex flex-col gap-4 border-sage-300 ring-1 ring-sage-300'
+                        ? 'flex flex-col gap-4 border-rose-300 ring-1 ring-rose-300'
                         : 'flex flex-col gap-4'
                 "
             >

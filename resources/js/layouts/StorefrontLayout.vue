@@ -42,12 +42,12 @@ const favouritesCount = computed(() => {
 
 <template>
     <div
-        class="flex min-h-screen flex-col bg-surface font-sans text-ink selection:bg-sage-200 selection:text-sage-900"
+        class="flex min-h-screen flex-col bg-surface font-sans text-ink selection:bg-rose-200 selection:text-rose-900"
     >
         <!-- Skip to Main Content Link for Screen Readers & Keyboard Navigation -->
         <a
             href="#main-content"
-            class="sr-only z-50 rounded-full bg-sage-900 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-lg focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+            class="sr-only z-50 rounded-full bg-rose-900 px-6 py-3 text-xs font-semibold tracking-wider text-cream-50 uppercase shadow-lg focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
         >
             Skip to main content
         </a>

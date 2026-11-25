@@ -49,7 +49,7 @@ defineProps<CheckoutCancelPageProps>();
                     :href="checkoutRetry.url(order.public_id)"
                     method="post"
                     as="button"
-                    class="inline-flex h-12 items-center justify-center rounded-full bg-sage-900 px-8 text-xs font-semibold tracking-wider text-cream-50 uppercase transition-colors hover:bg-sage-800"
+                    class="inline-flex h-12 items-center justify-center rounded-full bg-rose-900 px-8 text-xs font-semibold tracking-wider text-cream-50 uppercase transition-colors hover:bg-rose-800"
                 >
                     Try payment again
                 </Link>

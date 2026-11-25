@@ -15,7 +15,7 @@
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --font-serif:
-        Fraunces, ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+        'Playfair Display', ui-serif, Georgia, Cambria, 'Times New Roman', serif;
 
     /* Brand ramps */
     --color-cream-50: #fbf9f5;
@@ -30,17 +30,17 @@
     --color-cream-900: #3a3429;
     --color-cream-950: #221e18;
 
-    --color-sage-50: #f4f6f4;
-    --color-sage-100: #e4ebe4;
-    --color-sage-200: #cbdbcb;
-    --color-sage-300: #a7c1a6;
-    --color-sage-400: #82a381;
-    --color-sage-500: #5f835e;
-    --color-sage-600: #4c6b4b;
-    --color-sage-700: #3d553c;
-    --color-sage-800: #334433;
-    --color-sage-900: #2b392b;
-    --color-sage-950: #182218;
+    --color-rose-50: #fdf4f5;
+    --color-rose-100: #fbe7ea;
+    --color-rose-200: #f6ced5;
+    --color-rose-300: #eeaab7;
+    --color-rose-400: #e07f94;
+    --color-rose-500: #cf5d77;
+    --color-rose-600: #b24462;
+    --color-rose-700: #943650;
+    --color-rose-800: #7a2f45;
+    --color-rose-900: #5f2636;
+    --color-rose-950: #3a141f;
 
     --color-charcoal-50: #f7f6f4;
     --color-charcoal-100: #ebe9e5;
@@ -68,12 +68,12 @@
     --color-clay-950: #301510;
 
     /* Status tones, harmonised with the palette */
-    --color-success-50: var(--color-sage-50);
-    --color-success-100: var(--color-sage-100);
-    --color-success-200: var(--color-sage-200);
-    --color-success-600: var(--color-sage-600);
-    --color-success-700: var(--color-sage-700);
-    --color-success-800: var(--color-sage-800);
+    --color-success-50: #f4f6f4;
+    --color-success-100: #e4ebe4;
+    --color-success-200: #cbdbcb;
+    --color-success-600: #4c6b4b;
+    --color-success-700: #3d553c;
+    --color-success-800: #334433;
 
     --color-warning-50: #fbf6e9;
     --color-warning-100: #f4e8c6;
@@ -202,7 +202,7 @@
     }
 
     & a {
-        color: var(--color-sage-700);
+        color: var(--color-rose-700);
         text-decoration: underline;
         text-underline-offset: 0.25rem;
     }
@@ -237,7 +237,7 @@
     }
 
     :focus-visible {
-        outline: 2px solid var(--color-sage-600);
+        outline: 2px solid var(--color-rose-600);
         outline-offset: 2px;
     }
 }

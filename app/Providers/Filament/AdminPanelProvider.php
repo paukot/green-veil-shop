@@ -28,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('Green Veil')
             ->authGuard('admin')
             ->authPasswordBroker('admin_users')
             ->login()

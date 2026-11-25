@@ -178,7 +178,7 @@ function clearAllFilters() {
         </Chip>
         <button
             type="button"
-            class="ml-2 text-sm font-medium text-sage-800 underline-offset-4 hover:underline"
+            class="ml-2 text-sm font-medium text-rose-800 underline-offset-4 hover:underline"
             @click="clearAllFilters"
         >
             Clear all

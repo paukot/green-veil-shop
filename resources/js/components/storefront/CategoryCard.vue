@@ -17,7 +17,7 @@ const imageUrl = computed(() => resolveStorageUrl(props.category.image));
     <Link
         :href="categoryShow.url(category.slug)"
         prefetch
-        class="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-2xl bg-sage-900"
+        class="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-2xl bg-rose-900"
     >
         <img
             v-if="imageUrl"

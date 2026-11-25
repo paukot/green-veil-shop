@@ -31,7 +31,7 @@ const props = withDefaults(
         autofocus?: boolean;
     }>(),
     {
-        placeholder: 'Search botanicals, formulations, concerns…',
+        placeholder: 'Search skincare, makeup, concerns…',
         autofocus: false,
     },
 );
@@ -328,7 +328,7 @@ const showDropdown = computed(() => {
                         <button
                             type="button"
                             @click="clearRecentSearches"
-                            class="text-xs font-medium text-sage-700 hover:underline"
+                            class="text-xs font-medium text-rose-700 hover:underline"
                         >
                             Clear
                         </button>
@@ -473,7 +473,7 @@ const showDropdown = computed(() => {
                         </p>
                         <p class="text-xs text-ink-subtle">
                             Try <em>cleanser</em>, <em>serum</em> or
-                            <em>lavender</em>.
+                            <em>lipstick</em>.
                         </p>
                     </div>
 
@@ -484,7 +484,7 @@ const showDropdown = computed(() => {
                         <button
                             type="button"
                             @click="submitFullSearch()"
-                            class="flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium text-sage-800 transition-colors hover:bg-surface-sunken"
+                            class="flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium text-rose-800 transition-colors hover:bg-surface-sunken"
                         >
                             View all {{ results.total_matches }} results
                             <ArrowRightIcon class="size-4" aria-hidden="true" />

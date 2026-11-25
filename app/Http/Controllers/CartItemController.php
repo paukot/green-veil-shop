@@ -21,7 +21,7 @@ class CartItemController extends Controller
 
         $this->cartService->addItem($request, $productId, $quantity);
 
-        return back()->with('success', 'Botanical product added to your bag.');
+        return back()->with('success', 'Product added to your bag.');
     }
 
     public function update(UpdateCartItemRequest $request, string $item): RedirectResponse

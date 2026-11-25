@@ -8,7 +8,7 @@ import { index as cartIndex } from '@/routes/cart';
 import { index as favouritesIndex } from '@/routes/favourites';
 import { profile } from '@/routes/account';
 import { login } from '@/routes';
-import { LeafIcon, RabbitIcon, RecycleIcon } from '@lucide/vue';
+import { RabbitIcon, RecycleIcon, SparklesIcon } from '@lucide/vue';
 import Container from '@/components/ui/Container.vue';
 
 const page = usePage<SharedProps>();
@@ -17,31 +17,30 @@ const navigation = computed(() => page.props.navigation || []);
 const currentYear = new Date().getFullYear();
 
 const promises = [
-    { icon: LeafIcon, label: 'Pure botanical actives' },
+    { icon: SparklesIcon, label: 'Skin-first formulas' },
     { icon: RabbitIcon, label: 'Never tested on animals' },
     { icon: RecycleIcon, label: 'Recyclable glass & refills' },
 ];
 </script>
 
 <template>
-    <footer class="mt-16 bg-sage-950 text-cream-100">
+    <footer class="mt-16 bg-rose-950 text-cream-100">
         <Container class="flex flex-col gap-16 py-16 lg:py-24">
             <div class="grid gap-12 lg:grid-cols-12">
                 <div class="flex flex-col gap-6 lg:col-span-5">
                     <p class="font-serif text-4xl text-cream-50">Green Veil</p>
-                    <p class="max-w-sm text-sm leading-6 text-sage-200">
-                        Thoughtfully formulated botanical skincare and
-                        cosmetics. Rooted in herbal tradition, refined by gentle
-                        science.
+                    <p class="max-w-sm text-sm leading-6 text-rose-200">
+                        Skincare, makeup and fragrance from the brands you love,
+                        chosen for results you can see.
                     </p>
-                    <ul class="flex flex-col gap-3 text-sm text-sage-100">
+                    <ul class="flex flex-col gap-3 text-sm text-rose-100">
                         <li
                             v-for="promise in promises"
                             :key="promise.label"
                             class="flex items-center gap-3"
                         >
                             <span
-                                class="flex size-8 items-center justify-center rounded-full bg-sage-900 text-sage-300"
+                                class="flex size-8 items-center justify-center rounded-full bg-rose-900 text-rose-300"
                             >
                                 <component
                                     :is="promise.icon"
@@ -60,7 +59,7 @@ const promises = [
                 >
                     <div class="flex flex-col gap-4">
                         <h2
-                            class="text-xs font-semibold tracking-widest text-sage-300 uppercase"
+                            class="text-xs font-semibold tracking-widest text-rose-300 uppercase"
                         >
                             Shop
                         </h2>
@@ -88,7 +87,7 @@ const promises = [
 
                     <div class="flex flex-col gap-4">
                         <h2
-                            class="text-xs font-semibold tracking-widest text-sage-300 uppercase"
+                            class="text-xs font-semibold tracking-widest text-rose-300 uppercase"
                         >
                             Customer care
                         </h2>
@@ -123,13 +122,13 @@ const promises = [
             </div>
 
             <div
-                class="flex flex-col gap-4 border-t border-sage-800 pt-8 text-xs text-sage-300 sm:flex-row sm:items-center sm:justify-between"
+                class="flex flex-col gap-4 border-t border-rose-800 pt-8 text-xs text-rose-300 sm:flex-row sm:items-center sm:justify-between"
             >
                 <p>
                     © {{ currentYear }} Green Veil Cosmetics. All rights
                     reserved.
                 </p>
-                <p>Pure botanical care · Cruelty free · Sustainably sourced</p>
+                <p>Clean beauty · Cruelty free · Sustainably sourced</p>
             </div>
         </Container>
     </footer>

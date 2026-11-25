@@ -30,7 +30,7 @@ class ProductImageSeeder extends Seeder
 
             $gallery = [
                 2 => [$seedImages->productImage($domain, $product->sku, 1), 'formula & texture detail'],
-                3 => [$seedImages->productImage($domain, $product->sku, 2), 'botanical packaging detail'],
+                3 => [$seedImages->productImage($domain, $product->sku, 2), 'packaging detail'],
             ];
 
             foreach ($gallery as $sortOrder => [$path, $caption]) {

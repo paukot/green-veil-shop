@@ -32,18 +32,18 @@ const submit = () => {
         <div class="mx-auto max-w-md">
             <div class="mb-8 space-y-2 text-center">
                 <p
-                    class="text-xs font-semibold tracking-widest text-sage-600 uppercase"
+                    class="text-xs font-semibold tracking-widest text-rose-600 uppercase"
                 >
                     Join Green Veil
                 </p>
                 <h1
-                    class="font-serif text-3xl tracking-tight text-sage-900 sm:text-4xl"
+                    class="font-serif text-3xl tracking-tight text-rose-900 sm:text-4xl"
                 >
                     Begin Your Ritual
                 </h1>
                 <p class="text-sm text-charcoal-600">
-                    Create an account to save botanical favourites, track
-                    orders, and curate your beauty cabinet.
+                    Create an account to save your favourites, track orders, and
+                    curate your beauty cabinet.
                 </p>
             </div>
 
@@ -60,7 +60,7 @@ const submit = () => {
                         variant="uppercase"
                         autocomplete="name"
                         required
-                        placeholder="Flora Evans"
+                        placeholder="Emma Evans"
                         :error="form.errors.name"
                     />
 
@@ -73,7 +73,7 @@ const submit = () => {
                         variant="uppercase"
                         autocomplete="email"
                         required
-                        placeholder="flora@example.com"
+                        placeholder="emma@example.com"
                         :error="form.errors.email"
                     />
 
@@ -107,7 +107,7 @@ const submit = () => {
                     <p class="pt-1 text-xs leading-relaxed text-charcoal-500">
                         By creating an account, you agree to receive essential
                         order notifications and experience clean, respectful
-                        botanical commerce.
+                        beauty shopping.
                     </p>
 
                     <!-- Submit Button -->
@@ -132,7 +132,7 @@ const submit = () => {
                     <span>Already have an account?</span>
                     <Link
                         :href="login.url()"
-                        class="ml-2 font-semibold text-sage-800 underline underline-offset-2 hover:text-sage-900"
+                        class="ml-2 font-semibold text-rose-800 underline underline-offset-2 hover:text-rose-900"
                     >
                         Sign in
                     </Link>

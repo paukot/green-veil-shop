@@ -154,7 +154,7 @@ const rowClass =
                     @click="close"
                 >
                     <HeartIcon
-                        class="size-6 text-sage-700"
+                        class="size-6 text-rose-700"
                         aria-hidden="true"
                     />
                     Favourites
@@ -164,7 +164,7 @@ const rowClass =
                 </Link>
                 <Link :href="cartIndex.url()" :class="rowClass" @click="close">
                     <ShoppingBagIcon
-                        class="size-6 text-sage-700"
+                        class="size-6 text-rose-700"
                         aria-hidden="true"
                     />
                     Shopping bag
@@ -179,7 +179,7 @@ const rowClass =
                         @click="close"
                     >
                         <UserIcon
-                            class="size-6 text-sage-700"
+                            class="size-6 text-rose-700"
                             aria-hidden="true"
                         />
                         My account
@@ -190,7 +190,7 @@ const rowClass =
                         @click="close"
                     >
                         <PackageIcon
-                            class="size-6 text-sage-700"
+                            class="size-6 text-rose-700"
                             aria-hidden="true"
                         />
                         Orders

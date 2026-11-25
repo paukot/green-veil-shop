@@ -50,11 +50,11 @@ class CategorySeeder extends Seeder
                     ['slug' => 'false-lashes', 'name' => 'False Lashes', 'description' => 'Strip lashes, individual clusters, and magnetic lashes.'],
                     ['slug' => 'lash-glue', 'name' => 'Lash Adhesives', 'description' => 'Long-lasting, gentle latex-free lash adhesives.'],
                     // Lips
-                    ['slug' => 'lipsticks', 'name' => 'Lipsticks', 'description' => 'Matte, satin, and sheer botanical lipsticks.'],
+                    ['slug' => 'lipsticks', 'name' => 'Lipsticks', 'description' => 'Matte, satin, and sheer lipsticks.'],
                     ['slug' => 'lip-glosses', 'name' => 'Lip Glosses', 'description' => 'High-shine, non-sticky plumping glosses.'],
                     ['slug' => 'lip-liners', 'name' => 'Lip Liners', 'description' => 'Long-wearing contour pencils to define lip shape.'],
                     ['slug' => 'lip-balms', 'name' => 'Hydrating Lip Balms', 'description' => 'Deeply conditioning balms with shea and jojoba.'],
-                    ['slug' => 'lip-oils', 'name' => 'Nourishing Lip Oils', 'description' => 'Glossy botanical oils packed with antioxidants.'],
+                    ['slug' => 'lip-oils', 'name' => 'Nourishing Lip Oils', 'description' => 'Glossy, nourishing lip oils packed with antioxidants.'],
                     ['slug' => 'lip-scrubs', 'name' => 'Lip Scrubs & Masks', 'description' => 'Sugar polishes and overnight lip sleeping masks.'],
                     // Brows
                     ['slug' => 'brow-pencils', 'name' => 'Eyebrow Pencils', 'description' => 'Micro-fine pencils for hair-like strokes.'],
@@ -81,7 +81,7 @@ class CategorySeeder extends Seeder
                     ['slug' => 'nail-polishes', 'name' => 'Classic Nail Polishes', 'description' => 'Long-wearing chip-resistant glossy nail lacquers.'],
                     ['slug' => 'gel-polishes', 'name' => 'UV/LED Gel Polishes', 'description' => 'Salon-grade gel colors cured under UV/LED lamps.'],
                     ['slug' => 'base-top-coats', 'name' => 'Base & Top Coats', 'description' => 'Protective undercoats and gel-shine top coats.'],
-                    ['slug' => 'cuticle-care', 'name' => 'Cuticle Care Oils', 'description' => 'Nourishing botanical oils with almond and vitamin E.'],
+                    ['slug' => 'cuticle-care', 'name' => 'Cuticle Care Oils', 'description' => 'Nourishing cuticle oils with almond and vitamin E.'],
                     ['slug' => 'nail-treatments', 'name' => 'Nail Treatments & Hardeners', 'description' => 'Strengthening keratin and calcium formulas.'],
                     ['slug' => 'nail-polish-removers', 'name' => 'Nail Polish Removers', 'description' => 'Acetone and acetone-free gentle formulas.'],
                     // Palettes & Tools
@@ -127,13 +127,13 @@ class CategorySeeder extends Seeder
                 'description' => 'Aromatherapeutic shower gels, body butters, and scrubs.',
                 'sort_order' => 5,
                 'children' => [
-                    ['slug' => 'shower-gels', 'name' => 'Shower Gels & Body Washes', 'description' => 'Botanical body washes with essential oil scents.'],
+                    ['slug' => 'shower-gels', 'name' => 'Shower Gels & Body Washes', 'description' => 'Cleansing body washes with beautifully scented formulas.'],
                     ['slug' => 'body-lotions', 'name' => 'Body Lotions & Milks', 'description' => 'Fast-absorbing daily hydration with aloe and glycerin.'],
                     ['slug' => 'body-butters', 'name' => 'Rich Body Butters', 'description' => 'Whipped shea, cocoa, and mango butters for dry skin.'],
                     ['slug' => 'body-scrubs', 'name' => 'Body Scrubs & Polishes', 'description' => 'Exfoliating dead sea salt and brown sugar scrubs.'],
                     ['slug' => 'bath-salts', 'name' => 'Bath Salts & Bombs', 'description' => 'Mineral soak crystals and relaxing essential oil fizzers.'],
                     ['slug' => 'hand-foot-care', 'name' => 'Hand & Foot Care', 'description' => 'Restorative hand creams and softening heel balms.'],
-                    ['slug' => 'deodorants', 'name' => 'Natural Deodorants', 'description' => 'Aluminum-free botanical stick and cream deodorants.'],
+                    ['slug' => 'deodorants', 'name' => 'Deodorants', 'description' => 'Aluminum-free stick and cream deodorants.'],
                 ],
             ],
             [

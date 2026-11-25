@@ -57,7 +57,7 @@ function submit() {
             class="flex items-start gap-3 rounded-lg bg-success-50 p-4"
         >
             <span
-                class="flex size-8 shrink-0 items-center justify-center rounded-full bg-sage-900 text-cream-50"
+                class="flex size-8 shrink-0 items-center justify-center rounded-full bg-rose-900 text-cream-50"
             >
                 <CheckIcon class="size-4" aria-hidden="true" />
             </span>
@@ -136,7 +136,7 @@ function submit() {
                         cn(
                             'flex items-center justify-between gap-4 rounded-lg border p-4',
                             offer.is_applied
-                                ? 'border-sage-300 bg-success-50'
+                                ? 'border-rose-300 bg-success-50'
                                 : 'border-border',
                             !offer.is_eligible &&
                                 !offer.is_applied &&

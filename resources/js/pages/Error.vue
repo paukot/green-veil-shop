@@ -25,7 +25,7 @@ const title = computed(() => {
         case 503:
             return 'Sanctuary Under Maintenance';
         default:
-            return 'Apothecary Error';
+            return 'Something Went Wrong';
     }
 });
 
@@ -33,13 +33,13 @@ const description = computed(() => {
     if (props.message) return props.message;
     switch (props.status) {
         case 404:
-            return 'The botanical formulation or page you are looking for may have been moved or is no longer available.';
+            return 'The product or page you are looking for may have been moved or is no longer available.';
         case 403:
-            return 'You do not have permission to access this designated area of our botanical sanctuary.';
+            return 'You do not have permission to access this designated area of our store.';
         case 503:
-            return 'We are currently refining our apothecary store. Please visit us again shortly.';
+            return 'We are currently updating our store. Please visit us again shortly.';
         default:
-            return 'An unexpected issue occurred while preparing your request. Our apothecary team has been notified.';
+            return 'An unexpected issue occurred while preparing your request. Our team has been notified.';
     }
 });
 </script>

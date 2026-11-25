@@ -216,7 +216,7 @@ const specifications = computed(() => {
                             </p>
                             <p
                                 v-if="ing.inci_name"
-                                class="font-mono text-xs text-sage-700"
+                                class="font-mono text-xs text-rose-700"
                             >
                                 {{ ing.inci_name }}
                             </p>

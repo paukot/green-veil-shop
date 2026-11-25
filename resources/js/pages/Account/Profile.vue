@@ -22,7 +22,6 @@ interface ProfileProps {
 
 const props = defineProps<ProfileProps>();
 
-
 const profileForm = useForm({
     name: props.profile.name,
     email: props.profile.email,
@@ -112,7 +111,7 @@ const updatePassword = () => {
 
                     <span
                         v-if="profileForm.recentlySuccessful"
-                        class="animate-fade-in text-xs font-medium text-sage-700"
+                        class="animate-fade-in text-xs font-medium text-rose-700"
                     >
                         Saved successfully!
                     </span>
@@ -192,7 +191,7 @@ const updatePassword = () => {
 
                     <span
                         v-if="passwordForm.recentlySuccessful"
-                        class="animate-fade-in text-xs font-medium text-sage-700"
+                        class="animate-fade-in text-xs font-medium text-rose-700"
                     >
                         Password updated!
                     </span>

@@ -71,7 +71,7 @@ function formatLabel(label: string): string {
                             !link.active &&
                             'hidden sm:inline-flex',
                         link.active
-                            ? 'bg-sage-900 text-cream-50'
+                            ? 'bg-rose-900 text-cream-50'
                             : link.url
                               ? 'text-ink hover:bg-surface-sunken'
                               : 'cursor-not-allowed text-ink-subtle opacity-50',

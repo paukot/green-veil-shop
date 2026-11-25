@@ -19,7 +19,7 @@ const props = defineProps<{
     >
         <div
             v-if="$slots.icon"
-            class="flex size-16 items-center justify-center rounded-full bg-surface-sunken text-sage-700 [&_svg]:size-6"
+            class="flex size-16 items-center justify-center rounded-full bg-surface-sunken text-rose-700 [&_svg]:size-6"
         >
             <slot name="icon" />
         </div>

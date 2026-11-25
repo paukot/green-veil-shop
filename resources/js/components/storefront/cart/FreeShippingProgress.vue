@@ -43,7 +43,7 @@ defineProps<{
             aria-label="Progress to free delivery"
         >
             <div
-                class="h-full rounded-full bg-sage-700 transition-[width] duration-500 ease-out"
+                class="h-full rounded-full bg-rose-700 transition-[width] duration-500 ease-out"
                 :style="{ width: `${progress}%` }"
             />
         </div>

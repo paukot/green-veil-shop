@@ -42,7 +42,7 @@ withDefaults(
                 v-if="showBrowseLink"
                 :href="productsIndex.url()"
                 prefetch
-                class="font-medium text-sage-800 underline-offset-4 hover:underline"
+                class="font-medium text-rose-800 underline-offset-4 hover:underline"
             >
                 Keep browsing
             </Link>

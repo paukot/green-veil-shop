@@ -108,7 +108,7 @@ function discountLabel(promo: PromotionBanner): string {
                                 />
                             </IconButton>
                         </div>
-                        <p v-else class="text-xs font-medium text-sage-700">
+                        <p v-else class="text-xs font-medium text-rose-700">
                             Applied automatically in your bag
                         </p>
                     </div>

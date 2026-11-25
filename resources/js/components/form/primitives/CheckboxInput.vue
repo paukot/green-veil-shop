@@ -21,7 +21,7 @@ const model = defineModel<boolean>();
         type="checkbox"
         :class="
             cn(
-                'size-4 shrink-0 cursor-pointer accent-sage-800 disabled:cursor-not-allowed disabled:opacity-50',
+                'size-4 shrink-0 cursor-pointer accent-rose-800 disabled:cursor-not-allowed disabled:opacity-50',
                 hasError && 'outline-2 outline-offset-2 outline-danger-500',
                 props.class,
             )

@@ -31,17 +31,17 @@ const submit = () => {
         <div class="mx-auto max-w-md">
             <div class="mb-8 space-y-2 text-center">
                 <p
-                    class="text-xs font-semibold tracking-widest text-sage-600 uppercase"
+                    class="text-xs font-semibold tracking-widest text-rose-600 uppercase"
                 >
                     Customer Sanctuary
                 </p>
                 <h1
-                    class="font-serif text-3xl tracking-tight text-sage-900 sm:text-4xl"
+                    class="font-serif text-3xl tracking-tight text-rose-900 sm:text-4xl"
                 >
                     Sign In to Your Account
                 </h1>
                 <p class="text-sm text-charcoal-600">
-                    Access your botanical rituals, saved bag, and order history.
+                    Access your saved favourites, bag, and order history.
                 </p>
             </div>
 
@@ -110,7 +110,7 @@ const submit = () => {
                     <span>New to Green Veil?</span>
                     <Link
                         :href="register.url()"
-                        class="ml-2 font-semibold text-sage-800 underline underline-offset-2 hover:text-sage-900"
+                        class="ml-2 font-semibold text-rose-800 underline underline-offset-2 hover:text-rose-900"
                     >
                         Create an account
                     </Link>

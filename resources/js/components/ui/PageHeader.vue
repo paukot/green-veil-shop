@@ -50,7 +50,7 @@ const props = withDefaults(
                 :class="
                     cn(
                         'text-xs font-semibold tracking-widest uppercase',
-                        inverse ? 'text-sage-300' : 'text-clay-600',
+                        inverse ? 'text-rose-300' : 'text-clay-600',
                     )
                 "
             >
