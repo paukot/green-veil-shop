@@ -14,6 +14,6 @@ void createInertiaApp({
         });
     },
     progress: {
-        color: '#4c6b4b',
+        color: '#b24462',
     },
 });

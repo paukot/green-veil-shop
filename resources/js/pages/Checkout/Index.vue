@@ -273,7 +273,7 @@ function submit() {
                         Have an account?
                         <Link
                             :href="login.url()"
-                            class="font-medium text-sage-800 underline underline-offset-4"
+                            class="font-medium text-rose-800 underline underline-offset-4"
                         >
                             Sign in
                         </Link>
@@ -299,7 +299,7 @@ function submit() {
                             class="flex items-center gap-3 text-sm font-medium text-ink"
                         >
                             <ShoppingBagIcon
-                                class="size-4 text-sage-700"
+                                class="size-4 text-rose-700"
                                 aria-hidden="true"
                             />
                             {{ mobileSummaryOpen ? 'Hide' : 'Show' }} order
@@ -383,7 +383,7 @@ function submit() {
                                 type="email"
                                 label="Email"
                                 required
-                                placeholder="catherine@botanicals.ie"
+                                placeholder="catherine@example.com"
                                 :error="form.errors.customer_email"
                             />
                             <TextField
@@ -428,7 +428,7 @@ function submit() {
                                             'flex h-full flex-col gap-2 rounded-lg border p-4 text-left transition-colors',
                                             form.selected_address_id ===
                                                 address.id
-                                                ? 'border-sage-700 bg-sage-50 ring-1 ring-sage-700'
+                                                ? 'border-rose-700 bg-rose-50 ring-1 ring-rose-700'
                                                 : 'border-border-strong bg-surface-raised hover:border-cream-400',
                                         )
                                     "
@@ -474,7 +474,7 @@ function submit() {
                                         cn(
                                             'flex h-full min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-center transition-colors',
                                             form.selected_address_id === null
-                                                ? 'border-sage-700 bg-sage-50'
+                                                ? 'border-rose-700 bg-rose-50'
                                                 : 'border-border-strong hover:border-cream-400',
                                         )
                                     "

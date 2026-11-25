@@ -33,7 +33,7 @@ const layout = computed(() => getNavigationLayout(props.category));
                     <Link
                         :href="categoryShow.url(category.slug)"
                         prefetch
-                        class="inline-flex items-center gap-2 text-sm font-medium text-sage-800 hover:underline"
+                        class="inline-flex items-center gap-2 text-sm font-medium text-rose-800 hover:underline"
                     >
                         Shop all {{ category.name }}
                         <ArrowRightIcon class="size-4" aria-hidden="true" />

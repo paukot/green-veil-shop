@@ -57,7 +57,7 @@ const emit = defineEmits<{
                         :href="
                             item.slug ? productShow.url(item.slug) : undefined
                         "
-                        class="truncate font-serif text-base text-ink hover:text-sage-800"
+                        class="truncate font-serif text-base text-ink hover:text-rose-800"
                     >
                         {{ item.name }}
                     </component>

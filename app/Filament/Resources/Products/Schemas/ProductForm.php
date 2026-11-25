@@ -311,7 +311,7 @@ class ProductForm
                                             ->rows(6)
                                             ->columnSpanFull(),
                                         Select::make('ingredients')
-                                            ->label('Highlighted Key & Botanical Actives')
+                                            ->label('Highlighted Key Actives')
                                             ->relationship('ingredients', 'name')
                                             ->multiple()
                                             ->searchable()

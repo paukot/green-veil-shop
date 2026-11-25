@@ -105,7 +105,7 @@ const steps = computed<Step[]>(() => {
                     v-if="idx < steps.length - 1"
                     :class="[
                         'absolute top-4 left-1/2 hidden h-px w-full sm:block',
-                        step.isCompleted ? 'bg-sage-700' : 'bg-border-strong',
+                        step.isCompleted ? 'bg-rose-700' : 'bg-border-strong',
                     ]"
                     aria-hidden="true"
                 />
@@ -113,9 +113,9 @@ const steps = computed<Step[]>(() => {
                     :class="[
                         'relative flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
                         step.isCompleted
-                            ? 'bg-sage-800 text-cream-50'
+                            ? 'bg-rose-800 text-cream-50'
                             : step.isCurrent
-                              ? 'border-2 border-sage-800 bg-surface-raised text-sage-900'
+                              ? 'border-2 border-rose-800 bg-surface-raised text-rose-900'
                               : 'border border-border-strong bg-surface-sunken text-ink-subtle',
                     ]"
                 >
@@ -139,7 +139,7 @@ const steps = computed<Step[]>(() => {
                     </p>
                     <p
                         v-if="step.date"
-                        class="text-xs text-sage-700 tabular-nums"
+                        class="text-xs text-rose-700 tabular-nums"
                     >
                         {{ step.date }}
                     </p>

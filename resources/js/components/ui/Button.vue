@@ -38,14 +38,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const variantClasses: Record<ButtonVariant, string> = {
-    primary: 'bg-sage-900 text-cream-50 hover:bg-sage-800',
+    primary: 'bg-rose-900 text-cream-50 hover:bg-rose-800',
     accent: 'bg-clay-600 text-white hover:bg-clay-700',
     secondary: 'bg-surface-sunken text-ink hover:bg-cream-200',
     outline:
         'border border-border-strong bg-transparent text-ink hover:border-ink hover:bg-surface-raised',
     ghost: 'text-ink hover:bg-surface-sunken',
     danger: 'bg-danger-600 text-white hover:bg-danger-700',
-    link: 'text-sage-800 underline-offset-4 hover:underline',
+    link: 'text-rose-800 underline-offset-4 hover:underline',
 };
 
 const sizeClasses = computed(() => {

@@ -26,7 +26,7 @@ const panelId = useId();
                 {{ title }}
                 <span
                     v-if="count"
-                    class="flex size-6 items-center justify-center rounded-full bg-sage-100 text-xs font-semibold text-sage-800"
+                    class="flex size-6 items-center justify-center rounded-full bg-rose-100 text-xs font-semibold text-rose-800"
                 >
                     {{ count }}
                 </span>

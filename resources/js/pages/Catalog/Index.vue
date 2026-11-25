@@ -18,7 +18,7 @@ const pageTitle = computed(() => {
     if (props.filters.q) {
         return `Search: "${props.filters.q}" | Green Veil`;
     }
-    return 'Botanical Apothecary | All Products | Green Veil';
+    return 'All Products | Green Veil';
 });
 </script>
 
@@ -26,24 +26,24 @@ const pageTitle = computed(() => {
     <Head :title="pageTitle">
         <meta
             name="description"
-            content="Explore our complete botanical apothecary collection. Clean formulations, herbal extracts, and sustainable cosmetics."
+            content="Explore our complete range of skincare, makeup, hair, body and fragrance from leading beauty brands."
         />
         <meta property="og:title" :content="pageTitle" />
         <meta
             property="og:description"
-            content="Explore our complete botanical apothecary collection. Clean formulations, herbal extracts, and sustainable cosmetics."
+            content="Explore our complete range of skincare, makeup, hair, body and fragrance from leading beauty brands."
         />
         <meta property="og:type" content="website" />
     </Head>
 
     <Section spacing="sm" class="border-b border-border">
         <PageHeader
-            :eyebrow="filters.q ? 'Search results' : 'The apothecary'"
+            :eyebrow="filters.q ? 'Search results' : 'The collection'"
             :title="filters.q ? `“${filters.q}”` : 'All products'"
             :description="
                 filters.q
                     ? 'Products matching your search.'
-                    : 'Consciously crafted skin and body care rooted in pure botanical ingredients.'
+                    : 'Skincare, makeup, hair, body and fragrance from the brands you love.'
             "
         />
     </Section>
@@ -56,6 +56,6 @@ const pageTitle = computed(() => {
         :facets="facets"
         :price-range="priceRange"
         :base-url="productsIndex.url()"
-        empty-title="No matching botanical products"
+        empty-title="No matching products"
     />
 </template>

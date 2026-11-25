@@ -106,7 +106,7 @@ const emit = defineEmits<{
                         />
                     </div>
                     <span
-                        class="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-sage-900 px-1 text-xs font-semibold text-cream-50 ring-2 ring-surface-raised"
+                        class="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-rose-900 px-1 text-xs font-semibold text-cream-50 ring-2 ring-surface-raised"
                         :aria-label="`Quantity ${item.quantity}`"
                     >
                         {{ item.quantity }}

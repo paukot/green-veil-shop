@@ -28,7 +28,7 @@ const props = withDefaults(
             <div class="flex items-start gap-3">
                 <span
                     v-if="step"
-                    class="flex size-8 shrink-0 items-center justify-center rounded-full bg-sage-900 text-xs font-semibold text-cream-50"
+                    class="flex size-8 shrink-0 items-center justify-center rounded-full bg-rose-900 text-xs font-semibold text-cream-50"
                     aria-hidden="true"
                 >
                     {{ step }}

@@ -68,7 +68,7 @@ const isFavouritesPage = computed(
         :class="
             isDemoMode
                 ? 'bg-clay-800 text-clay-50'
-                : 'bg-sage-950 text-cream-100'
+                : 'bg-rose-950 text-cream-100'
         "
     >
         <Container
@@ -83,8 +83,7 @@ const isFavouritesPage = computed(
                 <span>{{ demoNotice }}</span>
             </template>
             <span v-else>
-                Botanical formulas, conscious ingredients · Complimentary
-                delivery over €50
+                Skincare, makeup & fragrance · Complimentary delivery over €50
             </span>
         </Container>
     </aside>
@@ -140,14 +139,14 @@ const isFavouritesPage = computed(
                 aria-label="Green Veil home"
             >
                 <span
-                    class="font-serif text-2xl leading-none tracking-tight text-sage-950 lg:text-4xl"
+                    class="font-serif text-2xl leading-none tracking-tight text-rose-950 lg:text-4xl"
                 >
                     Green Veil
                 </span>
                 <span
                     class="hidden text-xs tracking-widest text-ink-subtle uppercase lg:block"
                 >
-                    Botanical Apothecary
+                    Beauty & Skincare
                 </span>
             </Link>
 
@@ -228,7 +227,7 @@ const isFavouritesPage = computed(
         <div v-if="searchOpen" class="border-t border-border py-4">
             <Container size="narrow">
                 <LiveSearchAutocomplete
-                    placeholder="Search botanicals, perfumes, skincare…"
+                    placeholder="Search skincare, makeup, perfumes…"
                     :autofocus="true"
                     @close="searchOpen = false"
                 />

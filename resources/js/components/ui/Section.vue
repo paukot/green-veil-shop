@@ -28,7 +28,7 @@ const props = withDefaults(
 const toneClasses = {
     default: '',
     sunken: 'bg-surface-sunken',
-    dark: 'bg-sage-950 text-cream-50',
+    dark: 'bg-rose-950 text-cream-50',
     accent: 'bg-clay-50',
 } as const;
 

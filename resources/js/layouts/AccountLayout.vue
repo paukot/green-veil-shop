@@ -82,7 +82,7 @@ const navigation = computed(() => [
                                 cn(
                                     'flex h-12 shrink-0 items-center gap-3 rounded-full px-4 text-sm whitespace-nowrap transition-colors lg:rounded-lg',
                                     item.active
-                                        ? 'bg-sage-900 font-medium text-cream-50'
+                                        ? 'bg-rose-900 font-medium text-cream-50'
                                         : 'text-ink hover:bg-surface-sunken',
                                 )
                             "

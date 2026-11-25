@@ -27,7 +27,7 @@ class PromotionSeeder extends Seeder
             ],
             [
                 'code' => 'GLOW20',
-                'name' => 'Botanical Glow Discount',
+                'name' => 'Glow Discount',
                 'description' => '20% off orders over €60 for radiant skin.',
                 'discount_type' => DiscountType::Percentage,
                 'discount_value' => 20,

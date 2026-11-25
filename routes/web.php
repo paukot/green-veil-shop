@@ -8,7 +8,6 @@ use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CheckoutResultController;
-use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\FavouriteController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
@@ -59,15 +58,6 @@ Route::middleware(['web'])->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
-
-        // Email verification
-        Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
-        Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-            ->middleware(['signed', 'throttle:6,1'])
-            ->name('verification.verify');
-        Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
-            ->middleware('throttle:6,1')
-            ->name('verification.send');
 
         // Customer Account routes
         Route::get('/account/profile', [AccountController::class, 'edit'])->name('account.profile');

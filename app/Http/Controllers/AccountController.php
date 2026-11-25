@@ -40,17 +40,7 @@ class AccountController extends Controller
 
         $user->fill($request->validated());
 
-        $emailChanged = $user->isDirty('email');
-
-        if ($emailChanged) {
-            $user->email_verified_at = null;
-        }
-
         $user->save();
-
-        if ($emailChanged) {
-            $user->sendEmailVerificationNotification();
-        }
 
         return back()->with('success', 'Profile details updated successfully.');
     }

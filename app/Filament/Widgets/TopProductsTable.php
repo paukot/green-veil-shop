@@ -29,7 +29,7 @@ class TopProductsTable extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Bestselling Botanicals')
+            ->heading('Bestselling Products')
             ->description('Top 5 formulas by volume sold (Last 30d)')
             ->query(
                 Product::query()

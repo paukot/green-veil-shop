@@ -196,14 +196,14 @@ async function proceedToCheckout() {
                 <ul class="flex flex-col gap-3 px-2 text-sm text-ink-muted">
                     <li class="flex items-center gap-3">
                         <ShieldCheckIcon
-                            class="size-4 text-sage-700"
+                            class="size-4 text-rose-700"
                             aria-hidden="true"
                         />
                         Secure, encrypted checkout
                     </li>
                     <li class="flex items-center gap-3">
                         <RefreshCwIcon
-                            class="size-4 text-sage-700"
+                            class="size-4 text-rose-700"
                             aria-hidden="true"
                         />
                         30-day returns and exchanges

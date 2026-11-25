@@ -41,7 +41,7 @@ const props = withDefaults(
         priceRange: () => ({ min: 0, max: 100 }),
         showCategoriesInSidebar: true,
         resetUrl: undefined,
-        emptyTitle: 'No matching botanical products',
+        emptyTitle: 'No matching products',
         emptyDescription:
             "We couldn't find any products matching your selected criteria. Try adjusting your filters or search keywords.",
     },
@@ -100,7 +100,7 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
                         Filter & sort
                         <template v-if="activeFilterCount > 0" #trailing>
                             <span
-                                class="flex size-4 items-center justify-center rounded-full bg-sage-900 text-xs leading-4 text-cream-50"
+                                class="flex size-4 items-center justify-center rounded-full bg-rose-900 text-xs leading-4 text-cream-50"
                             >
                                 {{ activeFilterCount }}
                             </span>

@@ -15,5 +15,5 @@ export const fieldSizeClasses = {
 export function fieldStateClasses(hasError: boolean | undefined): string {
     return hasError
         ? 'border-danger-500 focus:border-danger-600 focus:ring-2 focus:ring-danger-200'
-        : 'border-border-strong hover:border-cream-400 focus:border-sage-600 focus:ring-2 focus:ring-sage-200';
+        : 'border-border-strong hover:border-cream-400 focus:border-rose-600 focus:ring-2 focus:ring-rose-200';
 }

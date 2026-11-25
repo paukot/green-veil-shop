@@ -22,7 +22,7 @@ import type {
 } from '@/types/storefront';
 import {
     CheckIcon,
-    LeafIcon,
+    SparklesIcon,
     RabbitIcon,
     RecycleIcon,
     Share2Icon,
@@ -42,7 +42,7 @@ defineOptions({
 });
 
 const promises = [
-    { icon: LeafIcon, label: 'Pure botanical actives' },
+    { icon: SparklesIcon, label: 'Skin-first formulas' },
     { icon: RabbitIcon, label: 'Cruelty-free & vegan' },
     { icon: RecycleIcon, label: 'Recyclable packaging' },
     { icon: TruckIcon, label: 'Free delivery over €50' },
@@ -195,7 +195,7 @@ async function shareProduct() {
                 title: `${props.product.name} | Green Veil`,
                 text:
                     props.product.short_description ||
-                    `Discover ${props.product.name} at Green Veil Botanical Apothecary.`,
+                    `Discover ${props.product.name} at Green Veil.`,
                 url: window.location.href,
             });
             return;
@@ -245,19 +245,16 @@ onUnmounted(() => {
             :content="
                 product.short_description ||
                 product.description?.slice(0, 160) ||
-                'Handcrafted botanical care by Green Veil.'
+                'Beauty essentials by Green Veil.'
             "
         />
-        <meta
-            property="og:title"
-            :content="`${product.name} | Green Veil Botanical Apothecary`"
-        />
+        <meta property="og:title" :content="`${product.name} | Green Veil`" />
         <meta
             property="og:description"
             :content="
                 product.short_description ||
                 product.description?.slice(0, 160) ||
-                'Handcrafted botanical care by Green Veil.'
+                'Beauty essentials by Green Veil.'
             "
         />
         <meta property="og:type" content="product" />
@@ -278,7 +275,7 @@ onUnmounted(() => {
             :content="
                 product.short_description ||
                 product.description?.slice(0, 160) ||
-                'Handcrafted botanical care by Green Veil.'
+                'Beauty essentials by Green Veil.'
             "
         />
     </Head>
@@ -495,7 +492,7 @@ onUnmounted(() => {
                         class="flex items-center gap-3 text-sm text-ink-muted"
                     >
                         <span
-                            class="flex size-8 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-800"
+                            class="flex size-8 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-800"
                         >
                             <component
                                 :is="promise.icon"

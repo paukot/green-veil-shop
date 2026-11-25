@@ -95,7 +95,7 @@ function visit(url: string) {
         <div v-else-if="cart.isEmpty.value" class="p-6">
             <EmptyState
                 title="Your bag is empty"
-                description="Add a few botanical favourites to get started."
+                description="Add a few beauty favourites to get started."
                 class="border-0 px-0"
             >
                 <template #icon>
@@ -134,7 +134,7 @@ function visit(url: string) {
                     <div class="flex items-start justify-between gap-2">
                         <Link
                             :href="productShow.url(item.slug)"
-                            class="line-clamp-2 text-sm font-medium text-ink hover:text-sage-800"
+                            class="line-clamp-2 text-sm font-medium text-ink hover:text-rose-800"
                             @click="cart.closeDrawer()"
                         >
                             {{ item.name }}

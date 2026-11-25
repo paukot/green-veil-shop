@@ -22,7 +22,7 @@ const props = withDefaults(
 
 const toneClasses: Record<BadgeTone, string> = {
     neutral: 'border-border bg-surface-sunken text-ink-muted',
-    brand: 'border-sage-200 bg-sage-50 text-sage-800',
+    brand: 'border-rose-200 bg-rose-50 text-rose-800',
     accent: 'border-clay-200 bg-clay-50 text-clay-700',
     success: 'border-success-200 bg-success-50 text-success-700',
     warning: 'border-warning-200 bg-warning-50 text-warning-700',

@@ -325,7 +325,7 @@ const totalActiveFilters = computed(() => {
                 </p>
                 <button
                     type="button"
-                    class="text-sm font-medium text-sage-800 underline-offset-4 hover:underline"
+                    class="text-sm font-medium text-rose-800 underline-offset-4 hover:underline"
                     @click="clearAllFilters"
                 >
                     Clear all

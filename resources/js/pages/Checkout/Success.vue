@@ -79,7 +79,7 @@ const { stop } = usePoll(
                         isPaid
                             ? 'bg-success-50 text-success-700'
                             : isPendingPayment
-                              ? 'bg-sage-50 text-sage-700'
+                              ? 'bg-rose-50 text-rose-700'
                               : 'bg-warning-50 text-warning-700',
                     ]"
                 >
@@ -127,15 +127,15 @@ const { stop } = usePoll(
 
             <p
                 v-if="isPendingPayment"
-                class="rounded-lg bg-sage-50 p-4 text-center text-sm text-sage-800"
+                class="rounded-lg bg-rose-50 p-4 text-center text-sm text-rose-800"
                 role="status"
             >
                 <template v-if="pollCount < maxPolls">
                     Waiting for confirmation from the payment processor…
                 </template>
                 <template v-else>
-                    Your payment is still being verified. We'll email
-                    {{ order.customer_email }} as soon as it completes.
+                    Your payment is still being verified. This page will update
+                    once it completes.
                 </template>
             </p>
 
@@ -151,7 +151,7 @@ const { stop } = usePoll(
                 class="flex items-start gap-3 rounded-lg bg-surface-sunken p-4"
             >
                 <InfoIcon
-                    class="mt-1 size-4 shrink-0 text-sage-700"
+                    class="mt-1 size-4 shrink-0 text-rose-700"
                     aria-hidden="true"
                 />
                 <div class="flex flex-col gap-1 text-sm">

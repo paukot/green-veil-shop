@@ -22,7 +22,7 @@ defineProps<CategoryPageProps>();
             name="description"
             :content="
                 category.description ||
-                `Explore our curated botanical collection of ${category.name} skincare and cosmetics.`
+                `Shop our curated ${category.name} collection of skincare and cosmetics.`
             "
         />
         <meta property="og:title" :content="`${category.name} | Green Veil`" />
@@ -30,7 +30,7 @@ defineProps<CategoryPageProps>();
             property="og:description"
             :content="
                 category.description ||
-                `Explore our curated botanical collection of ${category.name} skincare and cosmetics.`
+                `Shop our curated ${category.name} collection of skincare and cosmetics.`
             "
         />
         <meta property="og:type" content="website" />

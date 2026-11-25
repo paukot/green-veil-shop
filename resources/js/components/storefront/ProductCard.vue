@@ -129,7 +129,7 @@ function decrementFromBag() {
                 <Link
                     :href="productShow.url(product.slug)"
                     prefetch
-                    class="line-clamp-2 transition-colors hover:text-sage-800"
+                    class="line-clamp-2 transition-colors hover:text-rose-800"
                 >
                     {{ product.name }}
                 </Link>
@@ -178,13 +178,13 @@ function decrementFromBag() {
 
                     <div
                         v-else
-                        class="flex h-12 shrink-0 items-center rounded-full bg-sage-900 text-cream-50"
+                        class="flex h-12 shrink-0 items-center rounded-full bg-rose-900 text-cream-50"
                         role="group"
                         :aria-label="`${product.name} in bag`"
                     >
                         <button
                             type="button"
-                            class="flex size-12 items-center justify-center rounded-full transition-colors hover:bg-sage-800"
+                            class="flex size-12 items-center justify-center rounded-full transition-colors hover:bg-rose-800"
                             :aria-label="
                                 quantityInCart === 1
                                     ? `Remove ${product.name} from bag`
@@ -211,7 +211,7 @@ function decrementFromBag() {
                         </span>
                         <button
                             type="button"
-                            class="flex size-12 items-center justify-center rounded-full transition-colors hover:bg-sage-800 disabled:cursor-not-allowed disabled:opacity-40"
+                            class="flex size-12 items-center justify-center rounded-full transition-colors hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-40"
                             :disabled="isMaxStockReached"
                             :aria-label="`Add another ${product.name} to bag`"
                             @click="incrementInBag"

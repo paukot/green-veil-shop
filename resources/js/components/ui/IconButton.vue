@@ -32,7 +32,7 @@ const variantClasses = {
     ghost: 'text-ink hover:bg-surface-sunken',
     outline:
         'border border-border-strong bg-surface-raised text-ink hover:border-ink',
-    solid: 'bg-sage-900 text-cream-50 hover:bg-sage-800',
+    solid: 'bg-rose-900 text-cream-50 hover:bg-rose-800',
     overlay:
         'bg-surface-raised/90 text-ink shadow-sm backdrop-blur hover:bg-surface-raised',
 } as const;

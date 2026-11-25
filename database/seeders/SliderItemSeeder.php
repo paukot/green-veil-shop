@@ -14,18 +14,18 @@ class SliderItemSeeder extends Seeder
 
         $slides = [
             [
-                'title' => 'Botanical care, simply made',
-                'subtitle' => 'Thoughtful formulas for your daily ritual.',
+                'title' => 'Skincare that works, simply made',
+                'subtitle' => 'Effective formulas for your daily ritual.',
                 'image' => $seedImages->slideImage('skincare'),
                 'url' => '/products',
                 'sort_order' => 0,
                 'is_active' => true,
-                'alt_text' => 'Green Veil botanical skincare collection',
+                'alt_text' => 'Green Veil skincare collection',
                 'button_label' => 'Shop collection',
             ],
             [
                 'title' => 'A slower approach to beauty',
-                'subtitle' => 'Small rituals, considered ingredients, visible results.',
+                'subtitle' => 'Small rituals, proven ingredients, visible results.',
                 'image' => $seedImages->slideImage('favourites'),
                 'url' => '/products',
                 'sort_order' => 1,
@@ -34,8 +34,8 @@ class SliderItemSeeder extends Seeder
                 'button_label' => 'Explore favourites',
             ],
             [
-                'title' => 'Artisanal Perfumes & Botanical Scents',
-                'subtitle' => 'Rare botanicals, distilled into timeless essences.',
+                'title' => 'Signature Fragrances & Scents',
+                'subtitle' => 'Timeless perfumes, from fresh and floral to warm and deep.',
                 'image' => $seedImages->slideImage('perfumes'),
                 'url' => '/categories/perfumes',
                 'sort_order' => 2,
@@ -45,7 +45,7 @@ class SliderItemSeeder extends Seeder
             ],
             [
                 'title' => 'Luminous Clean Makeup',
-                'subtitle' => 'Breathable mineral formulas that enhance your natural glow.',
+                'subtitle' => 'Lightweight formulas that enhance your natural glow.',
                 'image' => $seedImages->slideImage('makeup'),
                 'url' => '/categories/makeup',
                 'sort_order' => 3,

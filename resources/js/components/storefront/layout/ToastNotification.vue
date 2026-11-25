@@ -53,7 +53,7 @@ watch(
                 cn(
                     'pointer-events-auto fixed inset-x-4 bottom-4 z-50 flex items-center gap-3 rounded-2xl p-4 shadow-xl sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96',
                     toastType === 'success'
-                        ? 'bg-sage-950 text-cream-50'
+                        ? 'bg-rose-950 text-cream-50'
                         : 'bg-danger-700 text-white',
                 )
             "
@@ -64,7 +64,7 @@ watch(
                     cn(
                         'flex size-8 shrink-0 items-center justify-center rounded-full',
                         toastType === 'success'
-                            ? 'bg-sage-800 text-sage-200'
+                            ? 'bg-rose-800 text-rose-200'
                             : 'bg-danger-800 text-danger-100',
                     )
                 "

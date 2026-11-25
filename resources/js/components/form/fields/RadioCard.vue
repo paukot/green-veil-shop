@@ -34,7 +34,7 @@ const isSelected = computed(() => model.value === props.value);
                 'flex cursor-pointer justify-between gap-4 rounded-lg border p-4 transition-colors',
                 align === 'center' ? 'items-center' : 'items-start',
                 isSelected
-                    ? 'border-sage-700 bg-sage-50 ring-1 ring-sage-700'
+                    ? 'border-rose-700 bg-rose-50 ring-1 ring-rose-700'
                     : 'border-border-strong bg-surface-raised hover:border-cream-400',
                 disabled && 'cursor-not-allowed opacity-50',
                 props.class,

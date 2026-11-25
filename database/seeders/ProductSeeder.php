@@ -28,7 +28,7 @@ class ProductSeeder extends Seeder
         'CeraVe' => ['Moisturising', 'SA Smoothing', 'Hydrating Cleanser', 'Blemish Control', 'Eye Repair'],
         'La Roche-Posay' => ['Effaclar', 'Cicaplast B5', 'Anthelios', 'Hyalu B5', 'Toleriane Ultra'],
         'The Ordinary' => ['Direct Acids', 'Hydrators & Oils', 'More Molecules', 'Peptides & Retinoids', 'Serum Foundation'],
-        'Green Veil Organics' => ['Botanical Radiance', 'Herbal Therapy', 'Pure Petal', 'Nordic Pine', 'Satin Bloom'],
+        'Green Veil Organics' => ['Radiance Boost', 'Barrier Therapy', 'Pure Petal', 'Nordic Pine', 'Satin Bloom'],
         'COSRX' => ['Advanced Snail 96', 'Low pH Good Morning', 'AHA/BHA Clarifying', 'Propolis Light', 'Master Patch'],
         'Rituals' => ['The Ritual of Sakura', 'The Ritual of Ayurveda', 'The Ritual of Karma', 'The Ritual of Jing', 'The Ritual of Mehr'],
         'Bioderma' => ['Sensibio H2O', 'Sebium Hydra', 'Atoderm Intensive', 'Photoderm Max', 'Hydrabio'],
@@ -51,7 +51,7 @@ class ProductSeeder extends Seeder
         'men' => 'Aqua, Glycerin, Stearic Acid, Palmitic Acid, Potassium Hydroxide, Cedrus Atlantica Bark Oil, Caffeine, Allantoin, Menthol, Tocopheryl Acetate, Melaleuca Alternifolia Leaf Oil, Parfum.',
         'accessories' => '100% Vegan synthetic Taklon fibers, recycled aluminum ferrule, sustainable FSC-certified birch wood handle.',
         'health-care' => 'Aqua, Hydrated Silica, Sorbitol, Glycerin, Xylitol, Sodium Cocoyl Glutamate, Mentha Piperita Oil, Charcoal Powder, Melaleuca Alternifolia Leaf Oil, Stevia Rebaudiana Extract.',
-        'gifts' => 'Assorted luxury botanical formulations. Refer to individual cosmetic components inside the coffret for comprehensive INCI declarations.',
+        'gifts' => 'Assorted luxury beauty formulations. Refer to individual cosmetic components inside the coffret for comprehensive INCI declarations.',
     ];
 
     /**
@@ -113,17 +113,17 @@ class ProductSeeder extends Seeder
             'Hydrating Daily Barrier Cream', 'Gentle Amino Acid Foaming Cleanser', 'Centella Soothing Gel Moisturizer',
             'AHA/BHA Balancing Treatment Toner', 'Overnight Recovery Sleeping Mask', 'Peptide Infused Eye Cream',
             'Invisible Mineral Sunscreen SPF 50', 'Illuminating Facial Treatment Essence', 'Clarifying Detox Clay Mask',
-            'Bifida Ferment Microbiome Ampoule', 'Smoothing Glycolic Resurfacing Peel', 'Cold-Pressed Botanical Facial Oil',
+            'Bifida Ferment Microbiome Ampoule', 'Smoothing Glycolic Resurfacing Peel', 'Nourishing Facial Oil',
         ],
         'hair' => [
-            'Bond Repair Moisture Shampoo', 'Nourishing Botanical Conditioner', 'Deep Repair Butter Hair Mask',
+            'Bond Repair Moisture Shampoo', 'Nourishing Smoothing Conditioner', 'Deep Repair Butter Hair Mask',
             'Weightless Glossing Argan Hair Oil', 'Scalp Clarifying Exfoliating Scrub', 'Caffeine Fortifying Scalp Serum',
             'Thermal Defense Protective Styling Mist', 'Leave-In Hydrating Conditioning Milk', 'Texturizing Sea Salt Spray',
         ],
         'body-care' => [
             'Whipped Mango & Shea Body Butter', 'Velvet Hydrating Body Lotion', 'Aromatherapeutic Calming Shower Gel',
             'Dead Sea Mineral Exfoliating Scrub', 'Eucalyptus Magnesium Bath Crystals', 'Intensive Restorative Hand Cream',
-            'Soothing Botanical Foot Balm', 'Aluminum-Free Probiotic Deodorant',
+            'Soothing Foot Balm', 'Aluminum-Free Probiotic Deodorant',
         ],
         'perfumes' => [
             'Eau de Parfum 50ml', 'Eau de Parfum 100ml', 'Luxury Extrait de Parfum 30ml',
@@ -138,7 +138,7 @@ class ProductSeeder extends Seeder
             'Waterproof Multi-Compartment Vanity Bag', 'Dual-Sided LED Magnifying Mirror', 'Mulberry Silk Sleeping Mask',
         ],
         'health-care' => [
-            'Botanical Whitening Enzyme Toothpaste', 'Hydrating Lavender Hand Sanitizer Mist',
+            'Whitening Enzyme Toothpaste', 'Hydrating Lavender Hand Sanitizer Mist',
             'Hydrolyzed Marine Collagen Peptides', 'Pure French Lavender Essential Oil',
         ],
         'gifts' => [
@@ -209,7 +209,7 @@ class ProductSeeder extends Seeder
                 /** @var Brand $brandObj */
                 $brandObj = $brandList[$i % $brandCount];
                 $brandName = $brandObj->name;
-                $seriesPool = self::BRAND_SERIES[$brandName] ?? ['Botanical Ritual', 'Advanced Care', 'Pro Solution'];
+                $seriesPool = self::BRAND_SERIES[$brandName] ?? ['Daily Ritual', 'Advanced Care', 'Pro Solution'];
                 $series = $seriesPool[$i % count($seriesPool)];
 
                 $active = self::ACTIVES[($i * 3) % $activeCount];
@@ -422,13 +422,13 @@ class ProductSeeder extends Seeder
                 $existingGalleryPairs["{$product->id}:{$path1}"] = true;
             }
 
-            // 2) Botanical packaging & ritual shot
+            // 2) Packaging & ritual shot
             $path2 = $seedImages->productImage($domainKey, $product->sku, 2);
             if ($path2 !== null && ! isset($existingGalleryPairs["{$product->id}:{$path2}"])) {
                 $imageBatches[] = [
                     'product_id' => $product->id,
                     'path' => $path2,
-                    'alt_text' => "{$product->name} botanical packaging",
+                    'alt_text' => "{$product->name} packaging",
                     'sort_order' => 2,
                     'is_primary' => false,
                     'created_at' => $now,

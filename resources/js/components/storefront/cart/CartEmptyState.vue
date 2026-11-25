@@ -8,7 +8,7 @@ import { index as productsIndex } from '@/routes/products';
 <template>
     <EmptyState
         title="Your bag is empty"
-        description="Your bag is waiting for botanical cleansers, soothing mists and restorative skincare."
+        description="Your bag is waiting for cleansers, serums, lipsticks and your next beauty favourite."
     >
         <template #icon>
             <ShoppingBagIcon aria-hidden="true" />

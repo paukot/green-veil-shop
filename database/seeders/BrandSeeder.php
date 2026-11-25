@@ -50,7 +50,7 @@ class BrandSeeder extends Seeder
             'name' => 'Green Veil Organics',
             'country' => 'PL',
             'website' => 'https://greenveil.shop',
-            'desc' => 'Clean botanical skincare handcrafted in Poland with certified organic plant extracts.',
+            'desc' => 'Clean skincare handcrafted in Poland with certified organic ingredients.',
         ],
         [
             'name' => 'COSRX',
@@ -74,7 +74,7 @@ class BrandSeeder extends Seeder
             'name' => 'Kiehl\'s',
             'country' => 'US',
             'website' => 'https://www.kiehls.com',
-            'desc' => 'Historic New York apothecary heritage crafting efficacious skincare formulas since 1851.',
+            'desc' => 'Historic New York heritage crafting efficacious skincare formulas since 1851.',
         ],
         [
             'name' => 'NYX Professional Makeup',

@@ -18,7 +18,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    placeholder: 'Search botanicals...',
+    placeholder: 'Search products...',
     size: 'md',
 });
 

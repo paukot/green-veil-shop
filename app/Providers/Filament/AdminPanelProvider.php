@@ -4,7 +4,6 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\EditProfile;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
-use Filament\Auth\MultiFactor\Email\EmailAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -29,13 +28,13 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('Green Veil')
             ->authGuard('admin')
             ->authPasswordBroker('admin_users')
             ->login()
             ->profile(page: EditProfile::class, isSimple: false)
             ->multiFactorAuthentication([
                 AppAuthentication::make(),
-                EmailAuthentication::make(),
             ])
             ->colors([
                 'primary' => Color::Rose,

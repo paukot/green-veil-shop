@@ -58,7 +58,7 @@ const emit = defineEmits<{
                             cn(
                                 'inline-flex h-8 items-center rounded-full border px-4 text-xs font-medium transition-colors',
                                 selectedVariant?.id === variant.id
-                                    ? 'border-sage-900 bg-sage-900 text-cream-50'
+                                    ? 'border-rose-900 bg-rose-900 text-cream-50'
                                     : 'border-border-strong bg-surface-raised text-ink hover:border-ink',
                                 !variant.is_in_stock &&
                                     'line-through opacity-50',

@@ -33,7 +33,7 @@ const emit = defineEmits<{
             cn(
                 'inline-flex h-8 shrink-0 items-center rounded-full border text-xs font-medium whitespace-nowrap transition-colors',
                 selected
-                    ? 'border-sage-900 bg-sage-900 text-cream-50'
+                    ? 'border-rose-900 bg-rose-900 text-cream-50'
                     : 'border-border-strong bg-surface-raised text-ink',
                 !props.static && !selected && 'hover:border-ink',
                 props.class,

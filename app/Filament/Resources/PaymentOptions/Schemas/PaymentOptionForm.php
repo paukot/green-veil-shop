@@ -60,7 +60,7 @@ class PaymentOptionForm
                         Textarea::make('instructions')
                             ->label('Payment Instructions / Bank Details')
                             ->rows(6)
-                            ->placeholder("Bank: Botanical Bank of Ireland\nIBAN: IE89BOTANICAL0001234567\nBIC: BOTANIE2D\nPlease include your Order Number as payment reference.")
+                            ->placeholder("Bank: Green Veil Bank Ireland\nIBAN: IE89GREENVEIL0001234567\nBIC: GREENVEILIE2D\nPlease include your Order Number as payment reference.")
                             ->helperText('Displayed on the order confirmation page and in emails for offline payment options'),
                     ]),
             ]);

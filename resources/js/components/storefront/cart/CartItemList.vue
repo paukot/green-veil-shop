@@ -105,7 +105,7 @@ const emit = defineEmits<{
                             <Link
                                 :href="productShow.url(item.slug)"
                                 prefetch
-                                class="font-serif text-lg leading-6 text-ink hover:text-sage-800"
+                                class="font-serif text-lg leading-6 text-ink hover:text-rose-800"
                             >
                                 {{ item.name }}
                             </Link>
