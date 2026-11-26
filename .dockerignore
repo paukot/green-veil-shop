@@ -35,4 +35,9 @@ compose*.yml
 .dockerignore
 deploy.sh
 backup.sh
+.deploy.env*
+.deploy.lock
+certs
+backups
+docker/caddy
 *.md

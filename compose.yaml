@@ -1,3 +1,35 @@
+# Pinned: Docker prefixes named volumes with the project name. Without this, moving
+# the checkout to another directory would create new, empty `mysql_data` / `storage`
+# volumes and the shop's database and product images would appear to vanish.
+name: green-veil-cosmetic-shop
+
+x-app-image: &app-image green-veil-cosmetic-shop-app:latest
+
+x-app-environment: &app-environment
+    APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
+    APP_URL: https://${APP_DOMAIN:-localhost}
+
+    # --- Database & Redis defaults for container networking ---
+    DB_CONNECTION: ${DB_CONNECTION:-mysql}
+    DB_HOST: ${DB_HOST:-mysql}
+    DB_PORT: ${DB_PORT:-3306}
+    DB_DATABASE: ${DB_DATABASE:-green_veil_cosmetic_shop}
+    DB_USERNAME: ${DB_USERNAME:-green_veil}
+    DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+    REDIS_CLIENT: ${REDIS_CLIENT:-phpredis}
+    REDIS_HOST: ${REDIS_HOST:-redis}
+    REDIS_PORT: ${REDIS_PORT:-6379}
+    REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+
+    # --- Plain HTTP on 8080: TLS is terminated by the `proxy` service ---
+    CADDY_AUTO_HTTPS: 'off'
+    SSL_MODE: 'off'
+
+    # --- PHP ---
+    PHP_OPCACHE_ENABLE: '1'
+    PHP_UPLOAD_MAX_FILE_SIZE: '100M'
+
 services:
     app:
         build:
@@ -5,39 +37,19 @@ services:
             target: production
             args:
                 VITE_APP_NAME: ${APP_NAME:-Laravel}
+        image: *app-image
         restart: unless-stopped
         env_file: .env
         environment:
-            APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
-            APP_URL: https://${APP_DOMAIN:-localhost}
-
-            # --- Database & Redis defaults for container networking ---
-            DB_CONNECTION: ${DB_CONNECTION:-mysql}
-            DB_HOST: ${DB_HOST:-mysql}
-            DB_PORT: ${DB_PORT:-3306}
-            DB_DATABASE: ${DB_DATABASE:-green_veil_cosmetic_shop}
-            DB_USERNAME: ${DB_USERNAME:-green_veil}
-            DB_PASSWORD: ${DB_PASSWORD:-secret}
-
-            REDIS_CLIENT: ${REDIS_CLIENT:-phpredis}
-            REDIS_HOST: ${REDIS_HOST:-redis}
-            REDIS_PORT: ${REDIS_PORT:-6379}
-            REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
-
-            # --- Reverse proxy mode (host web server handles SSL on 80/443) ---
-            CADDY_AUTO_HTTPS: 'off'
-            SSL_MODE: ${SSL_MODE:-off}
-
-            # --- Laravel automations on every container start ---
+            <<: *app-environment
+            # --- Laravel automations on every container start (only here, so
+            # the worker and scheduler never race the app on migrations) ---
             AUTORUN_ENABLED: 'true'
             AUTORUN_LARAVEL_MIGRATION: 'true'
             AUTORUN_LARAVEL_STORAGE_LINK: 'true'
-
-            # --- PHP ---
-            PHP_OPCACHE_ENABLE: '1'
-            PHP_UPLOAD_MAX_FILE_SIZE: '100M'
-        ports:
-            - '${APP_PORT:-8080}:8080'
+        # Not published on the host: only the proxy reaches the app, over the compose network.
+        expose:
+            - '8080'
         volumes:
             - storage:/var/www/html/storage
             - caddy_data:/data
@@ -49,23 +61,106 @@ services:
                 condition: service_healthy
         networks:
             - app-network
+        healthcheck:
+            test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/up']
+            interval: 10s
+            timeout: 5s
+            retries: 6
+            # Migrations run before the server starts; give them time on a cold start.
+            start_period: 60s
         logging:
             driver: json-file
             options:
                 max-size: '10m'
                 max-file: '3'
 
+    # Queued jobs: Stripe webhook processing, image variants (QUEUE_CONNECTION=redis).
+    worker:
+        image: *app-image
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            <<: *app-environment
+            AUTORUN_ENABLED: 'false'
+        command: ['php', '/var/www/html/artisan', 'queue:work', '--sleep=3', '--tries=3', '--max-time=3600']
+        stop_grace_period: 60s
+        volumes:
+            - storage:/var/www/html/storage
+        depends_on:
+            app:
+                condition: service_healthy
+        networks:
+            - app-network
+        healthcheck:
+            disable: true
+        logging:
+            driver: json-file
+            options:
+                max-size: '10m'
+                max-file: '3'
+
+    # Laravel scheduler (routes/console.php: orders:sweep-stale every 15 minutes).
+    scheduler:
+        image: *app-image
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            <<: *app-environment
+            AUTORUN_ENABLED: 'false'
+        command: ['php', '/var/www/html/artisan', 'schedule:work']
+        volumes:
+            - storage:/var/www/html/storage
+        depends_on:
+            app:
+                condition: service_healthy
+        networks:
+            - app-network
+        healthcheck:
+            disable: true
+        logging:
+            driver: json-file
+            options:
+                max-size: '10m'
+                max-file: '3'
+
+    # TLS edge for Cloudflare: Origin Certificate from ./certs, listening on PUBLIC_PORT.
+    proxy:
+        image: caddy:2.10-alpine
+        restart: unless-stopped
+        ports:
+            - '${PUBLIC_PORT:-8443}:8443'
+        volumes:
+            - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+            - ./certs:/certs:ro
+        depends_on:
+            app:
+                condition: service_healthy
+        networks:
+            - app-network
+        healthcheck:
+            test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:2019/config/']
+            interval: 10s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
+        mem_limit: 64m
+        logging:
+            driver: json-file
+            options:
+                max-size: '10m'
+                max-file: '3'
+
+    # MySQL and Redis are not published on the host (several apps can share one server).
+    # Open a shell with: docker compose exec mysql mysql -uroot -p
     mysql:
         image: mysql:8.4
         restart: unless-stopped
         environment:
             MYSQL_DATABASE: ${DB_DATABASE:-green_veil_cosmetic_shop}
             MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-${DB_PASSWORD:-secret}}
-            MYSQL_USER: ${MYSQL_USER:-green_veil}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secret}
-        ports:
-            # Bind to localhost; uses 3307 by default to avoid conflict with host MySQL (3306)
-            - '${FORWARD_DB_PORT:-127.0.0.1:3307}:3306'
+            MYSQL_USER: ${DB_USERNAME:-green_veil}
+            # Follows the app's DB_PASSWORD, so the two can never drift apart.
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-${DB_PASSWORD:-secret}}
         volumes:
             - mysql_data:/var/lib/mysql
         networks:
@@ -88,9 +183,6 @@ services:
         image: redis:alpine
         restart: unless-stopped
         command: redis-server --appendonly yes
-        ports:
-            # Bind to localhost; uses 6380 by default to avoid conflict with host Redis (6379)
-            - '${FORWARD_REDIS_PORT:-127.0.0.1:6380}:6379'
         volumes:
             - redis_data:/data
         networks:

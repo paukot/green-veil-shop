@@ -29,6 +29,10 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-in
 COPY --chown=www-data:www-data . .
 RUN DB_CONNECTION=sqlite CACHE_STORE=array SESSION_DRIVER=array composer dump-autoload --no-dev --optimize --no-interaction
 
+# storage/ is not shipped by the deploy (its content is runtime state kept in a volume), so make sure
+# the directories the build steps below and the entrypoint expect exist.
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
 ############################################
 # 2) Frontend build (needs PHP + vendor/ for Vite plugins and Filament theme CSS)
 ############################################
