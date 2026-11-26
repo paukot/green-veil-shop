@@ -59,7 +59,7 @@ The admin side (catalogue, orders, refunds, promotions, roles) is Filament inste
 
 ### Boring, cheap infrastructure
 
-One FrankenPHP container (PHP embedded in Caddy, no separate FPM), plus MySQL and Redis. It uses a multi-stage Docker build and sits behind a host reverse proxy on port 8080, so several apps can share one VPS. GitHub Actions runs every check and deploys over SSH when `master` is green.
+One FrankenPHP image (PHP embedded in Caddy, no separate FPM) running as the web app, a queue worker and the scheduler, plus MySQL, Redis and a small Caddy TLS proxy for Cloudflare. It uses a multi-stage Docker build, and each app on a server gets its own public port, so several can share one VPS. GitHub Actions runs every check and deploys over SSH (the server pulls the commit and builds the image) when `master` is green.
 
 ---
 
@@ -104,14 +104,15 @@ npm run types:check    # vue-tsc
 
 ## Deploying
 
+See [DEPLOY.md](DEPLOY.md) for the full guide (Cloudflare, ports, CI secrets, migrating an existing server).
+
 ```bash
-git clone <REPO_URL> /var/www/green-veil-cosmetic-shop
-cd /var/www/green-veil-cosmetic-shop
-cp .env.docker.example .env
-./deploy.sh            # pull, rebuild, migrate, restart
+cp .deploy.env.example .deploy.env      # DEPLOY_HOST, DEPLOY_SSH_PORT, DEPLOY_PATH, DEPLOY_PUBLIC_PORT ...
+./deploy.sh cert origin.pem origin.key  # Cloudflare Origin Certificate, once
+./deploy.sh                             # pull, back up, build, restart, HTTPS check
 ```
 
-Point a host Nginx or Caddy at `127.0.0.1:8080` for TLS.
+Every deploy backs up MySQL and the uploaded images first, rebuilds the containers, and the app container runs migrations and `storage:link` on start. Data lives in Docker volumes that a deploy never touches. `./deploy.sh backup | pull-backups | restore backups/FILE | status | logs` cover day-to-day operation.
 
 ## Where things live
 

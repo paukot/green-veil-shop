@@ -64,36 +64,44 @@ jobs:
       github.event_name != 'pull_request' &&
       (github.event_name != 'workflow_dispatch' || inputs.deploy == true)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Secrets live in the `production` environment, which can also require reviewers.
     environment: production
+    # Deploys queue one after another. The workflow-level group cancels in-progress
+    # runs, and cancelling a deploy halfway through would be worse than waiting.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
 
     steps:
-      - name: Validate Deployment Secrets
-        run: |
-          missing=()
-          [ -z "${{ secrets.SSH_HOST }}" ] && missing+=("SSH_HOST")
-          [ -z "${{ secrets.SSH_USER }}" ] && missing+=("SSH_USER")
-          [ -z "${{ secrets.SSH_KEY }}" ] && missing+=("SSH_KEY")
-
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Missing required deployment secrets: ${missing[*]}"
-            echo "Please configure them under Repository Settings -> Secrets and variables -> Actions (SSH_HOST, SSH_USER, SSH_KEY, DEPLOY_PATH, SSH_PORT)."
-            exit 1
-          fi
-
-          echo "Deployment target: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} (port: ${{ secrets.SSH_PORT || vars.SSH_PORT || 22 }})"
-
-      - name: Deploy to KVM Server via SSH
-        uses: appleboy/ssh-action@v1.2.5
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || vars.SSH_PORT || 22 }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE || '' }}
-          envs: GITHUB_SHA
-          script: |
-            set -e
-            cd "${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH || '/var/www/green-veil-cosmetic-shop' }}"
-            echo "==> Deploying commit: ${GITHUB_SHA}"
-            chmod +x deploy.sh
-            ./deploy.sh
+          persist-credentials: false
+
+      - name: Install SSH credentials
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh/id_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+
+      - name: Deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.SSH_HOST }}
+          DEPLOY_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          DEPLOY_APP_URL: ${{ vars.DEPLOY_APP_URL }}
+          DEPLOY_PUBLIC_PORT: ${{ vars.DEPLOY_PUBLIC_PORT }}
+          DEPLOY_SSH_KEY: ${{ runner.temp }}/ssh/id_deploy
+          DEPLOY_KNOWN_HOSTS: ${{ runner.temp }}/ssh/known_hosts
+        run: ./deploy.sh deploy
+
+      - name: Remove SSH credentials
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/ssh"

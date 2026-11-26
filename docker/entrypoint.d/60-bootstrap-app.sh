@@ -4,7 +4,9 @@
 
 _app_dir="${APP_BASE_DIR:-/var/www/html}"
 
-if [ "${AUTORUN_ENABLED:-false}" = "true" ] && [ -f "$_app_dir/artisan" ]; then
+# `app:bootstrap` is optional: only run it when the application defines it.
+if [ "${AUTORUN_ENABLED:-false}" = "true" ] && [ -f "$_app_dir/artisan" ] \
+    && php "$_app_dir/artisan" list --raw 2>/dev/null | grep -q '^app:bootstrap'; then
     php "$_app_dir/artisan" app:bootstrap || echo "WARNING: 'php artisan app:bootstrap' failed (continuing)"
 fi
 
