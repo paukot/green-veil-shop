@@ -62,7 +62,15 @@ services:
         networks:
             - app-network
         healthcheck:
-            test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/up']
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '-q',
+                    '-O',
+                    '/dev/null',
+                    'http://127.0.0.1:8080/up',
+                ]
             interval: 10s
             timeout: 5s
             retries: 6
@@ -82,7 +90,15 @@ services:
         environment:
             <<: *app-environment
             AUTORUN_ENABLED: 'false'
-        command: ['php', '/var/www/html/artisan', 'queue:work', '--sleep=3', '--tries=3', '--max-time=3600']
+        command:
+            [
+                'php',
+                '/var/www/html/artisan',
+                'queue:work',
+                '--sleep=3',
+                '--tries=3',
+                '--max-time=3600',
+            ]
         stop_grace_period: 60s
         volumes:
             - storage:/var/www/html/storage
@@ -138,7 +154,15 @@ services:
         networks:
             - app-network
         healthcheck:
-            test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:2019/config/']
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '-q',
+                    '-O',
+                    '/dev/null',
+                    'http://127.0.0.1:2019/config/',
+                ]
             interval: 10s
             timeout: 3s
             retries: 5
