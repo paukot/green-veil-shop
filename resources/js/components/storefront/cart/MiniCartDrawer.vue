@@ -109,7 +109,11 @@ function visit(url: string) {
             </EmptyState>
         </div>
 
-        <ul v-else class="flex flex-col divide-y divide-border px-6">
+        <ul
+            v-else
+            class="flex flex-col divide-y divide-border px-6"
+            aria-label="Bag items"
+        >
             <li
                 v-for="item in cart.items.value"
                 :key="item.product_id"
@@ -117,13 +121,15 @@ function visit(url: string) {
             >
                 <Link
                     :href="productShow.url(item.slug)"
+                    aria-hidden="true"
+                    tabindex="-1"
                     class="size-16 shrink-0 overflow-hidden rounded-lg bg-surface-sunken"
                     @click="cart.closeDrawer()"
                 >
                     <img
                         v-if="item.main_image"
                         :src="resolveStorageUrl(item.main_image)"
-                        :alt="item.name"
+                        alt=""
                         class="size-full object-cover"
                         loading="lazy"
                         @error="showPlaceholderOnError"
@@ -146,6 +152,7 @@ function visit(url: string) {
                     <div class="flex items-center justify-between gap-2">
                         <QuantityInput
                             size="sm"
+                            :aria-label="`Quantity for ${item.name}`"
                             :model-value="item.quantity"
                             :min="1"
                             :max="
@@ -173,7 +180,10 @@ function visit(url: string) {
             <div class="flex flex-col gap-4">
                 <div class="flex items-baseline justify-between gap-4">
                     <p class="font-serif text-xl text-ink">Subtotal</p>
-                    <p class="text-xl font-semibold text-ink tabular-nums">
+                    <p
+                        class="text-xl font-semibold text-ink tabular-nums"
+                        data-testid="mini-cart-subtotal"
+                    >
                         {{ formatCurrency(cart.subtotal.value) }}
                     </p>
                 </div>

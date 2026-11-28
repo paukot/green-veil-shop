@@ -28,7 +28,9 @@ const sizeClasses = {
 </script>
 
 <template>
-    <p :class="cn('flex flex-wrap items-baseline gap-2', props.class)">
+    <p
+        :class="cn('flex flex-wrap items-baseline gap-2', props.class)"
+    >
         <span
             :class="
                 cn(

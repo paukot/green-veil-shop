@@ -66,9 +66,11 @@ const wrapperClasses = computed(() => {
         ]"
         :aria-pressed="isFavourited"
         :aria-label="
-            isFavourited
-                ? `Remove ${productName || 'product'} from favourites`
-                : `Save ${productName || 'product'} to favourites`
+            variant === 'pill'
+                ? undefined
+                : isFavourited
+                  ? `Remove ${productName || 'product'} from favourites`
+                  : `Save ${productName || 'product'} to favourites`
         "
     >
         <HeartIcon

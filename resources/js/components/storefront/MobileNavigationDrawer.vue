@@ -78,7 +78,12 @@ const rowClass =
         @close="close"
     >
         <div class="flex flex-col gap-6 py-6">
-            <form class="px-6" role="search" @submit.prevent="submitSearch">
+            <form
+                class="px-6"
+                role="search"
+                aria-label="Mobile product search"
+                @submit.prevent="submitSearch"
+            >
                 <SearchInput
                     v-model="searchQuery"
                     placeholder="Search products…"
@@ -210,8 +215,8 @@ const rowClass =
 
         <template v-if="!user" #footer>
             <div class="grid grid-cols-2 gap-3">
-                <Button :href="login.url()" variant="primary">Sign in</Button>
-                <Button :href="register.url()" variant="outline">Join</Button>
+                <Button :href="login.url()" variant="primary"> Sign in </Button>
+                <Button :href="register.url()" variant="outline"> Join </Button>
             </div>
         </template>
     </Drawer>

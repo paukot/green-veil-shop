@@ -12,10 +12,13 @@ import { useFavourites } from '@/composables/useFavourites';
 
 const page = usePage<SharedProps>();
 const mobileMenuOpen = ref(false);
+const isHydrated = ref(false);
 const cart = useCart();
 const favourites = useFavourites();
 
 onMounted(() => {
+    isHydrated.value = true;
+
     // Items saved in this browser are ready immediately; marking the cart initialised lets
     // the mini bag show them on every page, not only on the bag and checkout pages (which
     // initialise first with their full server payload, so this call is then a no-op).
@@ -42,6 +45,7 @@ const favouritesCount = computed(() => {
 
 <template>
     <div
+        :data-hydrated="isHydrated"
         class="flex min-h-screen flex-col bg-surface font-sans text-ink selection:bg-rose-200 selection:text-rose-900"
     >
         <!-- Skip to Main Content Link for Screen Readers & Keyboard Navigation -->
@@ -75,7 +79,11 @@ const favouritesCount = computed(() => {
         <MiniCartDrawer class="print:hidden" />
 
         <!-- Main Content Slot -->
-        <main id="main-content" class="grow print:p-0">
+        <main
+            id="main-content"
+            tabindex="-1"
+            class="grow outline-none print:p-0"
+        >
             <slot />
         </main>
 

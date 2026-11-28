@@ -29,9 +29,11 @@ const { isLoading } = usePageLoading();
 <template>
     <Head title="Order History" />
 
-    <section class="flex flex-col gap-6">
+    <section class="flex flex-col gap-6" aria-labelledby="orders-heading">
         <div class="flex items-baseline justify-between gap-4">
-            <h2 class="font-serif text-3xl text-ink">Orders</h2>
+            <h2 id="orders-heading" class="font-serif text-3xl text-ink">
+                Orders
+            </h2>
             <p v-if="orders.meta.total > 0" class="text-sm text-ink-subtle">
                 {{ orders.meta.total }}
                 {{ orders.meta.total === 1 ? 'order' : 'orders' }}
@@ -49,15 +51,16 @@ const { isLoading } = usePageLoading();
                 <FileTextIcon aria-hidden="true" />
             </template>
             <template #actions>
-                <Button :href="productsIndex.url()">Start shopping</Button>
+                <Button :href="productsIndex.url()"> Start shopping </Button>
             </template>
         </EmptyState>
 
-        <div v-else class="flex flex-col gap-4">
+        <div v-else class="flex flex-col gap-4" role="list" aria-label="Orders">
             <Card
                 v-for="order in orders.data"
                 :key="order.public_id"
                 as="article"
+                role="listitem"
                 class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6"
             >
                 <div
@@ -66,7 +69,7 @@ const { isLoading } = usePageLoading();
                     <img
                         v-if="order.first_item_image"
                         :src="resolveStorageUrl(order.first_item_image)"
-                        :alt="order.number"
+                        alt=""
                         class="size-full object-cover"
                         loading="lazy"
                         @error="showPlaceholderOnError"
@@ -105,6 +108,7 @@ const { isLoading } = usePageLoading();
                         :href="ordersShow.url(order.public_id)"
                         variant="outline"
                         size="sm"
+                        :aria-label="`View order ${order.number}`"
                     >
                         Details
                         <template #trailing>

@@ -36,6 +36,7 @@ function onClear() {
 <template>
     <div :class="cn('relative w-full', $attrs.class as string)">
         <input
+            aria-label="Search products"
             v-bind="$attrs"
             v-model="model"
             type="search"

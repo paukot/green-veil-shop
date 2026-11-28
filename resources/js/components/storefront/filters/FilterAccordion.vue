@@ -5,17 +5,21 @@ import { cn } from '@/lib/utils';
 
 defineProps<{
     title: string;
+    /** Stable key exposed as `` for tests (e.g. `brands`). */
+    filterKey?: string;
     /** Number of active selections, shown beside the title. */
     count?: number;
 }>();
 
 const isOpen = defineModel<boolean>('isOpen', { default: false });
 const panelId = useId();
+const buttonId = useId();
 </script>
 
 <template>
     <div class="border-b border-border py-4">
         <button
+            :id="buttonId"
             type="button"
             class="flex h-8 w-full items-center justify-between gap-2 text-left text-sm font-medium text-ink"
             :aria-expanded="isOpen"
@@ -41,7 +45,13 @@ const panelId = useId();
                 aria-hidden="true"
             />
         </button>
-        <div v-show="isOpen" :id="panelId" class="mt-3 flex flex-col gap-3">
+        <div
+            v-show="isOpen"
+            :id="panelId"
+            role="region"
+            :aria-labelledby="buttonId"
+            class="mt-3 flex flex-col gap-3"
+        >
             <slot />
         </div>
     </div>

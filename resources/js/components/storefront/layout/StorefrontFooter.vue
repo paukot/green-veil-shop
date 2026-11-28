@@ -33,7 +33,10 @@ const promises = [
                         Skincare, makeup and fragrance from the brands you love,
                         chosen for results you can see.
                     </p>
-                    <ul class="flex flex-col gap-3 text-sm text-rose-100">
+                    <ul
+                        aria-label="Our promises"
+                        class="flex flex-col gap-3 text-sm text-rose-100"
+                    >
                         <li
                             v-for="promise in promises"
                             :key="promise.label"
@@ -59,11 +62,15 @@ const promises = [
                 >
                     <div class="flex flex-col gap-4">
                         <h2
+                            id="footer-shop-heading"
                             class="text-xs font-semibold tracking-widest text-rose-300 uppercase"
                         >
                             Shop
                         </h2>
-                        <ul class="flex flex-col gap-3 text-sm">
+                        <ul
+                            aria-labelledby="footer-shop-heading"
+                            class="flex flex-col gap-3 text-sm"
+                        >
                             <li>
                                 <Link
                                     :href="productsIndex.url()"
@@ -87,11 +94,15 @@ const promises = [
 
                     <div class="flex flex-col gap-4">
                         <h2
+                            id="footer-care-heading"
                             class="text-xs font-semibold tracking-widest text-rose-300 uppercase"
                         >
                             Customer care
                         </h2>
-                        <ul class="flex flex-col gap-3 text-sm">
+                        <ul
+                            aria-labelledby="footer-care-heading"
+                            class="flex flex-col gap-3 text-sm"
+                        >
                             <li>
                                 <Link
                                     :href="cartIndex.url()"

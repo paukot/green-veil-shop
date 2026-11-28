@@ -24,8 +24,13 @@ const props = defineProps<{
             <slot name="icon" />
         </div>
         <div class="flex max-w-md flex-col gap-2">
-            <h2 class="font-serif text-2xl text-ink">{{ title }}</h2>
-            <p v-if="description" class="text-sm text-ink-muted">
+            <h2 class="font-serif text-2xl text-ink">
+                {{ title }}
+            </h2>
+            <p
+                v-if="description"
+                class="text-sm text-ink-muted"
+            >
                 {{ description }}
             </p>
         </div>

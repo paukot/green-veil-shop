@@ -27,7 +27,11 @@ const groups = computed(() =>
 </script>
 
 <template>
-    <dl v-if="groups.length > 0" class="flex flex-col gap-3">
+    <dl
+        v-if="groups.length > 0"
+        class="flex flex-col gap-3"
+        aria-label="Product benefits and attributes"
+    >
         <div
             v-for="group in groups"
             :key="group.label"

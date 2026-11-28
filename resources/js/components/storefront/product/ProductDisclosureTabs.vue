@@ -130,6 +130,7 @@ const specifications = computed(() => {
 <template>
     <section
         class="mt-16 flex flex-col gap-8 border-t border-border pt-12 lg:mt-24"
+        aria-label="Product details"
     >
         <div
             role="tablist"
@@ -205,7 +206,10 @@ const specifications = computed(() => {
                     >
                         Key actives
                     </h4>
-                    <ul class="grid gap-4 sm:grid-cols-2">
+                    <ul
+                        class="grid gap-4 sm:grid-cols-2"
+                        aria-label="Key active ingredients"
+                    >
                         <li
                             v-for="ing in product.ingredients"
                             :key="ing.id"
@@ -285,7 +289,10 @@ const specifications = computed(() => {
                 role="tabpanel"
                 :aria-labelledby="`${baseId}-tab-specs`"
             >
-                <dl class="divide-y divide-border border-y border-border">
+                <dl
+                    class="divide-y divide-border border-y border-border"
+                    aria-label="Product specifications"
+                >
                     <div
                         v-for="row in specifications"
                         :key="row.label"

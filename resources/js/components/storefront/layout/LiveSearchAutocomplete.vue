@@ -254,7 +254,13 @@ const showDropdown = computed(() => {
 </script>
 
 <template>
-    <div ref="searchContainer" class="relative w-full" @keydown="handleKeydown">
+    <div
+        ref="searchContainer"
+        role="search"
+        aria-label="Product search"
+        class="relative w-full"
+        @keydown="handleKeydown"
+    >
         <div class="relative">
             <span
                 class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-subtle"
@@ -281,6 +287,7 @@ const showDropdown = computed(() => {
                 :aria-activedescendant="activeOptionId"
                 aria-autocomplete="list"
                 aria-label="Search products"
+                :aria-busy="isLoading || undefined"
                 :placeholder="placeholder"
                 @focus="onInputFocus"
                 @keydown.enter.prevent="onEnter"
@@ -327,6 +334,7 @@ const showDropdown = computed(() => {
                         </p>
                         <button
                             type="button"
+                            aria-label="Clear recent searches"
                             @click="clearRecentSearches"
                             class="text-xs font-medium text-rose-700 hover:underline"
                         >

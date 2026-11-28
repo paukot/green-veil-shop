@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useId } from 'vue';
 import { cn } from '@/lib/utils';
 
 /**
@@ -18,10 +19,15 @@ const props = withDefaults(
         columns: 1,
     },
 );
+
+const titleId = useId();
 </script>
 
 <template>
-    <section :class="cn('flex flex-col gap-6', props.class)">
+    <section
+        :aria-labelledby="titleId"
+        :class="cn('flex flex-col gap-6', props.class)"
+    >
         <header
             class="flex items-start justify-between gap-4 border-b border-border pb-4"
         >
@@ -34,7 +40,10 @@ const props = withDefaults(
                     {{ step }}
                 </span>
                 <div class="flex flex-col gap-1">
-                    <h2 class="font-serif text-2xl leading-8 text-ink">
+                    <h2
+                        :id="titleId"
+                        class="font-serif text-2xl leading-8 text-ink"
+                    >
                         {{ title }}
                     </h2>
                     <p v-if="description" class="text-sm text-ink-muted">

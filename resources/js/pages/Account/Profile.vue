@@ -56,9 +56,13 @@ const updatePassword = () => {
         <!-- Personal Details Section -->
         <section
             class="rounded-2xl border border-border bg-surface-raised p-6 sm:p-8"
+            aria-labelledby="profile-personal-heading"
         >
             <div class="mb-6 flex flex-col gap-1 border-b border-border pb-4">
-                <h2 class="font-serif text-2xl text-ink">
+                <h2
+                    id="profile-personal-heading"
+                    class="font-serif text-2xl text-ink"
+                >
                     Personal Information
                 </h2>
                 <p class="text-sm text-ink-muted">
@@ -70,6 +74,7 @@ const updatePassword = () => {
             <form
                 @submit.prevent="updateProfile"
                 class="flex max-w-xl flex-col gap-4"
+                aria-labelledby="profile-personal-heading"
             >
                 <!-- Name Field -->
                 <TextField
@@ -112,6 +117,7 @@ const updatePassword = () => {
                     <span
                         v-if="profileForm.recentlySuccessful"
                         class="animate-fade-in text-xs font-medium text-rose-700"
+                        role="status"
                     >
                         Saved successfully!
                     </span>
@@ -122,9 +128,13 @@ const updatePassword = () => {
         <!-- Password & Security Section -->
         <section
             class="rounded-2xl border border-border bg-surface-raised p-6 sm:p-8"
+            aria-labelledby="profile-password-heading"
         >
             <div class="mb-6 flex flex-col gap-1 border-b border-border pb-4">
-                <h2 class="font-serif text-2xl text-ink">
+                <h2
+                    id="profile-password-heading"
+                    class="font-serif text-2xl text-ink"
+                >
                     Security & Password
                 </h2>
                 <p class="text-sm text-ink-muted">
@@ -136,6 +146,7 @@ const updatePassword = () => {
             <form
                 @submit.prevent="updatePassword"
                 class="flex max-w-xl flex-col gap-4"
+                aria-labelledby="profile-password-heading"
             >
                 <!-- Current Password -->
                 <TextField
@@ -192,6 +203,7 @@ const updatePassword = () => {
                     <span
                         v-if="passwordForm.recentlySuccessful"
                         class="animate-fade-in text-xs font-medium text-rose-700"
+                        role="status"
                     >
                         Password updated!
                     </span>

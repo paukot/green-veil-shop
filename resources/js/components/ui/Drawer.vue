@@ -5,6 +5,10 @@ import IconButton from '@/components/ui/IconButton.vue';
 import { useDialogBehaviour } from '@/composables/useDialogBehaviour';
 import { cn } from '@/lib/utils';
 
+defineOptions({
+    inheritAttrs: false,
+});
+
 const props = withDefaults(
     defineProps<{
         open: boolean;
@@ -71,6 +75,7 @@ onMounted(() => {
                 aria-modal="true"
                 :aria-labelledby="titleId"
                 tabindex="-1"
+                v-bind="$attrs"
                 :class="
                     cn(
                         'pointer-events-none fixed inset-y-0 z-50 flex w-full flex-col outline-none',

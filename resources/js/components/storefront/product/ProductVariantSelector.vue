@@ -28,7 +28,13 @@ const emit = defineEmits<{
                 </span>
             </p>
 
-            <div class="flex flex-wrap items-center gap-2" role="radiogroup">
+            <div
+                class="flex flex-wrap items-center gap-2"
+                role="radiogroup"
+                :aria-label="
+                    variants.some((v) => v.color_hex) ? 'Shade' : 'Option'
+                "
+            >
                 <template v-for="variant in variants" :key="variant.id">
                     <button
                         v-if="variant.color_hex"
@@ -72,7 +78,7 @@ const emit = defineEmits<{
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 text-sm">
+        <div class="flex flex-wrap items-center gap-2 text-sm" role="status">
             <template v-if="isInStock">
                 <span
                     class="size-2 rounded-full bg-success-600"

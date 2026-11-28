@@ -83,7 +83,7 @@ const steps = computed<Step[]>(() => {
     >
         <div class="flex items-center justify-between gap-4">
             <h3 class="font-serif text-xl text-ink">Order progress</h3>
-            <Badge v-if="isCancelled" tone="danger">Cancelled</Badge>
+            <Badge v-if="isCancelled" tone="danger"> Cancelled </Badge>
         </div>
 
         <p
@@ -94,7 +94,11 @@ const steps = computed<Step[]>(() => {
             taken, a full refund has been issued to the original payment method.
         </p>
 
-        <ol v-else class="grid grid-cols-1 gap-6 sm:grid-cols-5 sm:gap-2">
+        <ol
+            v-else
+            aria-label="Order steps"
+            class="grid grid-cols-1 gap-6 sm:grid-cols-5 sm:gap-2"
+        >
             <li
                 v-for="(step, idx) in steps"
                 :key="step.id"

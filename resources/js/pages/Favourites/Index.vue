@@ -41,9 +41,11 @@ const displayedProducts = computed(() => {
     <template v-if="user">
         <Head title="Wishlist" />
 
-        <section class="flex flex-col gap-6">
+        <section class="flex flex-col gap-6" aria-labelledby="wishlist-heading">
             <div class="flex flex-col gap-2">
-                <h2 class="font-serif text-3xl text-ink">Saved</h2>
+                <h2 id="wishlist-heading" class="font-serif text-3xl text-ink">
+                    Saved
+                </h2>
                 <p class="text-sm text-ink-muted">
                     Your favourite formulas, in one place.
                 </p>
@@ -59,7 +61,11 @@ const displayedProducts = computed(() => {
     <template v-else>
         <Head title="Your Wishlist" />
 
-        <Section spacing="sm" class="border-b border-border">
+        <Section
+            spacing="sm"
+            class="border-b border-border"
+            aria-label="Wishlist header"
+        >
             <PageHeader
                 eyebrow="Wishlist"
                 title="Saved for later"

@@ -24,7 +24,7 @@ const imageUrl = computed(() => resolveStorageUrl(props.category.image));
             :src="imageUrl"
             :srcset="category.image_srcset ?? undefined"
             sizes="(min-width: 1024px) 33vw, 50vw"
-            :alt="category.name"
+            alt=""
             class="absolute inset-0 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             loading="lazy"
             @error="showPlaceholderOnError"

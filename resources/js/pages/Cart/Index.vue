@@ -145,7 +145,10 @@ async function proceedToCheckout() {
             v-if="!cart.isEmpty.value"
             class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12"
         >
-            <div class="flex min-w-0 flex-col gap-12 lg:col-span-8">
+            <section
+                class="flex min-w-0 flex-col gap-12 lg:col-span-8"
+                aria-label="Bag items"
+            >
                 <CartItemList
                     :items="cart.items.value"
                     :warnings="cart.syncWarnings.value"
@@ -163,10 +166,11 @@ async function proceedToCheckout() {
                     @move-to-cart="cart.moveToCart"
                     @remove-item="cart.removeSavedItem"
                 />
-            </div>
+            </section>
 
-            <div
+            <aside
                 class="flex flex-col gap-6 lg:sticky lg:top-sticky lg:col-span-4"
+                aria-label="Order summary"
             >
                 <CartSummaryCard
                     :item-count="cart.count.value"
@@ -193,7 +197,10 @@ async function proceedToCheckout() {
                     @remove="handleRemovePromo"
                 />
 
-                <ul class="flex flex-col gap-3 px-2 text-sm text-ink-muted">
+                <ul
+                    class="flex flex-col gap-3 px-2 text-sm text-ink-muted"
+                    aria-label="Store guarantees"
+                >
                     <li class="flex items-center gap-3">
                         <ShieldCheckIcon
                             class="size-4 text-rose-700"
@@ -209,7 +216,7 @@ async function proceedToCheckout() {
                         30-day returns and exchanges
                     </li>
                 </ul>
-            </div>
+            </aside>
         </div>
 
         <div v-else class="flex flex-col gap-12">

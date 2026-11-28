@@ -64,7 +64,7 @@ const description = computed(() => {
                 </p>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row">
-                <Button :href="home.url()" size="lg">Back to home</Button>
+                <Button :href="home.url()" size="lg"> Back to home </Button>
                 <Button :href="productsIndex.url()" variant="outline" size="lg">
                     Browse products
                 </Button>

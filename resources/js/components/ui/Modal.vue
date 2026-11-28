@@ -5,6 +5,10 @@ import IconButton from '@/components/ui/IconButton.vue';
 import { useDialogBehaviour } from '@/composables/useDialogBehaviour';
 import { cn } from '@/lib/utils';
 
+defineOptions({
+    inheritAttrs: false,
+});
+
 const props = withDefaults(
     defineProps<{
         open: boolean;
@@ -61,6 +65,7 @@ const sizeClasses = {
                     :aria-labelledby="titleId"
                     :aria-describedby="description ? descriptionId : undefined"
                     tabindex="-1"
+                    v-bind="$attrs"
                     :class="
                         cn(
                             'flex max-h-[90vh] w-full flex-col rounded-2xl bg-surface-raised shadow-xl outline-none',

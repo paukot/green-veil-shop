@@ -37,7 +37,7 @@ function discountLabel(promo: PromotionBanner): string {
 </script>
 
 <template>
-    <Section v-if="promotions.length > 0" tone="accent">
+    <Section v-if="promotions.length > 0" tone="accent" aria-label="Offers">
         <div class="flex flex-col gap-8">
             <PageHeader
                 level="section"
@@ -47,6 +47,7 @@ function discountLabel(promo: PromotionBanner): string {
             />
 
             <ul
+                aria-label="Promotions"
                 class="-mx-4 scrollbar-none flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3"
             >
                 <li

@@ -62,6 +62,7 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
                 aria-label="Filters"
             >
                 <FilterSidebar
+                    id-prefix="desktop"
                     :categories="categories"
                     :filters="filters"
                     :facets="facets"
@@ -73,6 +74,9 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
 
             <div
                 id="catalog-results"
+                role="region"
+                aria-label="Search results"
+                :aria-busy="isLoading"
                 class="flex min-w-0 flex-1 scroll-mt-24 flex-col gap-6 lg:scroll-mt-sticky"
             >
                 <!-- Toolbar -->
@@ -89,6 +93,7 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
                         variant="outline"
                         size="sm"
                         class="lg:hidden"
+                        aria-haspopup="dialog"
                         @click="mobileFilterOpen = true"
                     >
                         <template #icon>
@@ -139,9 +144,9 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
                         <SearchIcon aria-hidden="true" />
                     </template>
                     <template #actions>
-                        <Button :href="resetUrl || baseUrl"
-                            >Reset filters</Button
-                        >
+                        <Button :href="resetUrl || baseUrl">
+                            Reset filters
+                        </Button>
                     </template>
                 </EmptyState>
             </div>
@@ -155,6 +160,7 @@ const { mobileFilterOpen, activeFilterCount } = useCatalogFilters(
     >
         <div class="p-6">
             <FilterSidebar
+                id-prefix="mobile"
                 :categories="categories"
                 :filters="filters"
                 :facets="facets"

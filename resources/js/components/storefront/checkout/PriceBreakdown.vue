@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/utils';
 /**
  * The subtotal → savings → delivery → total table shared by the bag, mini bag and checkout.
  */
-withDefaults(
+const props = withDefaults(
     defineProps<{
         subtotal: number;
         discountAmount?: number;
@@ -15,6 +15,8 @@ withDefaults(
         total: number;
         totalLabel?: string;
         note?: string;
+        /** Prefix for ``s (`<prefix>-subtotal`, `<prefix>-total` …). */
+        testIdPrefix?: string;
     }>(),
     {
         discountAmount: 0,
@@ -22,12 +24,13 @@ withDefaults(
         shipping: null,
         totalLabel: 'Total',
         note: undefined,
+        testIdPrefix: 'price',
     },
 );
 </script>
 
 <template>
-    <dl class="flex flex-col gap-3 text-sm">
+    <dl class="flex flex-col gap-3 text-sm" aria-label="Price breakdown">
         <div class="flex items-center justify-between gap-4">
             <dt class="text-ink-muted">Subtotal</dt>
             <dd class="font-medium text-ink tabular-nums">
@@ -75,7 +78,10 @@ withDefaults(
                     note
                 }}</span>
             </dt>
-            <dd class="text-2xl font-semibold text-ink tabular-nums">
+            <dd
+                class="text-2xl font-semibold text-ink tabular-nums"
+                :data-testid="`${props.testIdPrefix}-total`"
+            >
                 {{ formatCurrency(total) }}
             </dd>
         </div>

@@ -92,6 +92,8 @@ const classes = computed(() =>
         :type="href ? undefined : type"
         :disabled="href ? undefined : isInactive"
         :aria-busy="loading || undefined"
+        :aria-disabled="href && isInactive ? true : undefined"
+        :tabindex="href && isInactive ? -1 : undefined"
         :class="classes"
     >
         <LoadingSpinner v-if="loading" size="sm" />

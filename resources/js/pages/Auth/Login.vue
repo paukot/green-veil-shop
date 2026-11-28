@@ -36,6 +36,7 @@ const submit = () => {
                     Customer Sanctuary
                 </p>
                 <h1
+                    id="login-heading"
                     class="font-serif text-3xl tracking-tight text-rose-900 sm:text-4xl"
                 >
                     Sign In to Your Account
@@ -48,7 +49,11 @@ const submit = () => {
             <div
                 class="rounded-2xl border border-cream-200 bg-white p-6 shadow-sm sm:p-8"
             >
-                <form @submit.prevent="submit" class="flex flex-col gap-4">
+                <form
+                    @submit.prevent="submit"
+                    class="flex flex-col gap-4"
+                    aria-labelledby="login-heading"
+                >
                     <!-- General / throttled error -->
                     <div
                         v-if="form.errors.email && !form.email"

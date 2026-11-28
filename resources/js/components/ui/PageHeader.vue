@@ -82,7 +82,10 @@ const props = withDefaults(
                 <slot name="description">{{ description }}</slot>
             </p>
         </div>
-        <div v-if="$slots.actions" class="flex shrink-0 items-center gap-3">
+        <div
+            v-if="$slots.actions"
+            class="flex shrink-0 items-center gap-3"
+        >
             <slot name="actions" />
         </div>
     </header>

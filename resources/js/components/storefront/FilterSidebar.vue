@@ -33,6 +33,11 @@ const props = withDefaults(
         };
         baseUrl?: string;
         showCategories?: boolean;
+        /**
+         * Unique per rendered instance (e.g. `desktop` / `mobile`) so ids and radio
+         * group names don't collide when the sidebar is mounted twice.
+         */
+        idPrefix?: string;
     }>(),
     {
         categories: () => [],
@@ -40,6 +45,7 @@ const props = withDefaults(
         priceRange: () => ({ min: 0, max: 100 }),
         baseUrl: () => productsIndex.url(),
         showCategories: true,
+        idPrefix: 'filters',
     },
 );
 
@@ -313,7 +319,7 @@ const totalActiveFilters = computed(() => {
 </script>
 
 <template>
-    <div class="flex flex-col" aria-label="Filters and sorting">
+    <div class="flex flex-col" role="group" aria-label="Filters and sorting">
         <div
             v-if="totalActiveFilters > 0 || searchQuery"
             class="flex flex-col gap-3 border-b border-border pb-4"
@@ -325,6 +331,7 @@ const totalActiveFilters = computed(() => {
                 </p>
                 <button
                     type="button"
+                    aria-label="Clear all filters"
                     class="text-sm font-medium text-rose-800 underline-offset-4 hover:underline"
                     @click="clearAllFilters"
                 >
@@ -343,7 +350,11 @@ const totalActiveFilters = computed(() => {
             </div>
         </div>
 
-        <FilterAccordion v-model:is-open="openSections.sort" title="Sort by">
+        <FilterAccordion
+            v-model:is-open="openSections.sort"
+            title="Sort by"
+            filter-key="sort"
+        >
             <SelectInput
                 v-model="selectedSort"
                 size="sm"
@@ -362,15 +373,20 @@ const totalActiveFilters = computed(() => {
             v-if="showCategories && categories.length > 0"
             v-model:is-open="openSections.categories"
             title="Categories"
+            filter-key="categories"
             :count="selectedCategory ? 1 : 0"
         >
-            <ul class="flex max-h-64 flex-col overflow-y-auto">
+            <ul
+                class="flex max-h-64 flex-col overflow-y-auto"
+                role="radiogroup"
+                aria-label="Categories"
+            >
                 <li>
                     <label
                         class="flex h-8 cursor-pointer items-center gap-3 text-sm text-ink-muted hover:text-ink"
                     >
                         <RadioInput
-                            name="category_filter"
+                            :name="`${idPrefix}_category_filter`"
                             value=""
                             :checked="!selectedCategory"
                             @change="selectedCategory = ''"
@@ -390,7 +406,7 @@ const totalActiveFilters = computed(() => {
                         class="flex h-8 cursor-pointer items-center gap-3 text-sm text-ink-muted hover:text-ink"
                     >
                         <RadioInput
-                            name="category_filter"
+                            :name="`${idPrefix}_category_filter`"
                             :value="cat.slug"
                             :checked="selectedCategory === cat.slug"
                             @change="selectedCategory = cat.slug"
@@ -415,6 +431,7 @@ const totalActiveFilters = computed(() => {
         <!-- Brands Filter Accordion -->
         <FilterSection
             title="Brands"
+            filter-key="brands"
             :options="facets?.brands"
             :selected="selectedBrands"
             v-model:is-open="openSections.brands"
@@ -424,6 +441,7 @@ const totalActiveFilters = computed(() => {
         <!-- Skin Types Filter Accordion -->
         <FilterSection
             title="Skin Types"
+            filter-key="skin_types"
             :options="facets?.skin_types"
             :selected="selectedSkinTypes"
             v-model:is-open="openSections.skin_types"
@@ -433,6 +451,7 @@ const totalActiveFilters = computed(() => {
         <!-- Effects / Actions Filter Accordion -->
         <FilterSection
             title="Effects & Actions"
+            filter-key="effects"
             :options="facets?.effects"
             :selected="selectedEffects"
             v-model:is-open="openSections.effects"
@@ -442,6 +461,7 @@ const totalActiveFilters = computed(() => {
         <!-- Key Ingredients Filter Accordion -->
         <FilterSection
             title="Key Ingredients"
+            filter-key="ingredients"
             :options="facets?.ingredients"
             :selected="selectedIngredients"
             v-model:is-open="openSections.ingredients"
@@ -451,6 +471,7 @@ const totalActiveFilters = computed(() => {
         <!-- Hair Types Filter Accordion -->
         <FilterSection
             title="Hair Types"
+            filter-key="hair_types"
             :options="facets?.hair_types"
             :selected="selectedHairTypes"
             v-model:is-open="openSections.hair_types"
@@ -460,6 +481,7 @@ const totalActiveFilters = computed(() => {
         <!-- Clean Beauty Claims Filter Accordion -->
         <FilterSection
             title="Clean Beauty Claims"
+            filter-key="claims"
             :options="facets?.claims"
             :selected="selectedClaims"
             v-model:is-open="openSections.claims"
@@ -469,6 +491,7 @@ const totalActiveFilters = computed(() => {
         <!-- Formula / Texture Filter Accordion -->
         <FilterSection
             title="Formula & Texture"
+            filter-key="formula_types"
             :options="facets?.formula_types"
             :selected="selectedFormulaTypes"
             v-model:is-open="openSections.formula_types"
@@ -478,6 +501,7 @@ const totalActiveFilters = computed(() => {
         <!-- SPF Filter Accordion -->
         <FilterSection
             title="SPF Protection"
+            filter-key="spf"
             :options="facets?.spf"
             :selected="selectedSpf"
             v-model:is-open="openSections.spf"
@@ -486,6 +510,7 @@ const totalActiveFilters = computed(() => {
         <!-- Classification Filter Accordion -->
         <FilterSection
             title="Cosmetic Classification"
+            filter-key="classifications"
             :options="facets?.classifications"
             :selected="selectedClassifications"
             v-model:is-open="openSections.classifications"
@@ -494,6 +519,7 @@ const totalActiveFilters = computed(() => {
         <!-- Country of Origin Filter Accordion -->
         <FilterSection
             title="Country of Origin"
+            filter-key="origins"
             :options="facets?.origins"
             :selected="selectedOrigins"
             v-model:is-open="openSections.origins"
@@ -501,7 +527,11 @@ const totalActiveFilters = computed(() => {
             @toggle="toggleFacetItem(selectedOrigins, $event)"
         />
 
-        <FilterAccordion v-model:is-open="openSections.price" title="Price (€)">
+        <FilterAccordion
+            v-model:is-open="openSections.price"
+            title="Price (€)"
+            filter-key="price"
+        >
             <div class="flex items-center gap-2">
                 <TextInput
                     v-model="minPrice"
@@ -529,7 +559,7 @@ const totalActiveFilters = computed(() => {
 
         <div class="border-b border-border py-4">
             <CheckboxField
-                id="filter-in-stock"
+                :id="`${idPrefix}-filter-in-stock`"
                 v-model="inStock"
                 label="In stock only"
             />

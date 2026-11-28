@@ -284,6 +284,7 @@ function submit() {
 
         <form
             class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12"
+            aria-label="Checkout"
             @submit.prevent="submit"
         >
             <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
@@ -292,6 +293,7 @@ function submit() {
                     <button
                         type="button"
                         class="flex h-16 w-full items-center justify-between gap-4 px-4"
+                        aria-controls="checkout-mobile-summary-panel"
                         :aria-expanded="mobileSummaryOpen"
                         @click="mobileSummaryOpen = !mobileSummaryOpen"
                     >
@@ -322,9 +324,12 @@ function submit() {
                     </button>
                     <div
                         v-show="mobileSummaryOpen"
+                        id="checkout-mobile-summary-panel"
                         class="border-t border-border p-4"
                     >
                         <CheckoutOrderSummary
+                            id-prefix="mobile"
+                            test-id-suffix="-mobile"
                             bare
                             :show-submit="false"
                             :items="items"
@@ -404,6 +409,8 @@ function submit() {
                         <div
                             v-if="savedAddresses && savedAddresses.length > 0"
                             class="flex flex-col gap-3"
+                            role="group"
+                            aria-label="Saved shipping addresses"
                         >
                             <p
                                 class="flex items-baseline justify-between gap-4 text-sm"
@@ -420,6 +427,7 @@ function submit() {
                                     v-for="address in savedAddresses"
                                     :key="address.id"
                                     type="button"
+                                    :aria-label="`${address.label} — ${address.recipient_name}, ${address.formatted}`"
                                     :aria-pressed="
                                         form.selected_address_id === address.id
                                     "
@@ -593,7 +601,10 @@ function submit() {
 
                 <Card padding="lg">
                     <FormSection :step="3" title="Delivery">
-                        <RadioCardGroup :error="form.errors.delivery_option_id">
+                        <RadioCardGroup
+                            aria-label="Delivery method"
+                            :error="form.errors.delivery_option_id"
+                        >
                             <RadioCard
                                 v-for="option in deliveryOptions"
                                 :key="option.id"
@@ -627,7 +638,10 @@ function submit() {
 
                 <Card padding="lg">
                     <FormSection :step="4" title="Payment">
-                        <RadioCardGroup :error="form.errors.payment_option_id">
+                        <RadioCardGroup
+                            aria-label="Payment method"
+                            :error="form.errors.payment_option_id"
+                        >
                             <RadioCard
                                 v-for="option in paymentOptions"
                                 :key="option.id"
@@ -679,6 +693,8 @@ function submit() {
 
             <div class="hidden lg:col-span-5 lg:block">
                 <CheckoutOrderSummary
+                    id-prefix="desktop"
+                    test-id-suffix="-desktop"
                     :items="items"
                     :summary="summary"
                     :applied-promotion="activePromo"

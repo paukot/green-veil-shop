@@ -3,6 +3,10 @@ import { Link } from '@inertiajs/vue3';
 import { XIcon } from '@lucide/vue';
 import { cn } from '@/lib/utils';
 
+defineOptions({
+    inheritAttrs: false,
+});
+
 const props = withDefaults(
     defineProps<{
         /** Link target; without it the chip is a button (or static with `static`). */
@@ -45,6 +49,8 @@ const emit = defineEmits<{
             :href="href"
             :type="href || props.static ? undefined : 'button'"
             :aria-pressed="href || props.static ? undefined : selected"
+            :aria-current="href && selected ? 'true' : undefined"
+            v-bind="$attrs"
             :class="
                 cn(
                     'inline-flex h-full items-center gap-2 px-4',

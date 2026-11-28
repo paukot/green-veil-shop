@@ -50,6 +50,8 @@ const showBadge = computed(
         :disabled="href ? undefined : disabled"
         :aria-label="label"
         :aria-pressed="pressed"
+        :aria-disabled="href && disabled ? true : undefined"
+        :tabindex="href && disabled ? -1 : undefined"
         :title="label"
         :class="
             cn(
@@ -63,6 +65,7 @@ const showBadge = computed(
         <slot />
         <span
             v-if="showBadge"
+            data-testid="icon-button-badge"
             class="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-clay-600 px-1 text-xs leading-4 font-semibold text-white"
             aria-hidden="true"
         >

@@ -19,7 +19,11 @@ defineProps<CheckoutCancelPageProps>();
     <Head :title="`Order ${order.number} Cancelled`" />
 
     <Container size="narrow" class="py-16 lg:py-24">
-        <Card padding="lg" class="flex flex-col items-center gap-6 text-center">
+        <Card
+            padding="lg"
+            class="flex flex-col items-center gap-6 text-center"
+            role="status"
+        >
             <span
                 class="flex size-16 items-center justify-center rounded-full bg-warning-50 text-warning-700"
             >
@@ -39,9 +43,9 @@ defineProps<CheckoutCancelPageProps>();
                     <span class="font-mono font-semibold text-ink">{{
                         order.number
                     }}</span>
-                    ({{ formatCurrency(order.total) }}). Your items are still
-                    reserved if you'd like to try again or choose another way to
-                    pay.
+                    (<span>{{ formatCurrency(order.total) }}</span
+                    >). Your items are still reserved if you'd like to try again
+                    or choose another way to pay.
                 </p>
             </div>
             <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">

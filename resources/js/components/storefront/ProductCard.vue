@@ -62,7 +62,10 @@ function decrementFromBag() {
 </script>
 
 <template>
-    <article class="group relative flex flex-col gap-4">
+    <article
+        class="group relative flex flex-col gap-4"
+        :aria-labelledby="`product-card-name-${product.id}`"
+    >
         <!-- Image -->
         <div
             class="relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-sunken"
@@ -125,7 +128,10 @@ function decrementFromBag() {
                 {{ product.brand?.name ?? product.category?.name }}
             </p>
 
-            <h3 class="font-serif text-lg leading-6 text-ink">
+            <h3
+                :id="`product-card-name-${product.id}`"
+                class="font-serif text-lg leading-6 text-ink"
+            >
                 <Link
                     :href="productShow.url(product.slug)"
                     prefetch

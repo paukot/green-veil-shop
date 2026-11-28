@@ -376,6 +376,7 @@ onUnmounted(() => {
                 <ul
                     v-if="product.promotions && product.promotions.length > 0"
                     class="flex flex-col gap-2 rounded-2xl bg-clay-50 p-4"
+                    aria-label="Product promotions"
                 >
                     <li
                         v-for="promo in product.promotions"
@@ -450,6 +451,9 @@ onUnmounted(() => {
                                       : 'Sold out'
                             }}
                         </Button>
+                        <span class="sr-only" role="status" aria-live="polite">
+                            {{ addedToCartNotice ? 'Added to bag' : '' }}
+                        </span>
                         <FavouriteButton
                             :product-id="product.id"
                             :product-name="product.name"
@@ -485,7 +489,10 @@ onUnmounted(() => {
                     :claims="product.claims"
                 />
 
-                <ul class="grid grid-cols-2 gap-4 border-t border-border pt-8">
+                <ul
+                    class="grid grid-cols-2 gap-4 border-t border-border pt-8"
+                    aria-label="Product guarantees"
+                >
                     <li
                         v-for="promise in promises"
                         :key="promise.label"
@@ -515,6 +522,7 @@ onUnmounted(() => {
     <Section
         v-if="!relatedProducts || relatedProducts.length > 0"
         tone="sunken"
+        aria-label="Related products"
     >
         <div class="flex flex-col gap-8 lg:gap-12">
             <PageHeader
