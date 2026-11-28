@@ -32,8 +32,12 @@ export type CheckoutOrderItem = {
     };
 };
 
-withDefaults(
+const props = withDefaults(
     defineProps<{
+        /** Unique per rendered copy (e.g. `mobile` / `desktop`) so field ids never collide. */
+        idPrefix?: string;
+        /** Appended to root/total/submit testids, e.g. `-mobile` or `-desktop`. */
+        testIdSuffix?: string;
         items: CheckoutOrderItem[];
         summary: CartSummary;
         appliedPromotion?: AppliedPromotionData | null;
@@ -53,6 +57,8 @@ withDefaults(
         bare?: boolean;
     }>(),
     {
+        idPrefix: 'summary',
+        testIdSuffix: '',
         appliedPromotion: null,
         availablePromotions: () => [],
         selectedDelivery: null,
@@ -77,6 +83,8 @@ const emit = defineEmits<{
         :is="bare ? 'div' : Card"
         :padding="bare ? undefined : 'lg'"
         class="flex flex-col gap-6"
+        role="region"
+        aria-label="Order summary"
     >
         <div v-if="!bare" class="flex items-center justify-between gap-4">
             <h2 class="font-serif text-2xl text-ink">Order summary</h2>
@@ -87,6 +95,7 @@ const emit = defineEmits<{
 
         <ul
             class="-mt-2 flex max-h-80 flex-col gap-4 overflow-y-auto pt-2 pr-2"
+            aria-label="Order items"
         >
             <li
                 v-for="item in items"
@@ -100,15 +109,15 @@ const emit = defineEmits<{
                         <img
                             v-if="item.product.main_image"
                             :src="resolveStorageUrl(item.product.main_image)"
-                            :alt="item.product.name"
+                            alt=""
                             class="size-full object-cover"
                             @error="showPlaceholderOnError"
                         />
                     </div>
                     <span
                         class="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-rose-900 px-1 text-xs font-semibold text-cream-50 ring-2 ring-surface-raised"
-                        :aria-label="`Quantity ${item.quantity}`"
                     >
+                        <span class="sr-only">Quantity </span>
                         {{ item.quantity }}
                     </span>
                 </div>
@@ -128,6 +137,7 @@ const emit = defineEmits<{
 
         <div class="border-t border-border pt-6">
             <PriceBreakdown
+                :test-id-prefix="`checkout${testIdSuffix.replace(/^-/, '-')}`"
                 :subtotal="summary.subtotal"
                 :discount-amount="discountAmount"
                 :promo-code="appliedPromotion?.code"
@@ -143,6 +153,7 @@ const emit = defineEmits<{
 
         <div class="border-t border-border pt-6">
             <PromotionsPanel
+                :id-prefix="idPrefix"
                 :applied-promotion="appliedPromotion"
                 :available-promotions="availablePromotions"
                 :is-applying="isApplyingPromo"

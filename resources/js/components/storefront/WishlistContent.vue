@@ -24,7 +24,12 @@ withDefaults(
 </script>
 
 <template>
-    <div v-if="loading" aria-busy="true" aria-label="Loading saved items">
+    <div
+        v-if="loading"
+        role="status"
+        aria-busy="true"
+        aria-label="Loading saved items"
+    >
         <ProductGridSkeleton :count="4" />
     </div>
 
@@ -59,7 +64,7 @@ withDefaults(
             <HeartIcon aria-hidden="true" />
         </template>
         <template #actions>
-            <Button :href="productsIndex.url()">Discover products</Button>
+            <Button :href="productsIndex.url()"> Discover products </Button>
         </template>
     </EmptyState>
 </template>

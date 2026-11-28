@@ -164,6 +164,7 @@ function clearAllFilters() {
     <div
         v-if="activeChips.length > 0"
         class="flex flex-wrap items-center gap-2"
+        role="group"
         aria-label="Active filters"
     >
         <Chip
@@ -178,6 +179,7 @@ function clearAllFilters() {
         </Chip>
         <button
             type="button"
+            aria-label="Clear all active filters"
             class="ml-2 text-sm font-medium text-rose-800 underline-offset-4 hover:underline"
             @click="clearAllFilters"
         >

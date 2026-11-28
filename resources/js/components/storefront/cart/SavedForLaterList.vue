@@ -22,15 +22,25 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <section v-if="items.length > 0" class="flex flex-col gap-4">
-        <h2 class="flex items-baseline gap-2 font-serif text-2xl text-ink">
+    <section
+        v-if="items.length > 0"
+        class="flex flex-col gap-4"
+        aria-labelledby="saved-for-later-heading"
+    >
+        <h2
+            id="saved-for-later-heading"
+            class="flex items-baseline gap-2 font-serif text-2xl text-ink"
+        >
             Saved for later
             <span class="font-sans text-sm text-ink-subtle">{{
                 items.length
             }}</span>
         </h2>
 
-        <ul class="flex flex-col divide-y divide-border border-y border-border">
+        <ul
+            class="flex flex-col divide-y divide-border border-y border-border"
+            aria-label="Saved items"
+        >
             <li
                 v-for="item in items"
                 :key="item.product_id"
@@ -39,12 +49,14 @@ const emit = defineEmits<{
                 <component
                     :is="item.slug ? Link : 'div'"
                     :href="item.slug ? productShow.url(item.slug) : undefined"
+                    aria-hidden="true"
+                    :tabindex="item.slug ? -1 : undefined"
                     class="size-16 shrink-0 overflow-hidden rounded-lg bg-surface-sunken"
                 >
                     <img
                         v-if="item.main_image"
                         :src="resolveStorageUrl(item.main_image)"
-                        :alt="item.name"
+                        alt=""
                         class="size-full object-cover"
                         loading="lazy"
                         @error="showPlaceholderOnError"
@@ -70,6 +82,7 @@ const emit = defineEmits<{
                     <Button
                         size="sm"
                         variant="outline"
+                        :aria-label="`Move ${item.name} to bag`"
                         @click="emit('move-to-cart', item.product_id)"
                     >
                         <template #icon>
@@ -82,7 +95,7 @@ const emit = defineEmits<{
                         <span class="sm:hidden">Add</span>
                     </Button>
                     <IconButton
-                        label="Remove from saved items"
+                        :label="`Remove ${item.name} from saved items`"
                         size="sm"
                         class="hover:text-danger-600"
                         @click="emit('remove-item', item.product_id)"

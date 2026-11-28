@@ -104,7 +104,7 @@ function handlePrint() {
                 Items from this order were added to your bag.
             </p>
             <IconButton
-                label="Dismiss"
+                label="Dismiss reorder message"
                 size="sm"
                 class="text-success-700 hover:bg-success-100"
                 @click="reorderSuccessMessage = false"
@@ -172,13 +172,18 @@ function handlePrint() {
         <div
             v-if="isUnpaid && paymentOption?.instructions"
             class="flex items-start gap-3 rounded-2xl border border-warning-200 bg-warning-50 p-6"
+            role="note"
+            aria-labelledby="order-payment-instructions-heading"
         >
             <InfoIcon
                 class="mt-1 size-4 shrink-0 text-warning-700"
                 aria-hidden="true"
             />
             <div class="flex flex-col gap-1 text-sm">
-                <h3 class="font-medium text-warning-800">
+                <h3
+                    id="order-payment-instructions-heading"
+                    class="font-medium text-warning-800"
+                >
                     How to pay: {{ paymentOption.name }}
                 </h3>
                 <p class="whitespace-pre-line text-warning-700">
@@ -187,14 +192,22 @@ function handlePrint() {
             </div>
         </div>
 
-        <Card padding="lg" class="flex flex-col gap-6">
-            <h3 class="font-serif text-2xl text-ink">
+        <Card
+            padding="lg"
+            as="section"
+            class="flex flex-col gap-6"
+            aria-labelledby="order-items-heading"
+        >
+            <h3 id="order-items-heading" class="font-serif text-2xl text-ink">
                 Items
                 <span class="font-sans text-sm text-ink-subtle">{{
                     items.length
                 }}</span>
             </h3>
-            <ul class="flex flex-col divide-y divide-border">
+            <ul
+                class="flex flex-col divide-y divide-border"
+                aria-labelledby="order-items-heading"
+            >
                 <li
                     v-for="item in items"
                     :key="item.id"
@@ -240,8 +253,13 @@ function handlePrint() {
         </Card>
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Card class="flex flex-col gap-3">
+            <Card
+                as="section"
+                class="flex flex-col gap-3"
+                aria-labelledby="order-delivery-heading"
+            >
                 <h3
+                    id="order-delivery-heading"
                     class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
                 >
                     Delivery
@@ -276,8 +294,13 @@ function handlePrint() {
                 </p>
             </Card>
 
-            <Card class="flex flex-col gap-3">
+            <Card
+                as="section"
+                class="flex flex-col gap-3"
+                aria-labelledby="order-payment-heading"
+            >
                 <h3
+                    id="order-payment-heading"
                     class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
                 >
                     Payment

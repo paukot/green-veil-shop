@@ -5,6 +5,10 @@ import type { SharedProps } from '@/types/storefront';
 import { CheckIcon, TriangleAlertIcon, XIcon } from '@lucide/vue';
 import { cn } from '@/lib/utils';
 
+defineOptions({
+    inheritAttrs: false,
+});
+
 const page = usePage<SharedProps>();
 
 const showToast = ref(false);
@@ -49,6 +53,9 @@ watch(
     >
         <div
             v-if="showToast"
+            data-testid="toast"
+            aria-label="Notification"
+            v-bind="$attrs"
             :class="
                 cn(
                     'pointer-events-auto fixed inset-x-4 bottom-4 z-50 flex items-center gap-3 rounded-2xl p-4 shadow-xl sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96',

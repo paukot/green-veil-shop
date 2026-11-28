@@ -117,6 +117,8 @@ onUnmounted(() => {
         <!-- Thumbnails: a vertical rail on desktop, a scroller on mobile -->
         <div
             v-if="images.length > 1"
+            role="group"
+            aria-label="Product images"
             class="-mx-4 scrollbar-none flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:max-h-[80vh] lg:flex-col lg:overflow-y-auto"
         >
             <button

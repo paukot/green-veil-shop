@@ -50,6 +50,7 @@ function increment() {
         "
         role="group"
         aria-label="Quantity"
+        :aria-busy="loading || undefined"
     >
         <button
             type="button"

@@ -159,12 +159,13 @@ const formTitle = computed(() => {
 <template>
     <Head title="Saved Shipping Addresses" />
 
-    <section class="flex flex-col gap-6">
+    <section class="flex flex-col gap-6" aria-labelledby="addresses-heading">
         <div
             class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
         >
             <div class="flex flex-col gap-2">
                 <h2
+                    id="addresses-heading"
                     class="flex items-baseline gap-3 font-serif text-3xl text-ink"
                 >
                     Addresses
@@ -188,6 +189,7 @@ const formTitle = computed(() => {
         <p
             v-if="!canAddAddress"
             class="rounded-lg bg-surface-sunken p-4 text-sm text-ink-muted"
+            role="status"
         >
             You've saved the maximum of {{ maxAddresses }} addresses. Edit or
             remove one to add another.
@@ -196,10 +198,13 @@ const formTitle = computed(() => {
         <div
             v-if="addresses.length > 0"
             class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            role="list"
+            aria-label="Saved addresses"
         >
             <Card
                 v-for="address in addresses"
                 :key="address.id"
+                role="listitem"
                 :class="
                     address.is_default
                         ? 'flex flex-col gap-4 border-rose-300 ring-1 ring-rose-300'
@@ -240,6 +245,7 @@ const formTitle = computed(() => {
                     <Button
                         size="sm"
                         variant="outline"
+                        :aria-label="`Edit ${address.label} address`"
                         @click="openEditForm(address)"
                     >
                         Edit
@@ -248,6 +254,7 @@ const formTitle = computed(() => {
                         v-if="!address.is_default"
                         size="sm"
                         variant="ghost"
+                        :aria-label="`Make ${address.label} address default`"
                         @click="setDefaultAddress(address)"
                     >
                         Make default
@@ -256,6 +263,7 @@ const formTitle = computed(() => {
                         size="sm"
                         variant="ghost"
                         class="ml-auto text-danger-600 hover:bg-danger-50"
+                        :aria-label="`Remove ${address.label} address`"
                         @click="confirmDelete(address)"
                     >
                         Remove
@@ -273,7 +281,9 @@ const formTitle = computed(() => {
                 <MapPinIcon aria-hidden="true" />
             </template>
             <template #actions>
-                <Button @click="openCreateForm">Add your first address</Button>
+                <Button @click="openCreateForm">
+                    Add your first address
+                </Button>
             </template>
         </EmptyState>
     </section>
@@ -281,12 +291,22 @@ const formTitle = computed(() => {
     <Modal :open="isFormOpen" :title="formTitle" size="lg" @close="closeForm">
         <form
             id="address-form"
+            :aria-label="editingAddressId ? 'Edit address' : 'Add address'"
             class="flex flex-col gap-4"
             @submit.prevent="submitForm"
         >
             <div class="flex flex-col gap-3">
-                <p class="text-sm font-medium text-ink">Label</p>
-                <div class="flex flex-wrap gap-2">
+                <p
+                    id="address-label-presets-heading"
+                    class="text-sm font-medium text-ink"
+                >
+                    Label
+                </p>
+                <div
+                    class="flex flex-wrap gap-2"
+                    role="group"
+                    aria-labelledby="address-label-presets-heading"
+                >
                     <Chip
                         v-for="preset in labelPresets"
                         :key="preset"

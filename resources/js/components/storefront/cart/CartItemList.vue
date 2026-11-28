@@ -48,14 +48,17 @@ const emit = defineEmits<{
             />
             <div class="flex flex-1 flex-col gap-1 text-sm text-warning-800">
                 <p class="font-medium">Your bag was updated</p>
-                <ul class="flex flex-col gap-1 text-warning-700">
+                <ul
+                    class="flex flex-col gap-1 text-warning-700"
+                    aria-label="Bag warnings"
+                >
                     <li v-for="(warn, idx) in warnings" :key="idx">
                         {{ warn }}
                     </li>
                 </ul>
             </div>
             <IconButton
-                label="Dismiss"
+                label="Dismiss bag warnings"
                 size="sm"
                 class="-mt-1 -mr-1 text-warning-700 hover:bg-warning-100"
                 @click="emit('dismiss-warnings')"
@@ -72,7 +75,10 @@ const emit = defineEmits<{
             />
         </Card>
 
-        <ul class="flex flex-col divide-y divide-border border-y border-border">
+        <ul
+            class="flex flex-col divide-y divide-border border-y border-border"
+            aria-label="Bag items"
+        >
             <li
                 v-for="item in items"
                 :key="item.product_id"
@@ -81,12 +87,14 @@ const emit = defineEmits<{
                 <Link
                     :href="productShow.url(item.slug)"
                     prefetch
+                    aria-hidden="true"
+                    tabindex="-1"
                     class="size-24 shrink-0 overflow-hidden rounded-lg bg-surface-sunken sm:size-32"
                 >
                     <img
                         v-if="item.main_image"
                         :src="resolveStorageUrl(item.main_image)"
-                        :alt="item.name"
+                        alt=""
                         class="size-full object-cover"
                         loading="lazy"
                         @error="showPlaceholderOnError"
@@ -135,6 +143,7 @@ const emit = defineEmits<{
                     >
                         <QuantityInput
                             size="sm"
+                            :aria-label="`Quantity for ${item.name}`"
                             :model-value="item.quantity"
                             :min="1"
                             :max="
@@ -151,7 +160,7 @@ const emit = defineEmits<{
                         />
                         <div class="flex items-center gap-2">
                             <IconButton
-                                label="Save for later"
+                                :label="`Save ${item.name} for later`"
                                 size="sm"
                                 @click="emit('save-for-later', item.product_id)"
                             >
@@ -161,7 +170,7 @@ const emit = defineEmits<{
                                 />
                             </IconButton>
                             <IconButton
-                                label="Remove from bag"
+                                :label="`Remove ${item.name} from bag`"
                                 size="sm"
                                 class="hover:text-danger-600"
                                 @click="emit('remove-item', item.product_id)"

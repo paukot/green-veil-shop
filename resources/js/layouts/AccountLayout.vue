@@ -68,7 +68,10 @@ const navigation = computed(() => [
             <div
                 class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12 print:block"
             >
-                <aside class="lg:col-span-3 print:hidden">
+                <aside
+                    aria-label="Account sidebar"
+                    class="lg:col-span-3 print:hidden"
+                >
                     <nav
                         aria-label="Account"
                         class="-mx-4 scrollbar-none flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:sticky lg:top-sticky lg:flex-col lg:gap-1"

@@ -39,7 +39,11 @@ defineProps<CategoryPageProps>();
     <!-- Breadcrumbs Navigation -->
     <Breadcrumbs :items="breadcrumbs" />
 
-    <Section spacing="sm" class="border-b border-border">
+    <Section
+        spacing="sm"
+        class="border-b border-border"
+        aria-label="Category header"
+    >
         <div class="flex flex-col gap-8">
             <PageHeader
                 :eyebrow="category.parent ? category.parent.name : 'Collection'"

@@ -27,6 +27,10 @@ import Button from '@/components/ui/Button.vue';
 import Container from '@/components/ui/Container.vue';
 import IconButton from '@/components/ui/IconButton.vue';
 
+defineOptions({
+    inheritAttrs: false,
+});
+
 const mobileMenuOpen = defineModel<boolean>('mobileMenuOpen', {
     default: false,
 });
@@ -89,6 +93,7 @@ const isFavouritesPage = computed(
     </aside>
 
     <header
+        v-bind="$attrs"
         class="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-md"
     >
         <Container
@@ -156,6 +161,7 @@ const isFavouritesPage = computed(
                     label="Favourites"
                     :href="user ? accountRituals.url() : favouritesIndex.url()"
                     :badge="favouritesCount"
+                    :aria-current="isFavouritesPage ? 'page' : undefined"
                     :class="
                         cn(
                             'hidden sm:inline-flex',

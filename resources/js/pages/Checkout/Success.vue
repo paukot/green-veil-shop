@@ -164,9 +164,15 @@ const { stop } = usePoll(
                 </div>
             </div>
 
-            <section class="flex flex-col gap-4 border-t border-border pt-8">
+            <section
+                class="flex flex-col gap-4 border-t border-border pt-8"
+                aria-label="Order items"
+            >
                 <h2 class="font-serif text-2xl text-ink">Your order</h2>
-                <ul class="flex flex-col divide-y divide-border">
+                <ul
+                    class="flex flex-col divide-y divide-border"
+                    aria-label="Ordered items"
+                >
                     <li
                         v-for="item in order.items"
                         :key="item.id"
@@ -198,6 +204,7 @@ const { stop } = usePoll(
                     </li>
                 </ul>
                 <PriceBreakdown
+                    test-id-prefix="checkout-success"
                     :subtotal="order.subtotal"
                     :discount-amount="order.discount_amount"
                     :shipping="order.delivery_amount"
@@ -209,6 +216,7 @@ const { stop } = usePoll(
 
             <section
                 class="grid grid-cols-1 gap-6 border-t border-border pt-8 text-sm sm:grid-cols-2"
+                aria-label="Shipping and payment details"
             >
                 <div class="flex flex-col gap-2">
                     <h3

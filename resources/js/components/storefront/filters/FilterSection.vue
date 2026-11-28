@@ -7,6 +7,7 @@ import { CheckboxInput, SearchInput } from '@/components/form';
 const props = withDefaults(
     defineProps<{
         title: string;
+        filterKey?: string;
         options?: FacetOption[];
         selected: string[];
         searchPlaceholder?: string;
@@ -48,6 +49,7 @@ function toggle(val: string) {
         v-if="options && options.length > 0"
         v-model:is-open="isOpen"
         :title="title"
+        :filter-key="filterKey"
         :count="selected.length"
     >
         <SearchInput
@@ -57,7 +59,10 @@ function toggle(val: string) {
             :placeholder="searchPlaceholder"
             :aria-label="searchPlaceholder"
         />
-        <ul class="flex max-h-64 flex-col overflow-y-auto">
+        <ul
+            class="flex max-h-64 flex-col overflow-y-auto"
+            :aria-label="`${title} options`"
+        >
             <li
                 v-for="opt in filteredOptions"
                 :key="opt.slug || opt.value || opt.id"
@@ -84,7 +89,10 @@ function toggle(val: string) {
                     >
                         {{ opt.name || opt.value }}
                     </span>
-                    <span class="text-xs text-ink-subtle tabular-nums">
+                    <span
+                        class="text-xs text-ink-subtle tabular-nums"
+                        aria-hidden="true"
+                    >
                         {{ opt.products_count ?? opt.count ?? 0 }}
                     </span>
                 </label>

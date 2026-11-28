@@ -27,7 +27,11 @@ const model = defineModel<AddressData>({ required: true });
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div
+        class="space-y-4"
+        role="group"
+        :aria-label="`${idPrefix.replace(/_/g, ' ')} address`"
+    >
         <TextField
             :id="`${idPrefix}_line1`"
             v-model="model.line1"

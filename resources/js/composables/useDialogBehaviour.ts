@@ -7,6 +7,7 @@ function lockScroll(): void {
     openOverlayCount++;
     if (openOverlayCount === 1) {
         document.documentElement.style.overflow = 'hidden';
+        document.documentElement.setAttribute('data-dialog-open', 'true');
     }
 }
 
@@ -14,6 +15,7 @@ function unlockScroll(): void {
     openOverlayCount = Math.max(0, openOverlayCount - 1);
     if (openOverlayCount === 0) {
         document.documentElement.style.overflow = '';
+        document.documentElement.removeAttribute('data-dialog-open');
     }
 }
 

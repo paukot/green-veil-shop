@@ -22,6 +22,8 @@ const layout = computed(() => getNavigationLayout(props.category));
     -->
     <div
         v-if="category.children && category.children.length > 0"
+        role="region"
+        :aria-label="`${category.name} menu`"
         class="invisible absolute inset-x-0 top-full z-50 border-t border-border bg-surface-raised opacity-0 shadow-lg transition-[opacity,visibility] duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
     >
         <Container class="grid grid-cols-12 gap-8 py-8">
@@ -71,6 +73,7 @@ const layout = computed(() => getNavigationLayout(props.category));
                 prefetch
                 class="group/tile relative col-span-4 hidden aspect-[4/5] max-h-80 overflow-hidden rounded-2xl bg-surface-sunken lg:block xl:col-span-3"
                 tabindex="-1"
+                aria-hidden="true"
             >
                 <img
                     v-if="category.image"

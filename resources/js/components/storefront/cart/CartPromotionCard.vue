@@ -22,8 +22,15 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <Card padding="lg" class="flex flex-col gap-4">
-        <h2 class="font-serif text-xl text-ink">Promotions</h2>
+    <Card
+        as="section"
+        padding="lg"
+        class="flex flex-col gap-4"
+        aria-labelledby="cart-promotions-heading"
+    >
+        <h2 id="cart-promotions-heading" class="font-serif text-xl text-ink">
+            Promotions
+        </h2>
         <PromotionsPanel
             :applied-promotion="appliedPromotion"
             :available-promotions="availablePromotions"

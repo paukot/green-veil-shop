@@ -36,7 +36,11 @@ const pageTitle = computed(() => {
         <meta property="og:type" content="website" />
     </Head>
 
-    <Section spacing="sm" class="border-b border-border">
+    <Section
+        spacing="sm"
+        class="border-b border-border"
+        aria-label="Catalog header"
+    >
         <PageHeader
             :eyebrow="filters.q ? 'Search results' : 'The collection'"
             :title="filters.q ? `“${filters.q}”` : 'All products'"

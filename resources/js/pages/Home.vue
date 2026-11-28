@@ -83,6 +83,7 @@ const storyImage = computed(() =>
         <Container>
             <ul
                 class="grid grid-cols-1 gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8"
+                aria-label="Our promises"
             >
                 <li
                     v-for="pillar in pillars"
@@ -112,7 +113,7 @@ const storyImage = computed(() =>
     </section>
 
     <!-- Departments -->
-    <Section v-if="featuredCategories.length > 0">
+    <Section v-if="featuredCategories.length > 0" aria-label="Departments">
         <div class="flex flex-col gap-8 lg:gap-12">
             <PageHeader
                 level="section"
@@ -142,7 +143,7 @@ const storyImage = computed(() =>
     <PromoBanner :promotions="promotions" />
 
     <!-- Bestsellers -->
-    <Section>
+    <Section aria-label="Bestsellers">
         <div class="flex flex-col gap-8 lg:gap-12">
             <PageHeader
                 level="section"
@@ -172,7 +173,7 @@ const storyImage = computed(() =>
     </Section>
 
     <!-- Brand story -->
-    <Section tone="dark" spacing="none">
+    <Section tone="dark" spacing="none" aria-label="Brand story">
         <div
             class="grid items-center gap-8 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24"
         >

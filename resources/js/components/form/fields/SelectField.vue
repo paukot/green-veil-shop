@@ -36,6 +36,10 @@ const model = defineModel<string | number | null>();
 const autoId = useId();
 const inputId = computed(() => props.id || `select-${autoId}`);
 const errorId = computed(() => `${inputId.value}-error`);
+const hintId = computed(() => `${inputId.value}-hint`);
+const describedBy = computed(() =>
+    props.error ? errorId.value : props.hint ? hintId.value : undefined,
+);
 </script>
 
 <template>
@@ -66,13 +70,18 @@ const errorId = computed(() => `${inputId.value}-error`);
             :size="size"
             :rounded="rounded"
             :aria-invalid="Boolean(error)"
-            :aria-describedby="error ? errorId : undefined"
+            :aria-required="required || undefined"
+            :aria-describedby="describedBy"
             :class="props.class"
         >
             <slot />
         </SelectInput>
 
-        <p v-if="hint && !error" class="mt-2 text-xs text-ink-subtle">
+        <p
+            v-if="hint && !error"
+            :id="hintId"
+            class="mt-2 text-xs text-ink-subtle"
+        >
             {{ hint }}
         </p>
 

@@ -14,9 +14,9 @@ import { index as productsIndex } from '@/routes/products';
             <ShoppingBagIcon aria-hidden="true" />
         </template>
         <template #actions>
-            <Button :href="productsIndex.url()" size="lg"
-                >Start shopping</Button
-            >
+            <Button :href="productsIndex.url()" size="lg">
+                Start shopping
+            </Button>
         </template>
     </EmptyState>
 </template>

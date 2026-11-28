@@ -209,7 +209,9 @@ const counter = (index: number) => String(index + 1).padStart(2, '0');
                             type="button"
                             class="group flex h-8 flex-1 items-center"
                             :aria-label="`Show slide ${index + 1}`"
-                            :aria-current="index === currentIndex"
+                            :aria-current="
+                                index === currentIndex ? 'true' : undefined
+                            "
                             @click="goToSlide(index)"
                         >
                             <span

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useId } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { CheckIcon, XIcon } from '@lucide/vue';
 import { TextInput } from '@/components/form';
 import Badge from '@/components/ui/Badge.vue';
@@ -16,8 +16,10 @@ import type {
  * Applied promotion, promo-code form and the list of store offers. One component for the
  * bag, the desktop checkout summary and the mobile checkout summary.
  */
-withDefaults(
+const props = withDefaults(
     defineProps<{
+        /** Optional deterministic id prefix for the promo input (defaults to a generated id). */
+        idPrefix?: string;
         appliedPromotion?: AppliedPromotionData | null;
         availablePromotions?: AvailablePromotionData[];
         isApplying?: boolean;
@@ -40,7 +42,11 @@ const emit = defineEmits<{
 }>();
 
 const code = ref('');
-const inputId = useId();
+const generatedId = useId();
+const inputId = computed(() =>
+    props.idPrefix ? `${props.idPrefix}-promo-code` : generatedId,
+);
+const offersHeadingId = useId();
 
 function submit() {
     const trimmed = code.value.trim();
@@ -89,7 +95,11 @@ function submit() {
             </IconButton>
         </div>
 
-        <form class="flex flex-col gap-2" @submit.prevent="submit">
+        <form
+            class="flex flex-col gap-2"
+            aria-label="Promo code"
+            @submit.prevent="submit"
+        >
             <label :for="inputId" class="text-sm font-medium text-ink">
                 Promo code
             </label>
@@ -105,6 +115,7 @@ function submit() {
                 <Button
                     type="submit"
                     variant="outline"
+                    aria-label="Apply promo code"
                     :loading="isApplying"
                     :disabled="!code.trim()"
                 >
@@ -124,11 +135,12 @@ function submit() {
             class="flex flex-col gap-3 border-t border-border pt-4"
         >
             <p
+                :id="offersHeadingId"
                 class="text-xs font-semibold tracking-wider text-ink-subtle uppercase"
             >
                 Store offers
             </p>
-            <ul class="flex flex-col gap-2">
+            <ul class="flex flex-col gap-2" :aria-labelledby="offersHeadingId">
                 <li
                     v-for="offer in availablePromotions"
                     :key="offer.id"
@@ -182,6 +194,7 @@ function submit() {
                         v-else-if="offer.is_eligible"
                         size="sm"
                         variant="outline"
+                        :aria-label="`Apply offer ${offer.name}`"
                         :disabled="isApplying"
                         @click="emit('apply-offer', offer.id)"
                     >

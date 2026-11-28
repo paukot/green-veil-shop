@@ -35,15 +35,23 @@ const estimatedShipping = computed(() => {
 </script>
 
 <template>
-    <Card padding="lg" class="flex flex-col gap-6">
+    <Card
+        as="section"
+        padding="lg"
+        class="flex flex-col gap-6"
+        aria-labelledby="cart-summary-heading"
+    >
         <div class="flex items-center justify-between gap-4">
-            <h2 class="font-serif text-2xl text-ink">Order summary</h2>
+            <h2 id="cart-summary-heading" class="font-serif text-2xl text-ink">
+                Order summary
+            </h2>
             <Badge
                 >{{ itemCount }} {{ itemCount === 1 ? 'item' : 'items' }}</Badge
             >
         </div>
 
         <PriceBreakdown
+            test-id-prefix="cart"
             :subtotal="subtotal"
             :discount-amount="discountAmount"
             :promo-code="appliedPromotion?.code"
